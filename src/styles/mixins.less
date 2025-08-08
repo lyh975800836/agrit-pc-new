@@ -1,0 +1,106 @@
+// 导入变量
+@import './variables.less';
+
+// Flexbox 混合
+.flex-center() {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between() {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column() {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row() {
+  display: flex;
+  flex-direction: row;
+}
+
+// 文本省略
+.text-ellipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-multiline(@lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: @lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 卡片样式
+.card-style() {
+  background: @card-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  box-shadow: @box-shadow-card;
+  backdrop-filter: blur(10px);
+}
+
+// 渐变背景
+.gradient-background(@start: @primary-color, @end: @secondary-color, @direction: 45deg) {
+  background: linear-gradient(@direction, @start, @end);
+}
+
+// 响应式断点
+.responsive(@breakpoint) when (@breakpoint = xs) {
+  @media (max-width: @screen-xs) {
+    .content();
+  }
+}
+
+.responsive(@breakpoint) when (@breakpoint = sm) {
+  @media (max-width: @screen-sm) {
+    .content();
+  }
+}
+
+.responsive(@breakpoint) when (@breakpoint = md) {
+  @media (max-width: @screen-md) {
+    .content();
+  }
+}
+
+.responsive(@breakpoint) when (@breakpoint = lg) {
+  @media (max-width: @screen-lg) {
+    .content();
+  }
+}
+
+.responsive(@breakpoint) when (@breakpoint = xl) {
+  @media (max-width: @screen-xl) {
+    .content();
+  }
+}
+
+// 动画
+.transition(@property: all, @duration: @animation-duration-base, @timing: ease) {
+  transition: @property @duration @timing;
+}
+
+// 绝对定位居中
+.absolute-center() {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// 清除浮动
+.clearfix() {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+} 

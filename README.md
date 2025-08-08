@@ -1,24 +1,160 @@
-# agrit-pc-new
+# 八角数据驾驶舱
 
-## Project setup
+一个基于Vue 2 + Less的大屏数据可视化项目，用于展示八角种植管护的各项数据指标。
+
+## 项目特点
+
+- 🎨 **现代化设计**: 采用深色主题，适合大屏展示
+- 📱 **响应式布局**: 支持多种屏幕尺寸，自适应显示
+- 🧩 **组件化架构**: 高度模块化，便于维护和扩展
+- 📊 **数据可视化**: 集成ECharts，提供丰富的图表展示
+- 🎯 **TypeScript友好**: 完善的类型定义和代码提示
+- ⚡ **性能优化**: 懒加载、代码分割等优化策略
+
+## 技术栈
+
+- **框架**: Vue 2.6.14
+- **状态管理**: Vuex 3.6.2
+- **路由**: Vue Router 3.5.1
+- **样式**: Less 4.1.1
+- **图表**: ECharts 5.4.0 + Vue-ECharts 6.5.4
+- **构建工具**: Vue CLI 5.0
+- **代码规范**: ESLint + Prettier
+
+## 项目结构
+
 ```
+src/
+├── components/          # 可复用组件
+│   ├── DashboardHeader.vue    # 仪表板头部
+│   ├── MapView.vue           # 地图视图
+│   └── StatisticsCard.vue    # 统计卡片
+├── views/              # 页面组件
+│   └── Dashboard.vue         # 主仪表板
+├── styles/             # 样式文件
+│   ├── variables.less        # Less变量
+│   ├── mixins.less          # Less混合
+│   └── global.less          # 全局样式
+├── store/              # Vuex状态管理
+│   └── index.js
+├── router/             # 路由配置
+│   └── index.js
+├── App.vue             # 根组件
+└── main.js             # 入口文件
+```
+
+## 组件说明
+
+### DashboardHeader
+仪表板头部组件，包含：
+- 实时天气信息
+- 当前时间和日期
+- 项目标题
+- 用户信息
+
+### MapView
+地图视图组件，支持：
+- 区域标记显示
+- 项目点位标注
+- 交互式悬浮提示
+- 点击事件处理
+
+### StatisticsCard
+统计卡片组件，特性：
+- 多种卡片类型（primary、success、warning、danger）
+- 可配置尺寸（small、medium、large）
+- 支持数值变化趋势显示
+- 详细信息列表
+- 图表集成插槽
+
+## 样式系统
+
+### 设计令牌
+- **颜色系统**: 主色调、辅助色、状态色等
+- **字体系统**: 字号、字重、行高等
+- **间距系统**: 统一的间距规范
+- **断点系统**: 响应式断点定义
+
+### Less功能
+- **变量管理**: 统一的设计变量
+- **混合函数**: 常用样式模式封装
+- **响应式工具**: 断点混合函数
+- **工具类**: 通用样式类
+
+## 开发指南
+
+### 安装依赖
+```bash
 npm install
 ```
 
-### Compiles and hot-reloads for development
-```
+### 开发模式
+```bash
 npm run serve
 ```
 
-### Compiles and minifies for production
-```
+### 生产构建
+```bash
 npm run build
 ```
 
-### Lints and fixes files
-```
+### 代码检查
+```bash
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 数据管理
+
+项目使用Vuex进行状态管理，主要包含：
+
+- **用户信息**: 用户名、头像等
+- **天气数据**: 温度、天气描述、图标
+- **统计数据**: 总面积、项目数量、平均价格等
+- **区域数据**: 各区县的面积和占比
+- **项目排名**: 优质产区排行榜
+- **林地质量**: 质量分布数据
+
+## 性能优化
+
+- **图片优化**: 自动压缩和格式转换
+- **代码分割**: 路由级别的懒加载
+- **Tree Shaking**: 移除未使用的代码
+- **缓存策略**: 合理的缓存配置
+- **生产优化**: 移除console、压缩代码
+
+## 浏览器支持
+
+- Chrome >= 60
+- Firefox >= 60
+- Safari >= 12
+- Edge >= 79
+
+## 部署说明
+
+1. 构建生产版本：`npm run build`
+2. 将`dist`目录部署到Web服务器
+3. 配置服务器支持History模式路由
+
+## 维护指南
+
+### 添加新组件
+1. 在`src/components`目录创建组件文件
+2. 使用Less编写样式，导入设计变量
+3. 添加适当的Props验证和默认值
+4. 编写组件文档和使用示例
+
+### 修改样式
+1. 优先使用设计变量和混合函数
+2. 遵循BEM命名规范
+3. 确保响应式适配
+4. 测试不同屏幕尺寸
+
+### 数据更新
+1. 在Vuex store中定义状态和mutations
+2. 使用actions处理异步数据获取
+3. 在组件中使用mapState和mapGetters
+4. 确保数据类型一致性
+
+## 许可证
+
+MIT License
