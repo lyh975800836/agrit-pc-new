@@ -1,6 +1,7 @@
 <template>
   <div class="left-data-panel" :style="{ backgroundImage: `url(${images.leftPanelBg})` }">
-    <div class="title-decoration" :style="{ backgroundImage: `url(${images.titleDecoration})` }"></div>
+    <div class="left-slide" :style="{ backgroundImage: `url(${images.leftSlide})` }"></div>
+    <!-- <div class="title-decoration" :style="{ backgroundImage: `url(${images.titleDecoration})` }"></div> -->
 
     <!-- 标题区域 -->
     <div class="panel-header">
@@ -79,7 +80,7 @@
       </div>
 
       <div class="table-divider" :style="{ backgroundImage: `url(${images.tableDivider})` }"></div>
-
+      
       <div class="table-data">
         <!-- 每一行数据 -->
         <div class="data-row">
@@ -140,7 +141,8 @@ export default {
         priceChartBg: '/images/price-chart-bg.png',
         priceIndicator: '/images/price-indicator.png',
         priceIcon: '/images/price-icon.png',
-        tableDivider: '/images/table-divider.png'
+        tableDivider: '/images/table-divider.png',
+        leftSlide: '/images/left-slide.png'
       }
     }
   },
@@ -165,6 +167,7 @@ export default {
   /* background moved to inline style */
   background-size: 100% 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .title-decoration {
@@ -452,6 +455,19 @@ export default {
 .table-data {
   width: 310px;
   margin: 5px 0 0 10px;
+  position: relative;
+}
+
+.left-slide {
+  position: absolute;
+  right: 0;
+  top: 230px;
+  width: 14px;
+  height: 279px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
 }
 
 .data-row {

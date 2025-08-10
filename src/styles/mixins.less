@@ -40,10 +40,10 @@
 
 // 卡片样式
 .card-style() {
-  background: @card-background;
-  border: 1px solid @border-color;
+  background: @bg-dark-secondary;
+  border: 1px solid @border-primary;
   border-radius: @border-radius-lg;
-  box-shadow: @box-shadow-card;
+  box-shadow: @shadow-md;
   backdrop-filter: blur(10px);
 }
 
@@ -84,7 +84,7 @@
 }
 
 // 动画
-.transition(@property: all, @duration: @animation-duration-base, @timing: ease) {
+.transition(@property: all, @duration: @transition-normal, @timing: ease) {
   transition: @property @duration @timing;
 }
 

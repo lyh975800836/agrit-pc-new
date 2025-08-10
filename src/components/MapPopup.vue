@@ -1,30 +1,30 @@
 <template>
-  <div v-if="visible" class="group_10 flex-col" :style="popupStyle" @click.stop>
+  <div v-if="visible" class="group_10 flex-col" :style="combinedPopupStyle" @click.stop>
     
     <!-- 温度显示区域 section_11 -->
     <div class="section_11 flex-row">
       <img
         class="image_38"
         referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/0a30403c2768cfbd4f2f35556340f2e5"
+        src="/images/popup-temperature-icon.png"
       />
       <span class="text_71">{{ regionData.temperature || '26.8°C' }}</span>
       <img
         class="label_1"
         referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/6305b60c4476786f377583d8188e49b6"
+        src="/images/popup-close-btn.png"
         @click="closePopup"
         style="cursor: pointer;"
       />
     </div>
     
     <!-- 主要内容区域 section_12 -->
-    <div class="section_12 flex-col">
+    <div class="section_12 flex-col" :style="contentBgStyle">
       <span class="text_72">品种&nbsp;｜&nbsp;{{ regionData.variety || '大红八角' }}</span>
       <img
         class="image_39"
         referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/e07286ad21654b6cdc4292f805d655b4"
+        src="/images/popup-divider-1.png"
       />
       
       <!-- 异常果率和预计产量标题 -->
@@ -46,13 +46,13 @@
       <img
         class="image_40"
         referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/3b1f51f8f1f5eecf86e31d790f83790a"
+        src="/images/popup-divider-2.png"
       />
       
       <span class="text_79">Top3&nbsp;地块</span>
       
       <!-- Top3地块列表 -->
-      <div class="box_15 flex-col">
+      <div class="box_15 flex-col" :style="top3BgStyle">
         <div class="group_11 flex-row justify-between" v-if="topPlots[0]">
           <span class="text_80">{{ topPlots[0].name }}</span>
           <div class="text-wrapper_30">
@@ -70,11 +70,11 @@
       </div>
       
       <!-- 底部装饰图片 - 详情按钮 -->
-      <div class="image-wrapper_4 flex-col">
+      <div class="image-wrapper_4 flex-col" :style="bottomBtnBgStyle">
         <img
           class="image_41"
           referrerpolicy="no-referrer"
-          src="https://lanhu-oss-proxy.lanhuapp.com/56a0555eb47039cddd3135fd0ffa5776"
+          src="/images/popup-detail-btn.png"
           @click="goToDetailMap"
           style="cursor: pointer;"
         />
@@ -86,6 +86,14 @@
 <script>
 export default {
   name: 'MapPopup',
+  data() {
+    return {
+      mainBgImage: '/images/popup-main-bg.png',
+      contentBgImage: '/images/popup-content-bg.png',
+      top3BgImage: '/images/popup-top3-bg.png',
+      bottomBtnBgImage: '/images/popup-bottom-btn-bg.png'
+    }
+  },
   props: {
     visible: {
       type: Boolean,
@@ -105,6 +113,42 @@ export default {
     }
   },
   computed: {
+    mainBgStyle() {
+      return {
+        backgroundImage: `url(${this.mainBgImage})`,
+        backgroundPosition: '100%',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '100% 100%'
+      }
+    },
+    
+    contentBgStyle() {
+      return {
+        backgroundImage: `url(${this.contentBgImage})`,
+        backgroundPosition: '100%',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '100% 100%'
+      }
+    },
+    
+    top3BgStyle() {
+      return {
+        backgroundImage: `url(${this.top3BgImage})`,
+        backgroundPosition: '100%',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '100% 100%'
+      }
+    },
+    
+    bottomBtnBgStyle() {
+      return {
+        backgroundImage: `url(${this.bottomBtnBgImage})`,
+        backgroundPosition: '100%',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '100% 100%'
+      }
+    },
+    
     regionData() {
       if (!this.region) return {}
       
@@ -145,6 +189,13 @@ export default {
         zIndex: 9999,
         transform: 'scale(1)',  // 不再缩放
         transformOrigin: 'top left'
+      }
+    },
+    
+    combinedPopupStyle() {
+      return {
+        ...this.popupStyle,
+        ...this.mainBgStyle
       }
     },
     
@@ -239,8 +290,6 @@ export default {
 .group_10 {
   width: 334px;  /* 668 * 0.5 */
   height: 486px; /* 972 * 0.5 */
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/0d5c8d9e94ef6e7d10f4c87673a8c82a) 100% no-repeat;
-  background-size: 100% 100%;
 }
 
 
@@ -281,8 +330,6 @@ export default {
 .section_12 {
   width: 283px;  /* 566 * 0.5 */
   height: 336px; /* 673 * 0.5 */
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/91f4a85dbf9bce660b4a3286b753b295) 100% no-repeat;
-  background-size: 100% 100%;
   margin: 21px 0 37px 22px; /* 43,0,74,44 * 0.5 */
 }
 
@@ -422,8 +469,6 @@ export default {
 
 .box_15 {
   height: 73px;  /* 147 * 0.5 */
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/6c9733fa3f921aef9fd4df9a45f25e48) 100% no-repeat;
-  background-size: 100% 100%;
   width: 237px; /* 474 * 0.5 */
   margin: 10px 0 0 23px; /* 21,0,0,46 * 0.5 */
 }
@@ -540,8 +585,6 @@ export default {
 
 .image-wrapper_4 {
   height: 39px;  /* 78 * 0.5 */
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/2b34b8c7bdff315753aaef157de44f32) 100% no-repeat;
-  background-size: 100% 100%;
   width: 161px; /* 323 * 0.5 */
   margin: 22px 0 6px 61px; /* 44,0,13,122 * 0.5 */
   position: relative;

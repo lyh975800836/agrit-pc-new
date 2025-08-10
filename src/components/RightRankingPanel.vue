@@ -274,7 +274,7 @@ export default {
 .ranking-list {
   position: relative;
   width: 340px;
-  margin: 13px 0 0 -25px;
+  margin: 13px 0 0 -29px;
 }
 
 .ranking-decoration {

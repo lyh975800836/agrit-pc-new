@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-header" :style="{ backgroundImage: `url(${images.headerBackground})` }">
+  <div class="dashboard-header" :style="getHeaderImageStyle('BACKGROUND')">
     <!-- 头部主要内容区域 -->
     <div class="header-main">
       <!-- 左侧：天气、日期、时间 -->
@@ -8,7 +8,7 @@
         <img
           class="weather-icon"
           referrerpolicy="no-referrer"
-          src="/images/weather-icon.png"
+          :src="getImagePath('HEADER', 'WEATHER_ICON')"
           alt="天气图标"
         />
         
@@ -33,17 +33,17 @@
       <!-- 中间：头部装饰图片 - 绝对居中 -->
       <div class="header-center">
         <!-- 主要装饰背景 -->
-        <div class="center-decoration-bg" :style="{ backgroundImage: `url(${images.centerDecorationBg})` }">
+        <div class="center-decoration-bg" :style="getHeaderImageStyle('CENTER_DECORATION_BG')">
           <img
             class="center-decoration-main"
             referrerpolicy="no-referrer"
-            src="/images/center-decoration-main.png"
+            :src="getImagePath('HEADER', 'CENTER_DECORATION_MAIN')"
             alt="中心装饰"
           />
           <img
             class="center-decoration-sub"
             referrerpolicy="no-referrer"
-            src="/images/center-decoration-sub.png"
+            :src="getImagePath('HEADER', 'CENTER_DECORATION_SUB')"
             alt="装饰线条"
           />
         </div>
@@ -55,17 +55,17 @@
         <div 
           v-if="showBackButton" 
           class="nav-button flex-col align-center justify-center" 
-          :style="{ backgroundImage: `url(${images.navButtonBg})` }"
+          :style="getHeaderImageStyle('NAV_BUTTON_BG')"
           @click="$emit('back')"
         >
           <span class="nav-text">返回总览图</span>
         </div>
-        <div v-else class="nav-button flex-col align-center justify-center" :style="{ backgroundImage: `url(${images.navButtonBg})` }">
+        <div v-else class="nav-button flex-col align-center justify-center" :style="getHeaderImageStyle('NAV_BUTTON_BG')">
           <span class="nav-text">八角总览图</span>
         </div>
         
         <!-- 页面标题 -->
-        <div class="page-title flex-col align-center justify-center" :style="{ backgroundImage: `url(${images.pageTitleBg})` }">
+        <div class="page-title flex-col align-center justify-center" :style="getHeaderImageStyle('PAGE_TITLE_BG')">
           <span class="title-text">{{ pageTitle }}</span>
         </div>
         
@@ -73,7 +73,7 @@
         <img
           class="user-avatar"
           referrerpolicy="no-referrer"
-          :src="user.avatar"
+          :src="getImagePath('HEADER', 'USER_AVATAR')"
           alt="用户头像"
         />
         <span class="user-name">{{ user.name }}</span>
@@ -85,7 +85,7 @@
       <img
         class="decoration-image"
         referrerpolicy="no-referrer"
-        src="/images/decoration-line.png"
+        :src="getImagePath('HEADER', 'DECORATION_LINE')"
         alt="装饰线"
       />
     </div>
@@ -94,23 +94,24 @@
     <img
       class="bottom-decoration"
       referrerpolicy="no-referrer"
-      src="/images/bottom-decoration.png"
+      :src="getImagePath('HEADER', 'BOTTOM_DECORATION')"
       alt="底部装饰"
     />
   </div>
 </template>
 
 <script>
+import imageMixin from '@/mixins/imageMixin'
+
 export default {
   name: 'DashboardHeader',
+  mixins: [imageMixin],
   data() {
     return {
-      images: {
-        headerBackground: '/images/header-background.png',
-        centerDecorationBg: '/images/center-decoration-bg.png',
-        navButtonBg: '/images/nav-button-bg.png',
-        pageTitleBg: '/images/page-title-bg.png'
-      }
+      currentTime: '',
+      currentDate: '',
+      weekday: '',
+      timeTimer: null
     }
   },
   props: {
@@ -131,26 +132,44 @@ export default {
       default: '数据驾驶舱'
     }
   },
-  computed: {
-    currentTime() {
+  mounted() {
+    // 组件挂载时初始化时间显示
+    this.updateTime()
+    // 启动定时器，每秒1秒更新时间
+    this.timeTimer = setInterval(() => {
+      this.updateTime()
+    }, 1000)
+  },
+  
+  beforeDestroy() {
+    // 组件销毁时清除定时器
+    if (this.timeTimer) {
+      clearInterval(this.timeTimer)
+      this.timeTimer = null
+    }
+  },
+  
+  methods: {
+    updateTime() {
       const now = new Date()
-      return now.toLocaleTimeString('zh-CN', { 
+      
+      // 更新时间
+      this.currentTime = now.toLocaleTimeString('zh-CN', { 
         hour: '2-digit', 
         minute: '2-digit',
         hour12: false 
       })
-    },
-    currentDate() {
-      const now = new Date()
-      return now.toLocaleDateString('zh-CN', {
+      
+      // 更新日期
+      this.currentDate = now.toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
       }).replace(/\//g, '年').replace(/年(\d+)年/, '年$1月') + '日'
-    },
-    weekday() {
+      
+      // 更新星期
       const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-      return days[new Date().getDay()]
+      this.weekday = days[now.getDay()]
     }
   }
 }
@@ -163,7 +182,7 @@ export default {
   width: 100%;
   height: 157px;
   /* background moved to inline style */
-  background-size: contain;
+  background-size: 100% 100%;
   position: relative;
   padding: 0 3%;
   box-sizing: border-box;

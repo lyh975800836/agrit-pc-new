@@ -160,7 +160,7 @@ button:active {
 @screen-xl: 3840px;
 
 // 主题颜色变量
-@primary-color: rgba(76, 253, 235, 1);
+// 移除重复定义，使用variables.less中的变量
 @secondary-color: rgba(8, 196, 182, 1);
 @accent-color: rgba(121, 219, 207, 1);
 @text-color: rgba(76, 253, 235, 1);
@@ -172,11 +172,11 @@ button:active {
 
 // 文本样式类
 .text-primary {
-  color: @primary-color;
+  color: @primary-cyan;
 }
 
 .text-secondary {
-  color: @text-color-secondary;
+  color: @text-secondary;
 }
 
 .text-ellipsis {
@@ -189,7 +189,7 @@ button:active {
 }
 
 .font-sm {
-  font-size: @font-size-base;
+  font-size: @font-size-sm;
 }
 
 .font-md {
@@ -205,11 +205,11 @@ button:active {
 }
 
 .font-title {
-  font-size: @font-size-title;
+  font-size: @font-size-xxl;
 }
 
 .font-display {
-  font-size: @font-size-display;
+  font-size: @font-size-5xl;
 }
 
 // 间距类
@@ -302,10 +302,10 @@ button:active {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: @primary-color;
+  background: @primary-cyan;
   border-radius: 3px;
   
   &:hover {
-    background: lighten(@primary-color, 10%);
+    background: lighten(@primary-cyan, 10%);
   }
 } 

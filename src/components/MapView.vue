@@ -220,16 +220,6 @@ export default {
     
     // 处理区域点击 - 修复弹窗定位问题
     handleRegionClick(region, event) {
-      console.log('=== 鼠标点击调试信息 ===')
-      console.log('点击的区域:', region.properties.name)
-      console.log('原始事件坐标 (clientX, clientY):', event.clientX, event.clientY)
-      console.log('原始事件坐标 (pageX, pageY):', event.pageX, event.pageY)
-      console.log('原始事件坐标 (screenX, screenY):', event.screenX, event.screenY)
-      console.log('原始事件坐标 (offsetX, offsetY):', event.offsetX, event.offsetY)
-      
-      // 获取当前视口信息
-      console.log('浏览器视口尺寸:', window.innerWidth, 'x', window.innerHeight)
-      console.log('页面滚动位置:', window.scrollX, window.scrollY)
       
       this.selectedRegionData = region
       this.selectedRegionHasProjects = this.hasProjects(region)
@@ -238,35 +228,22 @@ export default {
       const popupX = event.clientX + 10 // 稍微右偏移避免遮挡鼠标
       const popupY = event.clientY - 50 // 向上偏移避免遮挡点击位置
       
-      console.log('计算的弹窗位置:', { x: popupX, y: popupY })
       
       this.popupPosition = {
         x: popupX,
         y: popupY
       }
       
-      console.log('设置到 popupPosition:', this.popupPosition)
       
       this.showPopup = true
-      console.log('弹窗显示状态 showPopup:', this.showPopup)
       
       // 延迟检查弹窗实际位置
       this.$nextTick(() => {
         const popupElement = document.querySelector('.group_10')
         if (popupElement) {
-          const rect = popupElement.getBoundingClientRect()
-          console.log('弹窗实际DOM位置:', {
-            left: rect.left,
-            top: rect.top,
-            right: rect.right,
-            bottom: rect.bottom
-          })
-          console.log('弹窗CSS样式:', window.getComputedStyle(popupElement).left, window.getComputedStyle(popupElement).top)
-          
           // 手动将弹窗移动到body下避免变换影响
           if (popupElement.parentNode !== document.body) {
             document.body.appendChild(popupElement)
-            console.log('已将弹窗移动到body下')
           }
         }
       })

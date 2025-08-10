@@ -192,7 +192,6 @@ export default {
       // 添加自定义指北针
       this.addCompass()
       
-      console.log('地图初始化完成')
     },
 
     // 添加指北针
@@ -215,7 +214,6 @@ export default {
 
     async loadRegionData() {
       try {
-        console.log('开始加载区域数据，区域名称:', this.regionName)
         this.loadingText = '正在加载地块数据...'
         
         // 清除现有图层
@@ -241,10 +239,8 @@ export default {
                  (this.regionName === '田东县' && (extPath.includes('田东') || name.includes('田东')))
         })
         
-        console.log(`为${this.regionName}找到${regionFeatures.length}个地块`)
         
         if (regionFeatures.length > 0) {
-          console.log(`找到${regionFeatures.length}个地块，开始处理...`)
           
           // 过滤掉无效的地块
           const validFeatures = regionFeatures.filter(f => {
@@ -252,21 +248,18 @@ export default {
             return coords && Array.isArray(coords) && coords.length > 0
           })
           
-          console.log(`有效地块数量: ${validFeatures.length}`)
           
           // 显示全部地块
           let selectedFeatures = validFeatures.map(f => ({
             ...f,
             area: this.calculatePolygonArea(f.geometry.coordinates)
           }))
-          console.log(`将显示全部${selectedFeatures.length}个地块`)
             
           // 分批添加地块到地图，避免一次性加载过多导致卡顿
           this.addPlotsProgressively(selectedFeatures)
           
           // 分批加载会自动调整视野，无需在这里重复调用
         } else {
-          console.log('未找到匹配的地块，使用默认区域')
           this.createDefaultPlots()
         }
         
@@ -286,7 +279,6 @@ export default {
 
     // 分批添加地块到地图
     async addPlotsProgressively(features) {
-      console.log('开始分批添加地块到地图，总数量:', features.length)
       const batchSize = 20 // 每批处理20个地块
       const totalBatches = Math.ceil(features.length / batchSize)
       
@@ -312,10 +304,8 @@ export default {
 
     // 添加地块到地图
     addPlotsToMap(features) {
-      console.log('添加地块批次到地图，数量:', features.length)
       
       features.forEach((feature, index) => {
-        console.log(`处理地块 ${index + 1}/${features.length}:`, feature.properties?.name)
         
         const plotName = feature.properties?.name || `${this.regionName}地块${index + 1}`
         const area = (feature.area || this.calculatePolygonArea(feature.geometry.coordinates)).toFixed(1)
@@ -349,7 +339,6 @@ export default {
         try {
           // 创建多边形
           const polygon = L.polygon(coordinates, plotStyle)
-          console.log(`地块 ${plotName} 多边形创建成功，坐标点数:`, coordinates.length)
         
           // 添加点击事件
           polygon.on('click', () => {
@@ -385,7 +374,6 @@ export default {
           // 保存地块数据
           this.regionPlots.push(plotData)
           
-          console.log(`地块 ${plotName} 添加成功`)
         } catch (error) {
           console.error(`添加地块 ${plotName} 失败:`, error)
         }
@@ -394,8 +382,6 @@ export default {
 
     // 转换GeoJSON坐标为Leaflet格式
     convertGeoJsonCoordinates(coords) {
-      console.log('转换坐标前:', coords)
-      console.log('坐标类型检查:', typeof coords, Array.isArray(coords))
       
       // GeoJSON Polygon: [[[lng,lat], [lng,lat], ...]]
       // Leaflet需要: [[lat,lng], [lat,lng], ...]
@@ -407,56 +393,39 @@ export default {
           return []
         }
         
-        // 深度检查坐标结构
-        console.log('第一层数组长度:', coords.length)
-        if (coords[0]) {
-          console.log('第二层数组检查:', Array.isArray(coords[0]), coords[0].length)
-          if (coords[0][0]) {
-            console.log('第三层数组检查:', Array.isArray(coords[0][0]), coords[0][0].length)
-            if (coords[0][0][0]) {
-              console.log('第四层检查:', Array.isArray(coords[0][0][0]))
-            }
-          }
-        }
+        // 深度检查坐标结构 - 验证嵌套数组结构
         
         // 处理标准Polygon格式: [[[lng,lat], [lng,lat], ...]]
         if (coords[0] && Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && !Array.isArray(coords[0][0][0])) {
-          console.log('处理标准Polygon格式')
           leafletCoords = coords[0]
             .filter(coord => Array.isArray(coord) && coord.length >= 2)
-            .map((coord, index) => {
+            .map((coord) => {
               const converted = [parseFloat(coord[1]), parseFloat(coord[0])] // 交换lng,lat为lat,lng
-              if (index < 5) console.log(`坐标${index}转换: [${coord[0]}, ${coord[1]}] -> [${converted[0]}, ${converted[1]}]`)
               return converted
             })
             .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1])) // 过滤NaN值
         }
         // 处理MultiPolygon或更深层嵌套: [[[[lng,lat], ...]]]
         else if (coords[0] && Array.isArray(coords[0]) && Array.isArray(coords[0][0]) && Array.isArray(coords[0][0][0])) {
-          console.log('处理MultiPolygon格式')
           leafletCoords = coords[0][0]
             .filter(coord => Array.isArray(coord) && coord.length >= 2)
-            .map((coord, index) => {
+            .map((coord) => {
               const converted = [parseFloat(coord[1]), parseFloat(coord[0])]
-              if (index < 5) console.log(`坐标${index}转换: [${coord[0]}, ${coord[1]}] -> [${converted[0]}, ${converted[1]}]`)
               return converted
             })
             .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]))
         }
         // 处理直接的坐标数组格式: [[lng,lat], [lng,lat], ...]
         else if (coords[0] && Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
-          console.log('处理直接坐标数组格式')
           leafletCoords = coords
             .filter(coord => Array.isArray(coord) && coord.length >= 2)
-            .map((coord, index) => {
+            .map((coord) => {
               const converted = [parseFloat(coord[1]), parseFloat(coord[0])]
-              if (index < 5) console.log(`坐标${index}转换: [${coord[0]}, ${coord[1]}] -> [${converted[0]}, ${converted[1]}]`)
               return converted
             })
             .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]))
         }
         
-        console.log('转换坐标后:', leafletCoords.slice(0, 3), '...(共', leafletCoords.length, '个点)')
         
         // 验证坐标范围是否合理（中国境内）
         const validCoords = leafletCoords.filter(coord => {
@@ -469,7 +438,6 @@ export default {
           console.warn(`过滤了${leafletCoords.length - validCoords.length}个超出中国范围的坐标点`)
         }
         
-        console.log('最终有效坐标数量:', validCoords.length)
         return validCoords
         
       } catch (error) {
@@ -481,15 +449,12 @@ export default {
     // 调整地图视野
     fitMapToPlots(features) {
       if (features.length === 0) {
-        console.log('没有地块数据，使用默认视野')
         return
       }
       
       try {
-        console.log('调整地图视野，地块图层数量:', this.plotLayers.length)
         
         if (this.plotLayers.length === 0) {
-          console.log('没有添加到地图的图层，使用区域中心')
           const center = this.regionCoordinates[this.regionName] || [23.9, 106.6]
           this.map.setView(center, 12)
           return
@@ -499,28 +464,20 @@ export default {
         const group = new L.featureGroup(this.plotLayers)
         const bounds = group.getBounds()
         
-        console.log('地块边界:', bounds)
-        console.log('边界有效性:', bounds.isValid())
         
         // 检查边界是否有效
         if (bounds.isValid()) {
-          // 计算边界中心点
-          const center = bounds.getCenter()
-          console.log('边界中心点:', center)
-          
           this.map.fitBounds(bounds, {
             padding: [30, 30], // 减小边距
             maxZoom: 16 // 稍微提高最大缩放级别
           })
-          console.log('地图视野调整成功')
         } else {
-          console.log('边界无效，尝试手动计算边界')
           
           // 手动计算所有地块的边界
           let minLat = Infinity, maxLat = -Infinity
           let minLng = Infinity, maxLng = -Infinity
           
-          this.plotLayers.forEach((layer, index) => {
+          this.plotLayers.forEach((layer) => {
             try {
               const layerBounds = layer.getBounds()
               if (layerBounds.isValid()) {
@@ -532,20 +489,16 @@ export default {
                 minLng = Math.min(minLng, sw.lng)
                 maxLng = Math.max(maxLng, ne.lng)
                 
-                console.log(`图层${index}边界: [${sw.lat}, ${sw.lng}] 到 [${ne.lat}, ${ne.lng}]`)
               }
             } catch (e) {
-              console.warn(`获取图层${index}边界失败:`, e)
+              console.warn('获取图层边界失败:', e)
             }
           })
           
           if (minLat !== Infinity && maxLat !== -Infinity) {
             const manualBounds = L.latLngBounds([minLat, minLng], [maxLat, maxLng])
-            console.log('手动计算的边界:', manualBounds)
             this.map.fitBounds(manualBounds, { padding: [30, 30], maxZoom: 16 })
-            console.log('使用手动计算边界调整成功')
           } else {
-            console.log('无法计算有效边界，使用区域中心')
             const center = this.regionCoordinates[this.regionName] || [23.9, 106.6]
             this.map.setView(center, 12)
           }
@@ -608,7 +561,6 @@ export default {
     // 选择地块
     selectPlot(plotData) {
       this.selectedPlot = plotData
-      console.log('选中地块:', plotData.name)
     },
 
     // 关闭信息面板

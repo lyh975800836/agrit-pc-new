@@ -1,52 +1,248 @@
-// 颜色系统
-@primary-color: #08c4b6;
-@secondary-color: #00d4ff;
-@success-color: #52c41a;
-@warning-color: #faad14;
-@error-color: #f5222d;
-@text-color: #ffffff;
-@text-color-secondary: rgba(255, 255, 255, 0.65);
-@background-color: #000000;
-@card-background: rgba(255, 255, 255, 0.05);
-@border-color: rgba(255, 255, 255, 0.1);
+/**
+ * CSS变量定义 - 统一项目样式变量
+ */
 
-// 字体系统
-@font-family-base: 'PingFangSC-Regular', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Tahoma', 'Arial', 'PingFang SC-Light', 'Microsoft YaHei';
-@font-size-xs: 12px;
-@font-size-sm: 14px;
-@font-size-base: 14px;
+// ========== 颜色变量 ==========
+
+// 主要颜色
+@primary-cyan: rgba(76, 253, 235, 1);        // #4CFDEB - 主要青色
+@primary-cyan-secondary: rgba(8, 196, 182, 1); // #08C4B6 - 次要青色
+@primary-cyan-light: rgba(121, 219, 207, 1);   // #79DBCF - 浅青色
+
+// 高亮颜色
+@highlight-yellow: rgba(255, 215, 0, 1);     // #FFD700 - 金黄色
+@highlight-orange: rgba(255, 165, 0, 1);     // #FFA500 - 橙色
+@highlight-red: rgba(255, 68, 68, 1);        // #FF4444 - 红色
+
+// 背景颜色
+@bg-dark-primary: rgba(10, 20, 32, 1);       // #0A1420 - 主背景色
+@bg-dark-secondary: rgba(0, 30, 60, 0.9);    // rgba(0, 30, 60, 0.9) - 次要背景色
+@bg-dark-transparent: rgba(0, 0, 0, 0.7);    // 半透明黑色
+
+// 文本颜色
+@text-primary: rgba(255, 255, 255, 1);       // #FFFFFF - 主要文本
+@text-secondary: rgba(0, 255, 242, 1);       // #00FFF2 - 次要文本
+@text-accent: rgba(87, 144, 66, 1);          // #579042 - 强调文本
+
+// 边框颜色
+@border-primary: @primary-cyan;
+@border-secondary: rgba(76, 253, 235, 0.5);
+
+// ========== 字体变量 ==========
+
+// 字体家族
+@font-family-primary: 'SourceHanSansCN-Regular', 'Microsoft YaHei', Arial, sans-serif;
+@font-family-light: 'SourceHanSansCN-Light', 'Microsoft YaHei', Arial, sans-serif;
+@font-family-medium: 'SourceHanSansCN-Medium', 'Microsoft YaHei', Arial, sans-serif;
+@font-family-bold: 'SourceHanSansCN-Bold', 'Microsoft YaHei', Arial, sans-serif;
+@font-family-number: 'BebasNeueRegular', Arial, sans-serif;
+@font-family-din: 'DINCondensed-Bold', Arial, sans-serif;
+
+// 字体大小
+@font-size-xs: 10px;
+@font-size-sm: 12px;
+@font-size-md: 14px;
 @font-size-lg: 16px;
 @font-size-xl: 18px;
-@font-size-xxl: 24px;
-@font-size-title: 32px;
-@font-size-display: 52px;
+@font-size-xxl: 20px;
+@font-size-3xl: 24px;
+@font-size-4xl: 32px;
+@font-size-5xl: 46px;
 
-// 间距系统
-@spacing-xs: 4px;
-@spacing-sm: 8px;
-@spacing-md: 16px;
-@spacing-lg: 24px;
-@spacing-xl: 32px;
-@spacing-xxl: 48px;
+// 行高
+@line-height-tight: 1;
+@line-height-normal: 1.2;
+@line-height-relaxed: 1.5;
 
-// 断点系统
-@screen-xs: 480px;
-@screen-sm: 768px;
-@screen-md: 992px;
-@screen-lg: 1200px;
-@screen-xl: 1920px;
-@screen-xxl: 3840px;
+// 字体粗细
+@font-weight-light: 300;
+@font-weight-normal: normal;
+@font-weight-medium: 500;
+@font-weight-bold: 700;
 
-// 阴影系统
-@box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15);
-@box-shadow-card: 0 4px 12px rgba(0, 0, 0, 0.25);
+// ========== 尺寸变量 ==========
 
-// 边框圆角
-@border-radius-base: 4px;
+// 间距
+@spacing-xs: 2px;
+@spacing-sm: 4px;
+@spacing-md: 8px;
+@spacing-lg: 12px;
+@spacing-xl: 16px;
+@spacing-xxl: 20px;
+@spacing-3xl: 24px;
+@spacing-4xl: 32px;
+
+// 圆角
+@border-radius-sm: 3px;
+@border-radius-md: 5px;
 @border-radius-lg: 8px;
-@border-radius-xl: 12px;
+@border-radius-xl: 10px;
 
-// 动画
-@animation-duration-slow: 0.3s;
-@animation-duration-base: 0.2s;
-@animation-duration-fast: 0.1s; 
+// 阴影
+@shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+@shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+@shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+// 层级
+@z-index-dropdown: 10;
+@z-index-modal: 100;
+@z-index-tooltip: 1000;
+@z-index-popup: 9999;
+
+// ========== 布局变量 ==========
+
+// 容器宽度
+@container-sm: 375px;
+@container-md: 768px;
+@container-lg: 1024px;
+@container-xl: 1200px;
+
+// 面板尺寸 (基于原始设计)
+@panel-width: 375px;
+@panel-height: 734px;
+
+// Header尺寸
+@header-height: 120px;
+
+// ========== 动画变量 ==========
+
+// 过渡时间
+@transition-fast: 0.15s;
+@transition-normal: 0.3s;
+@transition-slow: 0.5s;
+
+// 缓动函数
+@ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+@ease-out: cubic-bezier(0, 0, 0.2, 1);
+@ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+// ========== 渐变变量 ==========
+
+@gradient-primary: linear-gradient(135deg, @primary-cyan 0%, @primary-cyan-secondary 100%);
+@gradient-secondary: linear-gradient(135deg, @highlight-yellow 0%, @highlight-orange 100%);
+
+// ========== 背景样式 Mixins ==========
+
+// 标准背景图片样式
+.background-image-mixin() {
+  background-position: 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+// Contain背景图片样式
+.background-image-contain() {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+// Cover背景图片样式
+.background-image-cover() {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+// ========== Flex布局 Mixins ==========
+
+.flex-center() {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-column() {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row() {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-between() {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// ========== 文本样式 Mixins ==========
+
+.text-primary() {
+  color: @text-primary;
+  font-family: @font-family-primary;
+}
+
+.text-accent() {
+  color: @primary-cyan;
+  font-family: @font-family-primary;
+}
+
+.text-number() {
+  font-family: @font-family-number;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+}
+
+// ========== 按钮样式 Mixins ==========
+
+.button-primary() {
+  background: @gradient-primary;
+  color: @text-primary;
+  border: 1px solid @border-primary;
+  border-radius: @border-radius-md;
+  cursor: pointer;
+  transition: all @transition-normal @ease-in-out;
+  
+  &:hover {
+    background: @primary-cyan-light;
+    transform: translateY(-1px);
+  }
+}
+
+// ========== 卡片样式 Mixins ==========
+
+.card-primary() {
+  background: @bg-dark-secondary;
+  border: 1px solid @border-primary;
+  border-radius: @border-radius-lg;
+  backdrop-filter: blur(10px);
+}
+
+// ========== 响应式断点 ==========
+
+@breakpoint-sm: ~"(max-width: 576px)";
+@breakpoint-md: ~"(max-width: 768px)";
+@breakpoint-lg: ~"(max-width: 992px)";
+@breakpoint-xl: ~"(max-width: 1200px)";
+
+// ========== 导出CSS变量 (用于JS访问) ==========
+
+:root {
+  // 颜色
+  --primary-cyan: @primary-cyan;
+  --primary-cyan-secondary: @primary-cyan-secondary;
+  --primary-cyan-light: @primary-cyan-light;
+  --highlight-yellow: @highlight-yellow;
+  --text-primary: @text-primary;
+  --bg-dark-primary: @bg-dark-primary;
+  --bg-dark-secondary: @bg-dark-secondary;
+  
+  // 字体
+  --font-family-primary: @font-family-primary;
+  --font-family-number: @font-family-number;
+  
+  // 尺寸
+  --panel-width: @panel-width;
+  --panel-height: @panel-height;
+  --header-height: @header-height;
+  
+  // 间距
+  --spacing-md: @spacing-md;
+  --spacing-lg: @spacing-lg;
+  --spacing-xl: @spacing-xl;
+}

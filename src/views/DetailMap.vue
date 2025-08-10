@@ -102,9 +102,7 @@ export default {
     }
   },
   mounted() {
-    console.log('DetailMap mounted')
     this.regionName = this.$route.params.region || '右江区'
-    console.log('Region name:', this.regionName)
     
     // 启动定时器更新时间
     this.timeInterval = setInterval(() => {
