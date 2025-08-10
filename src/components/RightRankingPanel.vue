@@ -1,187 +1,110 @@
 <template>
-  <div class="group_15">
+  <div class="right-ranking-panel" :style="{ backgroundImage: `url(${images.rankingPanelBg})` }">
     <!-- 排名标题 -->
-    <div class="box_8 flex-row">
-      <div class="section_6 flex-col">
-        <span class="text_45">{{ titlePrefix }}产量排名</span>
-        <img
-          class="image_25"
-          referrerpolicy="no-referrer"
-          src="https://lanhu-oss-proxy.lanhuapp.com/75260bd23d40da1e119910ffa77ebdb9"
-        />
+    <div class="ranking-headers flex-row">
+      <div class="header-section production-ranking flex-col" :style="{ backgroundImage: `url(${images.productionRankingHeader})` }">
+        <span class="header-title">{{ titlePrefix }}产量排名</span>
+        <div class="header-underline" :style="{ backgroundImage: `url(${images.productionUnderline})` }"></div>
       </div>
-      <div class="section_7 flex-col">
-        <span class="text_46">专业队排名</span>
-        <img
-          class="image_26"
-          referrerpolicy="no-referrer"
-          src="https://lanhu-oss-proxy.lanhuapp.com/ce1dbcf18c01cf3c974f871c464a1017"
-        />
+      <div class="header-section team-ranking flex-col" :style="{ backgroundImage: `url(${images.teamRankingHeader})` }">
+        <span class="header-title">专业队排名</span>
+        <div class="header-underline" :style="{ backgroundImage: `url(${images.teamUnderline})` }"></div>
       </div>
     </div>
 
     <!-- Top5标题 -->
-    <div class="text-wrapper_19">
-      <span class="text_47">Top5&nbsp;{{ itemType }}&nbsp;</span>
-      <span class="text_48">｜&nbsp;&nbsp;{{ subTitle }}</span>
+    <div class="top5-title">
+      <span class="main-title">Top5&nbsp;{{ itemType }}&nbsp;</span>
+      <span class="sub-title">｜&nbsp;&nbsp;{{ subTitle }}</span>
     </div>
 
     <!-- 分隔线 -->
-    <img
-      class="image_27"
-      referrerpolicy="no-referrer"
-      src="https://lanhu-oss-proxy.lanhuapp.com/777b95a97dc470f520a204fca6730182"
-    />
+    <div class="section-divider" :style="{ backgroundImage: `url(${images.sectionDivider})` }"></div>
 
     <!-- 排名列表 -->
-    <div class="box_9 flex-row justify-between">
-      <img
-        class="image_28"
-        referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/880fc3f34c247efe0a4a2042db0ed358"
-      />
-      <div class="group_16 flex-col">
-        <!-- 排名项目1 -->
-        <div class="box_10 flex-row">
-          <img
-            class="image_29"
-            referrerpolicy="no-referrer"
-            src="https://lanhu-oss-proxy.lanhuapp.com/52bf36ad5e30ea17b9112caef8c27c87"
-          />
-          <div class="section_8 flex-col justify-between">
-            <div class="block_1 flex-col">
-              <span class="text_49">负责人：{{ rankingData[0].manager }}</span>
-              <img
-                class="image_30"
-                referrerpolicy="no-referrer"
-                src="https://lanhu-oss-proxy.lanhuapp.com/3f609849f513c28624a3219135e612db"
-              />
+    <div class="ranking-list">
+      <div class="ranking-decoration" :style="{ backgroundImage: `url(${images.rankingDecoration})` }"></div>
+      <div class="ranking-items">
+        <!-- 排名项目 -->
+        <div 
+          v-for="(item, index) in rankingData.slice(0, 3)" 
+          :key="index"
+          :class="['ranking-item', getRankClass(index)]"
+          :style="{ backgroundImage: `url(${getPlaceBgImage(index)})` }">
+          <div :class="['rank-icon', getRankClass(index)]" :style="{ backgroundImage: `url(${getPlaceIconImage(index)})` }"></div>
+          <div class="item-content">
+            <div class="manager-info" :style="{ backgroundImage: `url(${getManagerBgImage(index)})` }">
+              <span class="manager-name">负责人：{{ item.manager }}</span>
             </div>
-            <div class="block_2 flex-row justify-between">
-              <div class="text-group_4 flex-col justify-between">
-                <div class="text-wrapper_20">
-                  <span class="paragraph_6">{{ rankingData[0].location }}<br /></span>
-                  <span class="text_50">{{ rankingData[0].area }}</span>
-                  <span class="text_51">亩</span>
+            <div class="location-info">
+              <div class="location-text">
+                <span class="location-name">{{ item.location }}</span>
+                <div class="area-info">
+                  <span class="area-number">{{ item.area }}</span>
+                  <span class="area-unit">亩</span>
                 </div>
-                <span class="text_52">{{ rankingData[0].district }}</span>
               </div>
-              <div class="text-wrapper_21 flex-col justify-between">
-                <span class="text_53 number-display number-medium">{{ rankingData[0].yield }}</span>
-                <span class="text_54">斤/亩</span>
-              </div>
+              <span class="district-name">{{ item.district }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- 排名项目2 -->
-        <div class="box_11 flex-row">
-          <img
-            class="image_31"
-            referrerpolicy="no-referrer"
-            src="https://lanhu-oss-proxy.lanhuapp.com/b7e8db7f31322989f319ca7f44a1234c"
-          />
-          <div class="group_17 flex-col justify-between">
-            <div class="group_18 flex-col">
-              <span class="text_55">负责人：{{ rankingData[1].manager }}</span>
-              <img
-                class="image_32"
-                referrerpolicy="no-referrer"
-                src="https://lanhu-oss-proxy.lanhuapp.com/16eb9b68b7bc235cbd6ea3203fbf60b3"
-              />
-            </div>
-            <div class="group_19 flex-row justify-between">
-              <div class="text-group_5 flex-col justify-between">
-                <div class="text-wrapper_22">
-                  <span class="paragraph_7">{{ rankingData[1].location }}<br /></span>
-                  <span class="text_56">{{ rankingData[1].area }}</span>
-                  <span class="text_57">亩</span>
-                </div>
-                <span class="text_58">{{ rankingData[1].district }}</span>
-              </div>
-              <div class="text-wrapper_23 flex-col justify-between">
-                <span class="text_59 number-display number-medium">{{ rankingData[1].yield }}</span>
-                <span class="text_60">斤/亩</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 排名项目3 -->
-        <div class="box_12 flex-row">
-          <img
-            class="image_33"
-            referrerpolicy="no-referrer"
-            src="https://lanhu-oss-proxy.lanhuapp.com/a45c100031ad5c87dd145f1905d318a3"
-          />
-          <div class="box_13 flex-col justify-between">
-            <div class="box_14 flex-col">
-              <span class="text_61">负责人：{{ rankingData[2].manager }}</span>
-              <img
-                class="image_34"
-                referrerpolicy="no-referrer"
-                src="https://lanhu-oss-proxy.lanhuapp.com/d9d1515572da9e73e26aef4d07343ea5"
-              />
-            </div>
-            <div class="box_15 flex-row justify-between">
-              <div class="text-group_6 flex-col justify-between">
-                <div class="text-wrapper_24">
-                  <span class="paragraph_8">{{ rankingData[2].location }}<br /></span>
-                  <span class="text_62">{{ rankingData[2].area }}</span>
-                  <span class="text_63">亩</span>
-                </div>
-                <span class="text_64">{{ rankingData[2].district }}</span>
-              </div>
-              <div class="text-wrapper_25 flex-col justify-between">
-                <span class="text_65 number-display number-medium">{{ rankingData[2].yield }}</span>
-                <span class="text_66">斤/亩</span>
-              </div>
-            </div>
+          <div class="yield-info">
+            <span class="yield-number">{{ item.yield }}</span>
+            <span class="yield-unit">斤/亩</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 林地质量类别 -->
-    <div class="box_16 flex-row justify-between">
-      <span class="text_67">林地质量类别</span>
-      <img
-        class="image_35"
-        referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/d186bc884f6d13dcee5c02d00597d9bf"
-      />
-    </div>
-
-    <!-- 质量分隔线 -->
-    <img
-      class="image_36"
-      referrerpolicy="no-referrer"
-      src="https://lanhu-oss-proxy.lanhuapp.com/60709f28201d6e80f2451d9319961265"
-    />
-
-    <!-- 质量百分比 -->
-    <div class="box_17 flex-row">
-      <div class="text-wrapper_26 flex-col">
-        <span class="text_68 number-display">{{ qualityData.good }}</span>
+    <div class="quality-section">
+      <!-- 标题区域 -->
+      <div class="quality-header">
+        <span class="section-title">林地质量类别</span>
+        <div class="quality-icon" :style="{ backgroundImage: `url(${images.qualityIcon})` }"></div>
       </div>
-      <div class="text-wrapper_27 flex-col">
-        <span class="text_69 number-display">{{ qualityData.average }}</span>
+      
+      <!-- 分隔线 -->
+      <div class="quality-divider" :style="{ backgroundImage: `url(${images.qualityDivider})` }"></div>
+      
+      <!-- 质量数据展示 -->
+      <div class="quality-data">
+        <div class="quality-item" v-for="(item, index) in qualityItems" :key="index" :class="item.type">
+          <div class="percentage-display" :style="{ backgroundImage: `url(${getQualityBgImage(item.type)})` }">
+            <span class="percentage-number">{{ item.value }}</span>
+          </div>
+          <span class="quality-label">{{ item.label }}</span>
+        </div>
       </div>
-      <div class="text-wrapper_28 flex-col">
-        <span class="text_70 number-display">{{ qualityData.poor }}</span>
-      </div>
-    </div>
-
-    <!-- 质量标签 -->
-    <div class="text-wrapper_29 flex-row justify-between">
-      <span class="text_71">良好</span>
-      <span class="text_72">一般</span>
-      <span class="text_73">较差</span>
     </div>
   </div>
 </template>
 
 <script>
+// 直接使用公共路径的图片
+const images = {
+  rankingPanelBg: '/images/ranking-panel-bg.png',
+  productionRankingHeader: '/images/production-ranking-header.png',
+  teamRankingHeader: '/images/team-ranking-header.png',
+  productionUnderline: '/images/production-underline.png',
+  teamUnderline: '/images/team-underline.png',
+  sectionDivider: '/images/section-divider.png',
+  rankingDecoration: '/images/ranking-decoration.png',
+  firstPlaceBg: '/images/first-place-bg.png',
+  secondPlaceBg: '/images/second-place-bg.png',
+  thirdPlaceBg: '/images/third-place-bg.png',
+  firstPlaceIcon: '/images/first-place-icon.png',
+  secondPlaceIcon: '/images/second-place-icon.png',
+  thirdPlaceIcon: '/images/third-place-icon.png',
+  firstManagerBg: '/images/first-manager-bg.png',
+  secondManagerBg: '/images/second-manager-bg.png',
+  thirdManagerBg: '/images/third-manager-bg.png',
+  qualityIcon: '/images/quality-icon.png',
+  qualityDivider: '/images/quality-divider.png',
+  qualityGood: '/images/quality-good.png',
+  qualityAverage: '/images/quality-average.png',
+  qualityPoor: '/images/quality-poor.png'
+}
+
 export default {
   name: 'RightRankingPanel',
   props: {
@@ -198,6 +121,11 @@ export default {
       required: true
     }
   },
+  data() {
+    return {
+      images
+    }
+  },
   computed: {
     titlePrefix() {
       return this.regionName === '百色市' ? '八角基地' : this.regionName
@@ -207,11 +135,460 @@ export default {
     },
     subTitle() {
       return this.regionName === '百色市' ? '优质产区排行榜' : `${this.regionName}优质地块排行榜`
+    },
+    qualityItems() {
+      return [
+        { type: 'good', value: this.qualityData.good, label: '良好' },
+        { type: 'average', value: this.qualityData.average, label: '一般' },
+        { type: 'poor', value: this.qualityData.poor, label: '较差' }
+      ]
+    }
+  },
+  methods: {
+    getRankClass(index) {
+      const ranks = ['first', 'second', 'third']
+      return ranks[index] || 'other'
+    },
+    getPlaceBgImage(index) {
+      const bgs = [this.images.firstPlaceBg, this.images.secondPlaceBg, this.images.thirdPlaceBg]
+      return bgs[index] || ''
+    },
+    getPlaceIconImage(index) {
+      const icons = [this.images.firstPlaceIcon, this.images.secondPlaceIcon, this.images.thirdPlaceIcon]
+      return icons[index] || ''
+    },
+    getManagerBgImage(index) {
+      const bgs = [this.images.firstManagerBg, this.images.secondManagerBg, this.images.thirdManagerBg]
+      return bgs[index] || ''
+    },
+    getQualityBgImage(type) {
+      const mapping = {
+        good: this.images.qualityGood,
+        average: this.images.qualityAverage,
+        poor: this.images.qualityPoor
+      }
+      return mapping[type] || ''
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-@import '@/styles/dashboard.less';
+.right-ranking-panel {
+  padding: 0 30px 60px;
+  width: 375px;
+  height: 734px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+// 排名标题区域
+.ranking-headers {
+  width: 315px;
+  height: 58px;
+  margin: -6px 0 0 0;
+  justify-content: space-between;
+}
+
+.header-section {
+  width: 155px;
+  height: 58px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  &.production-ranking {
+  }
+  
+  &.team-ranking {
+  }
+}
+
+.header-title {
+  color: rgba(76, 253, 235, 1);
+  font-size: 12px;
+  font-family: SourceHanSansCN-Light;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 15px;
+  margin: 21px 0 5px 0;
+  
+  .production-ranking & {
+    width: 117px;
+    margin-left: 20px;
+  }
+  
+  .team-ranking & {
+    width: 71px;
+    margin-left: 42px;
+  }
+}
+
+.header-underline {
+  width: 110px;
+  height: 5px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0 auto;
+  
+  .production-ranking & {
+  }
+  
+  .team-ranking & {
+  }
+}
+
+// Top5标题
+.top5-title {
+  margin: 20px 0 0 2px;
+  
+  .main-title {
+    color: rgba(76, 253, 235, 1);
+    font-size: 17px;
+    font-family: SourceHanSansCN-Medium;
+    font-weight: 500;
+  }
+  
+  .sub-title {
+    color: rgba(76, 253, 235, 1);
+    font-size: 14px;
+    font-family: SourceHanSansCN-Light;
+  }
+}
+
+// 分隔线
+.section-divider {
+  width: 334px;
+  height: 4px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 9px 0 0 -20px;
+}
+
+// 排名列表
+.ranking-list {
+  position: relative;
+  width: 340px;
+  margin: 13px 0 0 -25px;
+}
+
+.ranking-decoration {
+  position: absolute;
+  left: 0;
+  top: 114px;
+  width: 14px;
+  height: 279px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+.ranking-items {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+// 排名项目样式
+.ranking-item {
+  position: relative;
+  width: 320px;
+  height: 121px;
+  display: flex;
+  align-items: flex-start;
+  
+  &.first {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  &.second {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  &.third {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}
+
+.rank-icon {
+  width: 54px;
+  height: 69px;
+  margin: 30px 0 0 12px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+  
+  &.first {
+  }
+  
+  &.second {
+  }
+  
+  &.third {
+  }
+}
+
+.item-content {
+  flex: 1;
+  margin: 0 0 0 10px;
+  display: flex;
+  flex-direction: column;
+  width: 173px;
+}
+
+.manager-info {
+  width: 173px;
+  height: 47px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: -4px;
+  
+  .first & {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+  
+  .second & {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+  
+  .third & {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+}
+
+.manager-name {
+  color: rgba(87, 144, 66, 1);
+  font-size: 12px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.location-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.location-name {
+  color: rgba(76, 253, 235, 1);
+  font-size: 13px;
+  font-family: SourceHanSansCN-Light;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.area-info {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  justify-content: center;
+}
+
+.area-number {
+  color: rgba(76, 253, 235, 1);
+  font-size: 13px;
+  font-family: SourceHanSansCN-Medium;
+}
+
+.area-unit {
+  color: rgba(76, 253, 235, 1);
+  font-size: 13px;
+  font-family: SourceHanSansCN-Light;
+}
+
+.district-name {
+  color: rgba(76, 253, 235, 1);
+  font-size: 13px;
+  font-family: SourceHanSansCN-Bold;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.yield-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  position: relative;
+  right: 10px;
+}
+
+.yield-number {
+  color: rgba(76, 253, 235, 1);
+  font-size: 32px;
+  font-family: BebasNeueRegular;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.yield-unit {
+  color: rgba(76, 253, 235, 1);
+  font-size: 14px;
+  font-family: SourceHanSansCN-Normal;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+// 林地质量类别区域
+.quality-section {
+  margin-top: 35px;
+  padding: 0 2px;
+}
+
+.quality-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 320px;
+  height: 21px;
+}
+
+.section-title {
+  color: rgba(76, 253, 235, 1);
+  font-size: 20px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 20px;
+}
+
+.quality-icon {
+  width: 30px;
+  height: 20px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.quality-divider {
+  width: 122px;
+  height: 4px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 8px 0 0 0;
+}
+
+.quality-data {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 300px;
+  margin: 15px 0 0 5px;
+  gap: 10px;
+}
+
+.quality-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  
+  .percentage-display {
+    height: 80px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  &.good .percentage-display {
+    width: 80px;
+  }
+  
+  &.average .percentage-display {
+    width: 80px;
+  }
+  
+  &.poor .percentage-display {
+    width: 80px;
+  }
+}
+
+.percentage-number {
+  color: rgba(121, 219, 207, 1);
+  font-size: 26px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.quality-label {
+  color: rgba(0, 255, 242, 1);
+  font-size: 12px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 14px;
+}
+
+// 通用样式
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.number-display {
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.number-medium {
+  font-size: 46px;
+  line-height: 46px;
+}
 </style>

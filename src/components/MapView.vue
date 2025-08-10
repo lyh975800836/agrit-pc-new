@@ -8,17 +8,21 @@
         :height="mapHeight"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <!-- 添加定义区域用于边界线样式 -->
+        <!-- 添加定义区域用于基础效果 -->
         <defs>
-          <filter id="boundary-glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <!-- 轻微阴影滤镜 -->
+          <filter id="shadow-3d" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+            <feOffset in="blur" dx="1" dy="2" result="offsetBlur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.3"/>
+            <feComposite in2="offsetBlur" operator="in" result="shadow"/>
             <feMerge> 
-              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="shadow"/>
               <feMergeNode in="SourceGraphic"/> 
             </feMerge>
           </filter>
         </defs>
-        <!-- 渲染地图区域 - 确保每个区县独立渲染以显示边界分割线 -->
+        <!-- 渲染地图区域 - 清晰的地图轮廓显示 -->
         <g class="regions-group">
           <MapRegion
             v-for="region in regions"
@@ -86,12 +90,12 @@ export default {
     // 地图宽度
     mapWidth: {
       type: Number,
-      default: 1828
+      default: 2400
     },
     // 地图高度
     mapHeight: {
       type: Number,
-      default: 1098
+      default: 1440
     },
     // 标注点数据
     markers: {
@@ -328,9 +332,8 @@ export default {
   height: 100%;
   display: block;
   background: transparent;
-  // 整体地图的轻微阴影效果，增强层次感
-  filter: drop-shadow(0 4px 16px rgba(44, 95, 90, 0.15))
-          drop-shadow(0 2px 8px rgba(44, 95, 90, 0.08));
+  // 轻微的阴影效果，保持清晰度
+  filter: drop-shadow(0 2px 8px rgba(44, 95, 90, 0.15));
 }
 
 // 边界线样式已移除，只使用区域组件的边框

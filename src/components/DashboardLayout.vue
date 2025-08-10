@@ -1,16 +1,5 @@
 <template>
   <div class="page flex-col">
-    <!-- 背景层 group_1 -->
-    <div class="group_1 flex-col">
-      <div class="image-wrapper_1 flex-col">
-        <img
-          class="image_1"
-          referrerpolicy="no-referrer"
-          src="https://lanhu-oss-proxy.lanhuapp.com/fe5d54fb32c5e50aa6df33fb206250aa"
-        />
-      </div>
-    </div>
-
     <!-- 主内容层 group_2 -->
     <div class="group_2 flex-col">
       <!-- 头部区域 -->
@@ -23,19 +12,19 @@
       />
 
       <!-- 主体内容区域 group_4 -->
-      <div class="group_4">
-        <!-- 中间地图区域 group_5 - 通过插槽自定义 -->
-        <div class="group_5">
-          <div class="section_1">
-            <slot name="center-map"></slot>
-          </div>
-        </div>
-
+      <div class="group_4 flex-row">
         <!-- 左侧数据展示区域 -->
         <LeftDataPanel 
           :project-data="projectData"
           :statistics-data="statisticsData"
         />
+        
+        <!-- 中间地图区域 group_5 - 通过插槽自定义 -->
+        <div class="group_5 flex-grow">
+          <div class="section_1">
+            <slot name="center-map"></slot>
+          </div>
+        </div>
 
         <!-- 右侧排名区域 -->
         <RightRankingPanel 
@@ -103,4 +92,51 @@ export default {
 
 <style lang="less" scoped>
 @import '@/styles/dashboard.less';
+
+// 自定义布局样式，覆盖dashboard.less中的定位样式
+.group_4 {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 10px;
+  padding: 0 10px;
+  width: 100% !important;
+  position: relative !important;
+}
+
+.group_5 {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  flex: 1 !important;
+  width: auto !important;
+  min-width: 500px !important;
+  height: calc(100vh - 220px) !important;
+  min-height: 500px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 10px !important;
+}
+
+.section_1 {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 1200px !important;
+  max-height: 800px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
 </style>

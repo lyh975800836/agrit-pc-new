@@ -1,75 +1,101 @@
 <template>
-  <div class="group_3 flex-col">
-    <!-- 头部信息栏 box_1 -->
-    <div class="box_1 flex-row">
-      <!-- 天气图标 -->
-      <img
-        class="image_2"
-        referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/0e038d919f708019d8a2851a3416e179"
-      />
-      <!-- 天气信息 -->
-      <div class="text-wrapper_1 flex-col justify-between">
-        <span class="text_1">{{ weather.temperature }}</span>
-        <span class="text_2">{{ weather.description }}</span>
+  <div class="dashboard-header" :style="{ backgroundImage: `url(${images.headerBackground})` }">
+    <!-- 头部主要内容区域 -->
+    <div class="header-main">
+      <!-- 左侧：天气、日期、时间 -->
+      <div class="header-left flex-row">
+        <!-- 天气图标 -->
+        <img
+          class="weather-icon"
+          referrerpolicy="no-referrer"
+          src="/images/weather-icon.png"
+          alt="天气图标"
+        />
+        
+        <!-- 天气信息 -->
+        <div class="weather-info flex-col justify-center">
+          <span class="temperature">{{ weather.temperature }}</span>
+          <span class="weather-desc">{{ weather.description }}</span>
+        </div>
+
+        <!-- 时间信息 -->
+        <div class="time-info flex-col justify-center">
+          <span class="current-time">{{ currentTime }}</span>
+          <span class="current-date">{{ currentDate }}</span>
+        </div>
+
+        <!-- 星期 -->
+        <div class="flex-col justify-center">
+          <span class="weekday">{{ weekday }}</span>
+        </div>
       </div>
-      <!-- 时间信息 -->
-      <div class="text-wrapper_2 flex-col justify-between">
-        <span class="text_3">{{ currentTime }}</span>
-        <span class="text_4">{{ currentDate }}</span>
+
+      <!-- 中间：头部装饰图片 - 绝对居中 -->
+      <div class="header-center">
+        <!-- 主要装饰背景 -->
+        <div class="center-decoration-bg" :style="{ backgroundImage: `url(${images.centerDecorationBg})` }">
+          <img
+            class="center-decoration-main"
+            referrerpolicy="no-referrer"
+            src="/images/center-decoration-main.png"
+            alt="中心装饰"
+          />
+          <img
+            class="center-decoration-sub"
+            referrerpolicy="no-referrer"
+            src="/images/center-decoration-sub.png"
+            alt="装饰线条"
+          />
+        </div>
       </div>
-      <span class="text_5">{{ weekday }}</span>
-      
-      <!-- 返回按钮（条件显示） -->
-      <div v-if="showBackButton" class="text-wrapper_3 flex-col" @click="$emit('back')">
-        <span class="text_6">返回总览图</span>
+
+      <!-- 右侧：八角总揽图、数据驾驶舱、管理员 -->
+      <div class="header-right flex-row align-center">
+        <!-- 返回按钮或主标题 -->
+        <div 
+          v-if="showBackButton" 
+          class="nav-button flex-col align-center justify-center" 
+          :style="{ backgroundImage: `url(${images.navButtonBg})` }"
+          @click="$emit('back')"
+        >
+          <span class="nav-text">返回总览图</span>
+        </div>
+        <div v-else class="nav-button flex-col align-center justify-center" :style="{ backgroundImage: `url(${images.navButtonBg})` }">
+          <span class="nav-text">八角总览图</span>
+        </div>
+        
+        <!-- 页面标题 -->
+        <div class="page-title flex-col align-center justify-center" :style="{ backgroundImage: `url(${images.pageTitleBg})` }">
+          <span class="title-text">{{ pageTitle }}</span>
+        </div>
+        
+        <!-- 用户头像和姓名 -->
+        <img
+          class="user-avatar"
+          referrerpolicy="no-referrer"
+          :src="user.avatar"
+          alt="用户头像"
+        />
+        <span class="user-name">{{ user.name }}</span>
       </div>
-      <!-- 主标题（条件显示） -->
-      <div v-else class="text-wrapper_3 flex-col">
-        <span class="text_6">八角总揽图</span>
-      </div>
-      
-      <!-- 页面标题 -->
-      <div class="text-wrapper_4 flex-col">
-        <span class="text_7">{{ pageTitle }}</span>
-      </div>
-      
-      <!-- 用户头像 -->
-      <img
-        class="image_3"
-        referrerpolicy="no-referrer"
-        :src="user.avatar"
-      />
-      <span class="text_8">{{ user.name }}</span>
     </div>
 
-    <!-- 头部装饰图片 -->
-    <div class="image-wrapper_2 flex-row">
+    <!-- 底部装饰线 -->
+    <div class="decoration-line flex-row justify-center">
       <img
-        class="image_4"
+        class="decoration-image"
         referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/41b5263466a0534d8c35d9bdc09e8da8"
+        src="/images/decoration-line.png"
+        alt="装饰线"
       />
     </div>
 
-    <!-- 头部其他装饰元素 -->
-    <div class="image-wrapper_3 flex-col">
-      <img
-        class="image_5"
-        referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/24ed9c2d7c1f8739cbe3ea4b596f2dc7"
-      />
-      <img
-        class="image_6"
-        referrerpolicy="no-referrer"
-        src="https://lanhu-oss-proxy.lanhuapp.com/35869bfc7f0dbed47c4afb26b44e2f64"
-      />
-    </div>
-
+    <!-- 最底部装饰线 -->
     <img
-      class="image_7"
+      class="bottom-decoration"
       referrerpolicy="no-referrer"
-      src="https://lanhu-oss-proxy.lanhuapp.com/0fa7f77bec1dc1b90ba39069c270f365"
+      src="/images/bottom-decoration.png"
+      alt="底部装饰"
     />
   </div>
 </template>
@@ -77,6 +103,16 @@
 <script>
 export default {
   name: 'DashboardHeader',
+  data() {
+    return {
+      images: {
+        headerBackground: '/images/header-background.png',
+        centerDecorationBg: '/images/center-decoration-bg.png',
+        navButtonBg: '/images/nav-button-bg.png',
+        pageTitleBg: '/images/page-title-bg.png'
+      }
+    }
+  },
   props: {
     weather: {
       type: Object,
@@ -121,5 +157,196 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import '@/styles/dashboard.less';
+@import '@/styles/global.less';
+
+.dashboard-header {
+  width: 100%;
+  height: 157px;
+  /* background moved to inline style */
+  background-size: contain;
+  position: relative;
+  padding: 0 3%;
+  box-sizing: border-box;
+}
+
+.header-main {
+  position: relative;
+  padding: 15px 0;
+  display: flex;
+  align-items: center;
+}
+
+// 左侧区域：天气、日期、时间
+.header-left {
+  margin-top: 10px;
+  flex: 0 0 auto;
+  align-items: start;
+}
+
+.weather-icon {
+  width: 38px;
+  height: 34px;
+}
+
+.weather-info {
+  margin-left: 23px;
+}
+
+.temperature {
+  color: rgba(8, 196, 182, 1);
+  font-size: 22px;
+  text-align: right;
+  width: 65px;
+}
+
+.weather-desc {
+  color: rgba(8, 196, 182, 1);
+  font-size: 11px;
+  font-family: SourceHanSansCN-Light;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.time-info {
+  margin-left: 20px;
+}
+
+.current-time {
+  color: rgba(8, 196, 182, 1);
+  font-size: 22px;
+  text-align: center;
+}
+
+.current-date {
+  color: rgba(8, 196, 182, 1);
+  font-size: 11px;
+  font-family: SourceHanSansCN-Light;
+  text-align: center;
+}
+
+.weekday {
+  color: rgba(8, 196, 182, 1);
+  font-size: 22px;
+  text-align: center;
+  margin-left: 32px;
+}
+
+// 中间区域：头部装饰图片 - 绝对居中
+.header-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 765px;
+  height: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-decoration-bg {
+  position: relative;
+  width: 765px;
+  height: 105px;
+  /* background moved to inline style */
+  background-size: contain;
+}
+
+.center-decoration-main {
+  position: absolute;
+  left: 195px;
+  bottom: 18px;
+  width: 375px;
+  height: 36px;
+}
+
+.center-decoration-sub {
+  position: absolute;
+  left: 122px;
+  bottom: 20px;
+  width: 520px;
+  height: 28px;
+}
+
+.nav-button {
+  height: 45px;
+  width: 113px;
+  /* background moved to inline style */
+  background-size: contain;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.nav-text {
+  color: rgba(76, 253, 235, 1);
+  font-size: 12px;
+  font-family: SourceHanSansCN-Regular;
+  white-space: nowrap;
+}
+
+.page-title {
+  height: 45px;
+  width: 113px;
+  /* background moved to inline style */
+  background-size: contain;
+}
+
+.title-text {
+  color: rgba(76, 253, 235, 1);
+  font-size: 12px;
+  font-family: SourceHanSansCN-Regular;
+  white-space: nowrap;
+}
+
+// 右侧区域：八角总揽图、数据驾驶舱、管理员
+.header-right {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  margin: 0 5px 0 32px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.user-name {
+  color: rgba(76, 253, 235, 1);
+  font-size: 12px;
+  font-family: SourceHanSansCN-Regular;
+  white-space: nowrap;
+}
+
+// 装饰元素
+.decoration-line {
+  margin: 10px auto;
+  width: 728px;
+  height: 12px;
+}
+
+.decoration-image {
+  width: 100%;
+  height: 12px;
+}
+
+
+// 底部装饰线
+.bottom-decoration {
+    position: absolute;
+    top: 80px;
+    left: 8%;
+    right: 8%;
+    width: 84%;
+    height: 12px;
+}
+
 </style>

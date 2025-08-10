@@ -11,13 +11,15 @@
     :page-title="'数据驾驶舱'"
   >
     <template #center-map>
-      <!-- 使用真实GeoJSON数据绘制百色地图 -->
+      <!-- 使用SVG绘制百色地图轮廓 -->
       <MapView
         :map-data="mapData"
         :markers="mapMarkers"
         :labels="mapLabels"
         :selected-region="selectedRegion"
         :project-regions="projectRegions"
+        :map-width="3000"
+        :map-height="1800"
         @region-click="handleRegionClick"
         @region-hover="handleRegionHover"
         @marker-click="handleMarkerClick"
@@ -46,7 +48,7 @@ export default {
       // 用户数据
       user: {
         name: '管理员',
-        avatar: 'https://lanhu-oss-proxy.lanhuapp.com/d49070cc001560a5a4eb371bc487d8ba'
+        avatar: '/images/user-avatar.png'
       },
       // 项目数据
       projectData: {

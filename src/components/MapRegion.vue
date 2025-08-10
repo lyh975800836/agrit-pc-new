@@ -8,6 +8,7 @@
       :stroke="getStrokeColor"
       :stroke-width="getStrokeWidth"
       fill-rule="evenodd"
+      :filter="get3DFilter"
     />
     
     <!-- 区域标签 -->
@@ -104,7 +105,7 @@ export default {
       return this.calculateCentroid()
     },
     
-    // 填充颜色 - 统一深青色系，匹配参考图层次感
+    // 填充颜色 - 清晰的区域色彩区分
     getFillColor() {
       if (this.selected) {
         return '#FF6B35' // 选中状态：橙红色突出
@@ -113,30 +114,27 @@ export default {
         return '#4ECDC4' // 悬停状态：浅青色
       }
       
-      // 统一使用深青色调，形成层次感地图效果
-      // 参考图中的深青色调：#2C5F5A, #1B4944, #0F3A35
+      // 根据区域重要性和项目情况使用不同颜色
       const regionName = this.region.properties.name || ''
       
-      // 根据区域重要性和项目情况分配不同深度的青色
       if (regionName.includes('右江')) {
-        return '#1B4944' // 中心区域，稍深青色
-      } else if (regionName.includes('田阳') || regionName.includes('田东')) {
-        return '#2C5F5A' // 重要区域，标准深青色
-      } else if (regionName.includes('德保') || regionName.includes('那坡')) {
-        return '#1B4944' // 项目区域，稍深青色
-      } else if (regionName.includes('靖西')) {
-        return '#2C5F5A' // 标准深青色
-      } else if (regionName.includes('凌云') || regionName.includes('乐业')) {
-        return '#1B4944' // 项目区域，稍深青色
-      } else if (regionName.includes('田林')) {
-        return '#1B4944' // 项目区域，稍深青色
-      } else if (regionName.includes('隆林') || regionName.includes('西林')) {
-        return '#2C5F5A' // 标准深青色
-      } else if (regionName.includes('平果')) {
-        return '#2C5F5A' // 标准深青色
+        return '#4ECDC4' // 中心区域，亮青色
+      } else if (this.hasProjects) {
+        return '#7FDBDA' // 有项目的区域，中亮青色
       } else {
-        return '#2C5F5A' // 默认深青色
+        return '#2C5F5A' // 其他区域，深青色
       }
+    },
+    
+    // 滤镜效果 - 轻微效果保持清晰度
+    get3DFilter() {
+      if (this.selected) {
+        return 'url(#shadow-3d)' // 选中状态：轻微阴影
+      }
+      if (this.hovered) {
+        return 'url(#shadow-3d)' // 悬停状态：轻微阴影
+      }
+      return 'none' // 默认状态：无滤镜，保持清晰
     },
     
     // 边框颜色 - 浅青色边界线，匹配参考图
@@ -311,11 +309,9 @@ export default {
     stroke-linejoin: round;
     stroke-linecap: round;
     stroke-opacity: 1;
-    fill-opacity: 0.95; // 稍微透明，增加层次感
+    fill-opacity: 0.9; // 轻微透明，增加层次感
     shape-rendering: geometricPrecision;
     vector-effect: non-scaling-stroke;
-    // 添加细微的阴影效果，增强层次感
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
   }
   
   .region-label {
@@ -328,24 +324,16 @@ export default {
                  0 0 4px rgba(0, 0, 0, 0.6); // 深色阴影增强对比度
   }
   
-  // 选中状态 - 提升亮度和阴影
+  // 选中状态 - 突出显示
   &.selected .region-path {
     stroke-width: 3 !important;
     fill-opacity: 1;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))
-            drop-shadow(0 4px 12px rgba(255, 107, 53, 0.3))
-            drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
-    transform: translateY(-1px);
   }
   
-  // 悬停状态 - 轻微高亮效果
+  // 悬停状态 - 高亮效果
   &.hovered .region-path {
     stroke-width: 2.5 !important;
     fill-opacity: 1;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))
-            drop-shadow(0 4px 8px rgba(78, 205, 196, 0.25))
-            drop-shadow(0 0 6px rgba(127, 219, 218, 0.3));
-    transform: translateY(-0.5px);
   }
 }
 

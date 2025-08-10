@@ -285,7 +285,7 @@ export default {
 }
 
 // 响应式适配
-@media (max-width: 1400px) {
+@media (max-width: 1600px) {
   .map-label {
     .label-text {
       font-size: 10px;
