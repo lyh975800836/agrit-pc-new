@@ -21,7 +21,7 @@
         
         <!-- 中间地图区域 group_5 - 通过插槽自定义 -->
         <div class="group_5 flex-grow">
-          <div class="section_1">
+          <div class="section_1 center-content">
             <slot name="center-map"></slot>
           </div>
         </div>
@@ -110,25 +110,35 @@ export default {
   top: auto !important;
   flex: 1 !important;
   width: auto !important;
-  min-width: 500px !important;
-  height: calc(100vh - 220px) !important;
-  min-height: 500px !important;
+  min-width: 600px !important;
+  max-width: 1000px !important;
+  height: calc(100vh - 180px) !important;
+  min-height: 700px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 10px !important;
+  padding: 5px !important;
 }
 
 .section_1 {
   position: relative !important;
   width: 100% !important;
   height: 100% !important;
-  max-width: 1200px !important;
-  max-height: 800px !important;
-  margin: 0 !important;
+  /* 移除max-width和max-height限制，确保地图完整显示 */
+  /* max-width: 1200px !important; */
+  /* max-height: 800px !important; */
+  margin: 0 auto !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  /* 调整尺寸匹配容器 */
+  min-width: 700px !important;
+  max-width: 1000px !important;
+  min-height: 700px !important;
+}
+
+.center-content {
+  text-align: center !important;
 }
 
 .flex-row {

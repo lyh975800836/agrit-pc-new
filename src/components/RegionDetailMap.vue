@@ -11,40 +11,6 @@
     <!-- Leaflet地图容器 -->
     <div id="leaflet-map" class="leaflet-container" :class="{ 'map-hidden': isLoading }"></div>
     
-    <!-- 地块信息面板 -->
-    <div class="plot-info-panel" v-if="selectedPlot">
-      <div class="panel-header">
-        <h4>{{ selectedPlot.name }}</h4>
-        <button @click="closeInfoPanel" class="close-btn">&times;</button>
-      </div>
-      <div class="panel-content">
-        <div class="info-item">
-          <span class="label">面积:</span>
-          <span class="value">{{ selectedPlot.area }}亩</span>
-        </div>
-        <div class="info-item">
-          <span class="label">产量:</span>
-          <span class="value">{{ selectedPlot.output }}吨</span>
-        </div>
-        <div class="info-item">
-          <span class="label">类型:</span>
-          <span class="value">八角种植地</span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 图例 -->
-    <div class="map-legend">
-      <h5>图例</h5>
-      <div class="legend-item">
-        <div class="legend-color" style="background: rgba(76, 253, 235, 0.3); border: 2px solid #4CFDEB;"></div>
-        <span>优质地块</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: rgba(255, 215, 0, 0.3); border: 2px solid #FFD700;"></div>
-        <span>普通地块</span>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -116,8 +82,13 @@ export default {
       
       this.map = L.map('leaflet-map', {
         center: center,
-        zoom: 12,
-        zoomControl: true,
+        zoom: 15, // 提高初始缩放级别
+        zoomControl: false, // 禁用缩放控件
+        scrollWheelZoom: false, // 禁用滚轮缩放
+        doubleClickZoom: false, // 禁用双击缩放
+        touchZoom: false, // 禁用触摸缩放
+        boxZoom: false, // 禁用框选缩放
+        keyboard: false, // 禁用键盘缩放
         attributionControl: false,
         preferCanvas: true, // 使用Canvas渲染提高性能
         zoomAnimationThreshold: 4,
@@ -186,87 +157,339 @@ export default {
       
       defaultLayer.addTo(this.map)
 
-      // 添加图层控制器
-      L.control.layers(layers).addTo(this.map)
-
-      // 添加自定义指北针
-      this.addCompass()
+      // 不添加图层控制器和指北针
       
     },
 
-    // 添加指北针
-    addCompass() {
-      const compassControl = L.control({position: 'topleft'})
-      compassControl.onAdd = function() {
-        const div = L.DomUtil.create('div', 'leaflet-compass')
-        div.innerHTML = `
-          <svg width="50" height="50" viewBox="0 0 50 50">
-            <circle cx="25" cy="25" r="20" fill="rgba(0,0,0,0.7)" stroke="#4CFDEB" stroke-width="2"/>
-            <polygon points="25,8 30,22 25,18 20,22" fill="#FF4444"/>
-            <polygon points="25,35 30,22 25,27 20,22" fill="#FFFFFF"/>
-            <text x="25" y="5" text-anchor="middle" fill="#FF4444" font-size="8" font-weight="bold">N</text>
-          </svg>
-        `
-        return div
-      }
-      compassControl.addTo(this.map)
-    },
 
     async loadRegionData() {
       try {
-        this.loadingText = '正在加载地块数据...'
+        this.loadingText = '正在加载区域轮廓...'
         
         // 清除现有图层
         this.clearPlotLayers()
 
-        // 从通用文件中提取区域轮廓
-        const geoJsonModule = await import('@/assets/mapdata/GeoJSON-Polygon-ok_geo4_ETD221128-250623-141758.json')
-        const fullData = geoJsonModule.default || geoJsonModule
+        // 从区县级地图文件中加载当前区县的轮廓数据
+        const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json')
+        const baiseData = baiseDataImport.default || baiseDataImport
         
-        // 过滤出当前区域的地块
-        const regionFeatures = fullData.features.filter(feature => {
-          const extPath = feature.properties?.ext_path || ''
-          const name = feature.properties?.name || ''
-          
-          // 更灵活的匹配规则
-          return extPath.includes(this.regionName) || 
-                 name.includes(this.regionName) ||
-                 (this.regionName === '右江区' && (extPath.includes('百色') || name.includes('百色'))) ||
-                 (this.regionName === '德保县' && extPath.includes('德保')) ||
-                 (this.regionName === '靖西市' && (extPath.includes('靖西') || name.includes('靖西'))) ||
-                 (this.regionName === '田林县' && extPath.includes('田林')) ||
-                 (this.regionName === '田阳区' && (extPath.includes('田阳') || name.includes('田阳'))) ||
-                 (this.regionName === '田东县' && (extPath.includes('田东') || name.includes('田东')))
-        })
+        // 找到当前区县的轮廓数据
+        const regionFeature = baiseData.features.find(feature => 
+          feature.properties.name === this.regionName
+        )
+
+        console.log(`加载区域轮廓: ${this.regionName}`)
         
-        
-        if (regionFeatures.length > 0) {
-          
-          // 过滤掉无效的地块
-          const validFeatures = regionFeatures.filter(f => {
-            const coords = f.geometry?.coordinates
-            return coords && Array.isArray(coords) && coords.length > 0
-          })
-          
-          
-          // 显示全部地块
-          let selectedFeatures = validFeatures.map(f => ({
-            ...f,
-            area: this.calculatePolygonArea(f.geometry.coordinates)
-          }))
-            
-          // 分批添加地块到地图，避免一次性加载过多导致卡顿
-          this.addPlotsProgressively(selectedFeatures)
-          
-          // 分批加载会自动调整视野，无需在这里重复调用
+        if (regionFeature) {
+          console.log('找到区域轮廓数据:', regionFeature.properties.name)
+          this.addRegionBoundary(regionFeature)
         } else {
-          this.createDefaultPlots()
+          console.warn('未找到区域轮廓数据，区域名称:', this.regionName)
         }
         
+        this.isLoading = false
+        
       } catch (error) {
-        console.error('加载地块数据失败:', error)
-        this.createDefaultPlots()
+        console.error('加载区域轮廓失败:', error)
+        this.isLoading = false
       }
+    },
+
+    // 添加区域边界轮廓
+    addRegionBoundary(regionFeature) {
+      try {
+        // 创建区域轮廓图层
+        const regionLayer = L.geoJSON(regionFeature, {
+          style: {
+            color: '#4CFDEB',
+            weight: 3,
+            opacity: 1,
+            fillColor: 'rgba(76, 253, 235, 0.1)',
+            fillOpacity: 0.1
+          }
+        })
+        
+        // 添加到地图
+        regionLayer.addTo(this.map)
+        this.plotLayers.push(regionLayer)
+        
+        // 添加区域外遮罩层效果
+        this.addRegionMask(regionFeature)
+        
+        // 调整地图视野以适应区域边界，设置更高的最小缩放级别
+        this.map.fitBounds(regionLayer.getBounds(), {
+          padding: [30, 30],
+          maxZoom: 17  // 设置更高的最大缩放级别
+        })
+        
+        console.log('区域轮廓已添加到地图')
+        
+        // 添加地块标注，传入区域要素用于边界检查
+        this.addPlotMarkers(regionFeature)
+        
+      } catch (error) {
+        console.error('添加区域边界失败:', error)
+      }
+    },
+
+    // 添加区域外遮罩层
+    addRegionMask(regionFeature) {
+      try {
+        // 立即执行，不延迟
+        // 获取区域边界而不是当前地图边界
+        const geoJsonLayer = L.geoJSON(regionFeature)
+        const regionBounds = geoJsonLayer.getBounds()
+        
+        // 扩大边界以确保完全覆盖
+        const margin = Math.max(
+          Math.abs(regionBounds.getNorth() - regionBounds.getSouth()) * 3,
+          Math.abs(regionBounds.getEast() - regionBounds.getWest()) * 3
+        )
+        
+        // 创建一个覆盖整个可视区域的大矩形
+        const outerRing = [
+          [regionBounds.getSouth() - margin, regionBounds.getWest() - margin],
+          [regionBounds.getSouth() - margin, regionBounds.getEast() + margin], 
+          [regionBounds.getNorth() + margin, regionBounds.getEast() + margin],
+          [regionBounds.getNorth() + margin, regionBounds.getWest() - margin],
+          [regionBounds.getSouth() - margin, regionBounds.getWest() - margin]
+        ]
+        
+        // 获取区域的坐标（需要反转，作为内部洞）
+        let innerRings = []
+        if (regionFeature.geometry.type === 'Polygon') {
+          // 对于Polygon，使用第一个坐标环，并反转坐标顺序
+          const coords = regionFeature.geometry.coordinates[0]
+          innerRings = [coords.map(coord => [coord[1], coord[0]]).reverse()]
+        } else if (regionFeature.geometry.type === 'MultiPolygon') {
+          // 对于MultiPolygon，处理所有多边形
+          regionFeature.geometry.coordinates.forEach(polygon => {
+            const coords = polygon[0]
+            innerRings.push(coords.map(coord => [coord[1], coord[0]]).reverse())
+          })
+        }
+        
+        // 创建带洞的多边形
+        const maskPolygon = L.polygon([outerRing, ...innerRings], {
+          color: 'transparent',
+          fillColor: 'rgba(0, 0, 0, 0.6)',
+          fillOpacity: 0.6,
+          weight: 0,
+          interactive: false
+        })
+        
+        // 添加遮罩到地图
+        maskPolygon.addTo(this.map)
+        this.plotLayers.push(maskPolygon)
+        
+        console.log('区域外遮罩层已添加')
+        
+      } catch (error) {
+        console.error('添加区域遮罩失败:', error)
+      }
+    },
+
+    // 添加地块标注
+    addPlotMarkers(regionFeature) {
+      // 生成模拟地块数据，传入区域要素而不是边界
+      const plots = this.generatePlotData(regionFeature)
+      
+      plots.forEach((plot) => {
+        // 创建自定义HTML标记
+        const markerHtml = this.createPlotMarkerHtml(plot)
+        
+        // 创建Leaflet自定义标记
+        const customIcon = L.divIcon({
+          className: 'custom-plot-marker',
+          html: markerHtml,
+          iconSize: [105, 60],
+          iconAnchor: [52.5, 30]
+        })
+        
+        // 添加标记到地图
+        const marker = L.marker([plot.lat, plot.lng], { icon: customIcon })
+        marker.addTo(this.map)
+        this.plotLayers.push(marker)
+      })
+    },
+
+    // 生成地块数据
+    generatePlotData(regionFeature) {
+      const plots = []
+      const usedPositions = new Set() // 用于追踪已使用的位置，避免重复
+      
+      // 生成更真实的地块名称
+      const plotNames = [
+        '那坡陵山地块', '马头山地块', '河东农场地块', '河西种植地块', 
+        '北山八角地块', '南坡种植地块', '东岗农业地块', '西岭林地块',
+        '中央种植地块', '新村合作地块', '老屯集体地块', '高坪示范地块',
+        '龙头山地块', '凤凰岭地块', '金竹林地块', '银杏坡地块'
+      ]
+      
+      // 获取区域边界
+      const geoJsonLayer = L.geoJSON(regionFeature)
+      const bounds = geoJsonLayer.getBounds()
+      
+      const minLat = bounds.getSouth()
+      const maxLat = bounds.getNorth()  
+      const minLng = bounds.getWest()
+      const maxLng = bounds.getEast()
+      
+      // 在区域内生成合理分布的地块
+      const plotCount = Math.floor(Math.random() * 5) + 10 // 10-15个地块
+      
+      // 创建网格分布，避免地块过于集中
+      const gridSize = Math.ceil(Math.sqrt(plotCount))
+      const latStep = (maxLat - minLat) / gridSize
+      const lngStep = (maxLng - minLng) / gridSize
+      
+      // 打乱地块名称，避免重复名称
+      const shuffledNames = [...plotNames].sort(() => Math.random() - 0.5)
+      
+      let validPlotsCount = 0
+      let maxAttempts = plotCount * 5 // 增加最大尝试次数
+      
+      
+      for (let i = 0; i < plotCount && maxAttempts > 0; i++) {
+        // 基于网格的位置，加上随机偏移
+        const gridRow = Math.floor(i / gridSize)
+        const gridCol = i % gridSize
+        
+        const baseLat = minLat + gridRow * latStep + latStep * 0.5
+        const baseLng = minLng + gridCol * lngStep + lngStep * 0.5
+        
+        let attempts = 0
+        let lat, lng, positionKey, isInsideRegion = false
+        
+        // 尝试找到区域内的不重复位置
+        while (attempts < 20 && maxAttempts > 0) {
+          // 添加随机偏移，但保持在网格内
+          lat = baseLat + (Math.random() - 0.5) * latStep * 0.8
+          lng = baseLng + (Math.random() - 0.5) * lngStep * 0.8
+          
+          // 确保在边界范围内
+          lat = Math.max(minLat + 0.001, Math.min(maxLat - 0.001, lat))
+          lng = Math.max(minLng + 0.001, Math.min(maxLng - 0.001, lng))
+          
+          // 创建位置标识（精确到小数点后4位避免重复）
+          positionKey = `${lat.toFixed(4)},${lng.toFixed(4)}`
+          
+          // 检查是否在区域内部
+          isInsideRegion = this.isPointInRegion([lng, lat], regionFeature)
+          
+          attempts++
+          maxAttempts--
+          
+          // 如果位置唯一且在区域内，跳出循环
+          if (!usedPositions.has(positionKey) && isInsideRegion) {
+            break
+          }
+        }
+        
+        // 如果找到唯一且在区域内的位置，添加地块
+        if (!usedPositions.has(positionKey) && isInsideRegion) {
+          usedPositions.add(positionKey)
+          
+          // 随机分配地块类型，确保三种类型都有
+          const randomValue = Math.random()
+          let type
+          if (randomValue < 0.4) {
+            type = 'premium'  // 40% 优质地块 (青色)
+          } else if (randomValue < 0.7) {
+            type = 'normal'   // 30% 普通地块 (红色)  
+          } else {
+            type = 'average'  // 30% 一般地块 (黄色)
+          }
+          
+          plots.push({
+            id: validPlotsCount + 1,
+            name: shuffledNames[validPlotsCount % shuffledNames.length] + (Math.floor(validPlotsCount / shuffledNames.length) > 0 ? `${Math.floor(validPlotsCount / shuffledNames.length) + 1}` : ''),
+            lat: lat,
+            lng: lng,
+            area: Math.floor(Math.random() * 50) + 20, // 20-70亩
+            output: Math.floor(Math.random() * 20) + 5, // 5-25吨
+            type: type
+          })
+          
+          validPlotsCount++
+        }
+      }
+      
+      console.log(`生成了${validPlotsCount}个有效地块，全部在区域内部`)
+      return plots
+    },
+
+    // 检查点是否在区域内部
+    isPointInRegion(point, regionFeature) {
+      try {
+        // 使用turf.js的点在多边形内检测（如果可用）
+        if (window.turf && window.turf.booleanPointInPolygon) {
+          const turfPoint = window.turf.point(point)
+          return window.turf.booleanPointInPolygon(turfPoint, regionFeature)
+        }
+        
+        // 备选方案：使用射线法检测点在多边形内
+        return this.pointInPolygon(point, regionFeature.geometry.coordinates)
+        
+      } catch (error) {
+        console.warn('点在区域检测失败，默认返回true:', error)
+        return true
+      }
+    },
+
+    // 射线法检测点在多边形内（备选方案）
+    pointInPolygon(point, coords) {
+      try {
+        const [x, y] = point
+        let inside = false
+        
+        // 处理多边形坐标（取第一个环）
+        const polygon = coords[0] || coords
+        
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+          const [xi, yi] = polygon[i]
+          const [xj, yj] = polygon[j]
+          
+          if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+            inside = !inside
+          }
+        }
+        
+        return inside
+      } catch (error) {
+        console.warn('射线法检测失败:', error)
+        return true
+      }
+    },
+
+    // 创建地块标记HTML
+    createPlotMarkerHtml(plot) {
+      let backgroundImage
+      
+      switch(plot.type) {
+        case 'premium':
+          backgroundImage = '/images/normal-plot-bg.png'  // 蓝色背景
+          break
+        case 'normal': 
+          backgroundImage = '/images/alternative-plot-bg.png'  // 红色背景
+          break
+        case 'average':
+          backgroundImage = '/images/premium-plot-bg.png'  // 黄色背景使用premium
+          break
+        default:
+          backgroundImage = '/images/premium-plot-bg.png'
+      }
+      
+      return `
+        <div class="plot-marker" style="background-image: url('${backgroundImage}')">
+          <div class="plot-content">
+            <div class="plot-name">${plot.name}</div>
+            <div class="plot-info">
+              <span class="area-label">面积：</span><span class="area-value">${plot.area}</span><span class="area-unit">亩 | 产量：</span><span class="output-value">${plot.output}</span><span class="output-unit">吨</span>
+            </div>
+          </div>
+        </div>
+      `
     },
 
     // 清除现有地块图层
@@ -587,18 +810,8 @@ export default {
   z-index: 1;
 }
 
-/* 地块信息面板 */
-.plot-info-panel {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 300px;
-  background: rgba(0, 30, 60, 0.9);
-  border: 1px solid #4CFDEB;
-  border-radius: 8px;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-}
+
+/* 地块标注样式 - 使用全局样式确保在Leaflet中生效 */
 
 .panel-header {
   display: flex;
@@ -771,8 +984,8 @@ export default {
 
 /* 响应式调整 */
 @media (max-width: 768px) {
-  .plot-info-panel {
-    width: 250px;
+  .region-info-panel {
+    width: 200px;
     right: 10px;
     top: 10px;
   }
@@ -790,5 +1003,70 @@ export default {
     width: 40px;
     height: 40px;
   }
+}
+</style>
+
+<!-- 全局样式，用于Leaflet动态生成的标记 -->
+<style>
+/* 地块标注样式 */
+.custom-plot-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.plot-marker {
+  width: 120px !important;
+  height: 60px !important;
+  background-size: 100% 100% !important;
+  position: relative;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.plot-content {
+  padding: 5px 8px !important;
+  height: 48px !important;
+}
+
+.plot-name {
+  font-size: 9px !important;
+  font-weight: bold !important;
+  color: white !important;
+  margin-bottom: 2px !important;
+  line-height: 14px !important;
+  max-width: 100px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plot-info {
+  font-size: 8px !important;
+  color: white !important;
+  line-height: 11px !important;
+  display: block !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.area-label, .area-unit, .output-label, .output-unit {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 9px !important;
+}
+
+.area-value, .output-value {
+  font-weight: bold !important;
+  color: white !important;
+  margin: 0 1px !important;
+  font-size: 9px !important;
+}
+
+/* 悬停效果 */
+.plot-marker:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+  z-index: 1000;
 }
 </style>

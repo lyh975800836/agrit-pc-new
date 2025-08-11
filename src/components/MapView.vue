@@ -120,7 +120,7 @@ export default {
   },
   data() {
     return {
-      viewBox: '0 0 1828 1098',
+      viewBox: '98 76 2217 1327',  // 使用计算出的动态ViewBox确保完整显示
       hoveredRegion: null,
       showPopup: false,
       selectedRegionData: null,
@@ -162,10 +162,10 @@ export default {
     this.calculateViewBox()
   },
   methods: {
-    // 计算ViewBox
+    // 计算ViewBox - 减少padding让地图更大
     calculateViewBox() {
       const bounds = this.mapBounds
-      const padding = 50
+      const padding = 10  // 减少padding让地图占据更多空间
       
       const viewBoxMinX = bounds.minX - padding
       const viewBoxMinY = bounds.minY - padding
@@ -202,18 +202,18 @@ export default {
     
     // 经度转X坐标
     longitudeToX(lng) {
-      // 百色市经度范围大约：104.4 - 107.6
-      const minLng = 104.4
-      const maxLng = 107.6
+      // 扩展范围确保平果市完整显示 - 平果市最大经度107.88
+      const minLng = 104.28  // 比最小值小一点，留边距
+      const maxLng = 108.05  // 比最大值大一点，留边距
       const ratio = (lng - minLng) / (maxLng - minLng)
       return ratio * this.mapWidth
     },
     
     // 纬度转Y坐标  
     latitudeToY(lat) {
-      // 百色市纬度范围大约：22.9 - 25.3（Y轴需要反转）
-      const minLat = 22.9
-      const maxLat = 25.3
+      // 扩展纬度范围，Y轴需要反转
+      const minLat = 22.74  // 比最小值小一点，留边距
+      const maxLat = 25.25  // 比最大值大一点，留边距
       const ratio = (lat - minLat) / (maxLat - minLat)
       return this.mapHeight - (ratio * this.mapHeight) // Y轴反转
     },
@@ -282,12 +282,10 @@ export default {
 
 <style lang="less" scoped>
 .map-view {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   // 透明背景，不显示白色背景
   background: transparent;
   
@@ -302,13 +300,19 @@ export default {
   height: 100%;
   max-width: 100%;
   max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .map-svg {
   width: 100%;
   height: 100%;
+  min-width: 600px;  // 确保最小尺寸
+  min-height: 700px;
   display: block;
   background: transparent;
+  margin: 0 auto;  // 居中显示
   // 轻微的阴影效果，保持清晰度
   filter: drop-shadow(0 2px 8px rgba(44, 95, 90, 0.15));
 }

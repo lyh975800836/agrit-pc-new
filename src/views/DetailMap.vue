@@ -103,11 +103,21 @@ export default {
   },
   mounted() {
     this.regionName = this.$route.params.region || '右江区'
+    console.log('DetailMap mounted, 区域名称:', this.regionName)
     
     // 启动定时器更新时间
     this.timeInterval = setInterval(() => {
       this.$forceUpdate()
     }, 1000)
+  },
+  watch: {
+    // 监听路由变化
+    '$route'(to) {
+      if (to.params.region) {
+        this.regionName = to.params.region
+        console.log('路由变化，更新区域名称:', this.regionName)
+      }
+    }
   },
   beforeDestroy() {
     if (this.timeInterval) {

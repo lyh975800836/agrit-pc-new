@@ -11,15 +11,13 @@
     :page-title="'数据驾驶舱'"
   >
     <template #center-map>
-      <!-- 使用SVG绘制百色地图轮廓 -->
+      <!-- 使用SVG地图 -->
       <MapView
         :map-data="mapData"
         :markers="mapMarkers"
         :labels="mapLabels"
         :selected-region="selectedRegion"
         :project-regions="projectRegions"
-        :map-width="3000"
-        :map-height="1800"
         @region-click="handleRegionClick"
         @region-hover="handleRegionHover"
         @marker-click="handleMarkerClick"
@@ -236,8 +234,8 @@ export default {
         }
       ],
       
-      // 有项目的区县列表
-      projectRegions: ['右江区', '田林县', '德保县', '那坡县', '凌云县', '乐业县']
+      // 有项目的区县列表（基于百色市实际区县）
+      projectRegions: ['右江区', '田阳区', '田东县', '德保县', '那坡县', '凌云县', '乐业县', '田林县']
     }
   },
   async mounted() {
@@ -245,73 +243,25 @@ export default {
     await this.loadMapData()
   },
   methods: {
-    // 加载地图数据 - 简化版：直接使用全量GeoJSON文件
+    // 加载地图数据 - 使用最新的高精度区县GeoJSON文件
     async loadMapData() {
       try {
-        // 直接加载全量GeoJSON文件
-        const fullDataImport = await import('@/assets/mapdata/GeoJSON-Polygon-ok_geo4_ETD221128-250623-141758.json')
-        const fullData = fullDataImport.default || fullDataImport
+        // 加载最新的百色市区县GeoJSON文件
+        const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json')
+        const baiseData = baiseDataImport.default || baiseDataImport
         
-        if (!fullData || !fullData.features) {
-          throw new Error('无法读取地图数据文件')
+        if (!baiseData || !baiseData.features) {
+          throw new Error('无法读取百色市地图数据文件')
         }
         
-        // 按区县聚合数据：从街道/镇级数据聚合成区县级
-        const districtMap = new Map()
+        console.log(`加载百色市地图数据成功，包含 ${baiseData.features.length} 个区县`)
+        console.log('数据来源:', baiseData.properties?.source)
         
-        fullData.features.forEach(feature => {
-          const props = feature.properties || {}
-          const extPath = props.ext_path || ''
-          const pathParts = extPath.split(' ')
-          
-          // 提取区县名称（路径的第3个部分）
-          if (pathParts.length >= 3) {
-            const districtName = pathParts[2] // 例如：右江区、田阳区、德保县等
-            
-            if (!districtMap.has(districtName)) {
-              // 创建新的区县特征，使用第一个街道/镇的信息作为基础
-              const districtFeature = {
-                type: 'Feature',
-                properties: {
-                  name: districtName,
-                  adcode: props.pid, // 使用父级行政代码
-                  level: 'district',
-                  center: this.calculateCenter(feature.geometry.coordinates),
-                  childrenNum: 1
-                },
-                geometry: {
-                  type: feature.geometry.type === 'MultiPolygon' ? 'MultiPolygon' : 'MultiPolygon',
-                  coordinates: feature.geometry.type === 'MultiPolygon' 
-                    ? [...feature.geometry.coordinates]
-                    : [feature.geometry.coordinates]
-                }
-              }
-              districtMap.set(districtName, districtFeature)
-            } else {
-              // 合并到已存在的区县特征
-              const existingFeature = districtMap.get(districtName)
-              existingFeature.properties.childrenNum++
-              
-              // 合并几何图形
-              if (feature.geometry.type === 'MultiPolygon') {
-                existingFeature.geometry.coordinates.push(...feature.geometry.coordinates)
-              } else if (feature.geometry.type === 'Polygon') {
-                existingFeature.geometry.coordinates.push(feature.geometry.coordinates)
-              }
-            }
-          }
-        })
-        
-        // 转换为特征数组
-        const districtFeatures = Array.from(districtMap.values())
-        
-        this.mapData = {
-          type: 'FeatureCollection',
-          features: districtFeatures
-        }
-        
+        // 直接使用高精度区县数据
+        this.mapData = baiseData
         
       } catch (error) {
+        console.error('加载地图数据失败:', error)
         
         // 创建一个空的地图数据作为fallback
         this.mapData = {
@@ -356,7 +306,16 @@ export default {
     
     // 处理区域点击事件
     handleRegionClick(region) {
-      this.selectedRegion = region.properties.adcode
+      const regionName = region.properties.name
+      console.log('点击区县:', regionName)
+      
+      // 跳转到详情页面，显示该区县的乡镇级地图
+      this.$router.push({
+        name: 'DetailMap',
+        params: {
+          region: regionName
+        }
+      })
     },
     
     // 处理区域悬停事件
@@ -368,7 +327,8 @@ export default {
     handleMarkerClick() {
       // 这里可以添加标注点点击后的逻辑
       this.selectedRegion = null
-    }
+    },
+
   }
 }
 </script>
