@@ -12,8 +12,13 @@
     @back="goBack"
   >
     <template #center-map>
-      <RegionDetailMap :region-name="regionName" />
+      <RegionDetailMap 
+        :region-name="regionName"
+        :show-plot-details="false"
+        :show-plot-markers="true"
+      />
     </template>
+
   </DashboardLayout>
 </template>
 
@@ -134,4 +139,6 @@ export default {
 
 <style lang="less" scoped>
 @import '@/styles/dashboard.less';
+
+
 </style>

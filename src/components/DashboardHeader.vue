@@ -80,16 +80,6 @@
       </div>
     </div>
 
-    <!-- 底部装饰线 -->
-    <div class="decoration-line flex-row justify-center">
-      <img
-        class="decoration-image"
-        referrerpolicy="no-referrer"
-        :src="getImagePath('HEADER', 'DECORATION_LINE')"
-        alt="装饰线"
-      />
-    </div>
-
     <!-- 最底部装饰线 -->
     <img
       class="bottom-decoration"

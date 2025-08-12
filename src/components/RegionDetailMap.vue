@@ -11,6 +11,29 @@
     <!-- Leaflet地图容器 -->
     <div id="leaflet-map" class="leaflet-container" :class="{ 'map-hidden': isLoading }"></div>
     
+    <!-- 地块详情弹窗 -->
+    <div 
+      v-if="showDetailPopup && popupData" 
+      class="plot-detail-popup"
+      :style="{ top: popupPosition.top + 'px', left: popupPosition.left + 'px' }"
+    >
+      <!-- 弹窗关闭按钮 -->
+      <button class="popup-close-button" @click="closePlotDetailPopup">
+        <span class="close-icon">×</span>
+      </button>
+      
+      <!-- 弹窗内容 - 只展示图片 -->
+      <div class="popup-content">
+        <div class="popup-image-container">
+          <img 
+            class="popup-image" 
+            :src="popupData.photo || '/images/pop-banner.png'" 
+            :alt="popupData.name"
+          />
+        </div>
+      </div>
+    </div>
+    
   </div>
 </template>
 
@@ -24,6 +47,22 @@ export default {
     regionName: {
       type: String,
       required: true
+    },
+    showPlotDetails: {
+      type: Boolean,
+      default: false
+    },
+    showPlotMarkers: {
+      type: Boolean,
+      default: true
+    },
+    plotData: {
+      type: Object,
+      default: null
+    },
+    isPlotDetailPage: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -34,6 +73,11 @@ export default {
       selectedPlot: null,
       isLoading: true,
       loadingText: '正在初始化地图...',
+      currentLoadedRegion: null, // 记录当前已加载的区域，防重复加载
+      showDetailPopup: false, // 控制地块详情弹窗显示
+      popupPosition: { top: 0, left: 0 }, // 弹窗位置
+      popupData: null, // 弹窗数据
+      connectorLine: null, // 连接线图层
       // 区域中心坐标
       regionCoordinates: {
         '百色市': [23.9, 106.6],
@@ -71,8 +115,11 @@ export default {
     }
   },
   watch: {
-    regionName() {
-      this.loadRegionData()
+    regionName(newRegionName, oldRegionName) {
+      if (newRegionName !== oldRegionName && newRegionName) {
+        console.log('Region changed from', oldRegionName, 'to', newRegionName)
+        this.loadRegionData()
+      }
     }
   },
   methods: {
@@ -164,10 +211,20 @@ export default {
 
     async loadRegionData() {
       try {
+        // 防重复加载同一个区域
+        if (this.currentLoadedRegion === this.regionName) {
+          console.log('区域已加载，跳过:', this.regionName)
+          return
+        }
+        
+        console.log('开始加载新区域:', this.regionName)
         this.loadingText = '正在加载区域轮廓...'
         
         // 清除现有图层
         this.clearPlotLayers()
+        
+        // 记录当前加载的区域
+        this.currentLoadedRegion = this.regionName
 
         // 从区县级地图文件中加载当前区县的轮廓数据
         const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json')
@@ -224,8 +281,16 @@ export default {
         
         console.log('区域轮廓已添加到地图')
         
-        // 添加地块标注，传入区域要素用于边界检查
-        this.addPlotMarkers(regionFeature)
+        // 只有当showPlotMarkers为true时才添加地块标注
+        if (this.showPlotMarkers) {
+          // 添加地块标注，传入区域要素用于边界检查
+          this.addPlotMarkers(regionFeature)
+        }
+        
+        // 如果是地块详情页面，显示具体地块信息
+        if (this.isPlotDetailPage && this.plotData) {
+          this.addPlotDetailMarker(regionFeature)
+        }
         
       } catch (error) {
         console.error('添加区域边界失败:', error)
@@ -308,6 +373,15 @@ export default {
         
         // 添加标记到地图
         const marker = L.marker([plot.lat, plot.lng], { icon: customIcon })
+        
+        // 添加点击事件，跳转到三级地块详情页
+        marker.on('click', () => {
+          console.log('=== 地块标记被点击 ===')
+          console.log('地块信息:', plot)
+          console.log('showPlotDetails:', this.showPlotDetails)
+          this.navigateToPlotDetail(plot)
+        })
+        
         marker.addTo(this.map)
         this.plotLayers.push(marker)
       })
@@ -323,7 +397,7 @@ export default {
         '那坡陵山地块', '马头山地块', '河东农场地块', '河西种植地块', 
         '北山八角地块', '南坡种植地块', '东岗农业地块', '西岭林地块',
         '中央种植地块', '新村合作地块', '老屯集体地块', '高坪示范地块',
-        '龙头山地块', '凤凰岭地块', '金竹林地块', '银杏坡地块'
+        '龙头山地块', '凤凰岭地块', '银杏坡地块'
       ]
       
       // 获取区域边界
@@ -789,6 +863,446 @@ export default {
     // 关闭信息面板
     closeInfoPanel() {
       this.selectedPlot = null
+    },
+
+    // 导航到地块详情页
+    navigateToPlotDetail(plot) {
+      console.log('点击地块标记:', plot.name, '- showPlotDetails:', this.showPlotDetails)
+      console.log('地块数据:', plot)
+      // 如果是在地块详情页面中，则触发下钻到乡镇事件
+      if (this.showPlotDetails) {
+        console.log('触发乡镇下钻')
+        this.loadTownshipData(plot.name)
+      } else {
+        // 否则跳转到地块详情页
+        console.log('跳转到地块详情页, plotId:', plot.id)
+        this.$router.push({
+          name: 'PlotDetail',
+          params: {
+            plotId: plot.id
+          },
+          query: {
+            region: this.regionName,
+            plotName: plot.name,
+            area: plot.area,
+            output: plot.output
+          }
+        }).then(() => {
+          console.log('路由跳转成功')
+        }).catch(err => {
+          console.error('路由跳转失败:', err)
+        })
+      }
+    },
+
+    // 加载乡镇数据
+    async loadTownshipData(townshipName) {
+      try {
+        this.loadingText = `正在加载${townshipName}乡镇轮廓...`
+        this.isLoading = true
+        
+        // 清除现有图层
+        this.clearPlotLayers()
+
+        // 从乡镇级地图文件中加载轮廓数据
+        const townshipDataImport = await import('@/assets/mapdata/GeoJSON-Polygon-ok_geo4_ETD221128-250623-141758.json')
+        const townshipData = townshipDataImport.default || townshipDataImport
+        
+        // 根据乡镇名称过滤数据（这里需要根据实际数据结构调整）
+        const townshipFeatures = townshipData.features.filter(feature => 
+          feature.properties.name && (
+            feature.properties.name.includes(townshipName.replace('地块', '')) ||
+            feature.properties.name.includes('乡') ||
+            feature.properties.name.includes('镇')
+          )
+        ).slice(0, 5) // 限制显示数量
+
+        console.log(`找到${townshipFeatures.length}个相关的乡镇轮廓`)
+        
+        if (townshipFeatures.length > 0) {
+          this.addTownshipBoundaries(townshipFeatures)
+        } else {
+          console.warn(`未找到${townshipName}的乡镇轮廓数据，显示默认乡镇`)
+          // 显示前5个乡镇作为示例
+          const defaultFeatures = townshipData.features.slice(0, 5)
+          this.addTownshipBoundaries(defaultFeatures)
+        }
+        
+        this.isLoading = false
+        
+      } catch (error) {
+        console.error('加载乡镇轮廓失败:', error)
+        this.isLoading = false
+      }
+    },
+
+    // 添加乡镇边界轮廓
+    addTownshipBoundaries(townshipFeatures) {
+      try {
+        const townshipLayer = L.geoJSON(townshipFeatures, {
+          style: {
+            color: '#FFD700',
+            weight: 2,
+            opacity: 1,
+            fillColor: 'rgba(255, 215, 0, 0.1)',
+            fillOpacity: 0.1
+          }
+        })
+        
+        // 添加到地图
+        townshipLayer.addTo(this.map)
+        this.plotLayers.push(townshipLayer)
+        
+        // 调整地图视野以适应乡镇边界
+        this.map.fitBounds(townshipLayer.getBounds(), {
+          padding: [30, 30],
+          maxZoom: 14
+        })
+        
+        console.log('乡镇轮廓已添加到地图')
+        
+        // 为每个乡镇添加标签
+        townshipFeatures.forEach(feature => {
+          if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+            const center = this.getFeatureCenter(feature)
+            if (center) {
+              const marker = L.marker(center, {
+                icon: L.divIcon({
+                  className: 'township-label',
+                  html: `<div class="township-name">${feature.properties.name || '乡镇'}</div>`,
+                  iconSize: [100, 25],
+                  iconAnchor: [50, 12]
+                })
+              })
+              marker.addTo(this.map)
+              this.plotLayers.push(marker)
+            }
+          }
+        })
+        
+      } catch (error) {
+        console.error('添加乡镇边界失败:', error)
+      }
+    },
+
+    // 获取要素中心点
+    getFeatureCenter(feature) {
+      try {
+        const geoJsonLayer = L.geoJSON(feature)
+        const bounds = geoJsonLayer.getBounds()
+        const center = bounds.getCenter()
+        return [center.lat, center.lng]
+      } catch (error) {
+        console.error('计算要素中心失败:', error)
+        return null
+      }
+    },
+
+    // 添加地块详情标记（用于三级页面）
+    addPlotDetailMarker(regionFeature) {
+      try {
+        // 获取区域中心点作为基准
+        const geoJsonLayer = L.geoJSON(regionFeature)
+        const bounds = geoJsonLayer.getBounds()
+        const center = bounds.getCenter()
+        
+        // 生成具体地块的mock坐标数据
+        const plotCoordinates = this.generatePlotCoordinates(center, this.plotData)
+        
+        // 添加地块轮廓多边形
+        const plotPolygon = L.polygon(plotCoordinates, {
+          color: '#4CFDEB',
+          weight: 4,
+          opacity: 1,
+          fillColor: 'rgba(76, 252, 234, 0.3)',
+          fillOpacity: 0.3,
+          dashArray: '8,4'
+        })
+        
+        // 添加悬停效果
+        plotPolygon.on('mouseover', () => {
+          plotPolygon.setStyle({
+            weight: 5,
+            fillOpacity: 0.5,
+            color: '#FFD700'
+          })
+        })
+        
+        plotPolygon.on('mouseout', () => {
+          plotPolygon.setStyle({
+            weight: 4,
+            fillOpacity: 0.3,
+            color: '#4CFDEB'
+          })
+        })
+        
+        plotPolygon.addTo(this.map)
+        this.plotLayers.push(plotPolygon)
+        
+        // 创建多个preview-mark标记点
+        this.addMultiplePreviewMarks(plotCoordinates, bounds)
+        
+        // 调整地图视野聚焦到地块多边形
+        this.map.fitBounds(plotPolygon.getBounds(), {
+          padding: [30, 30],
+          maxZoom: 17
+        })
+        
+        console.log('地块详情标记已添加，地块坐标:', plotCoordinates)
+        
+      } catch (error) {
+        console.error('添加地块详情标记失败:', error)
+      }
+    },
+
+    // 添加多个preview-mark标记点
+    addMultiplePreviewMarks(plotCoordinates, bounds) {
+      try {
+        // 在地块范围内创建多个标记点
+        const markersData = [
+          { 
+            position: [bounds.getCenter().lat + 0.001, bounds.getCenter().lng - 0.002],
+            name: '监测点A',
+            type: 'sensor'
+          },
+          { 
+            position: [bounds.getCenter().lat - 0.002, bounds.getCenter().lng + 0.001],
+            name: '监测点B', 
+            type: 'sensor'
+          },
+          { 
+            position: [bounds.getCenter().lat + 0.0015, bounds.getCenter().lng + 0.0018],
+            name: '监测点C',
+            type: 'sensor'
+          },
+          { 
+            position: [bounds.getCenter().lat - 0.001, bounds.getCenter().lng - 0.0015],
+            name: '监测点D',
+            type: 'sensor'
+          },
+          { 
+            position: [bounds.getCenter().lat + 0.0005, bounds.getCenter().lng + 0.0005],
+            name: '中心监测点',
+            type: 'main'
+          }
+        ]
+
+        markersData.forEach((markerData) => {
+          // 使用preview-mark.png图片作为标记图标
+          const previewIcon = L.divIcon({
+            className: 'preview-mark-container',
+            html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${markerData.name}" />`,
+            iconSize: [32, 40],
+            iconAnchor: [16, 40]
+          })
+          
+          const previewMarker = L.marker(markerData.position, { icon: previewIcon })
+          
+          // 添加点击事件
+          previewMarker.on('click', () => {
+            this.showPlotDetailPopup(markerData.position, {
+              ...this.plotData,
+              name: markerData.name
+            })
+          })
+          
+          // 添加悬停效果
+          previewMarker.on('mouseover', (e) => {
+            const img = e.target.getElement().querySelector('.preview-mark-icon')
+            if (img) {
+              img.style.transform = 'scale(1.2)'
+              img.style.filter = 'drop-shadow(0 0 10px rgba(76, 252, 234, 0.8))'
+            }
+          })
+          
+          previewMarker.on('mouseout', (e) => {
+            const img = e.target.getElement().querySelector('.preview-mark-icon')
+            if (img) {
+              img.style.transform = 'scale(1)'
+              img.style.filter = 'none'
+            }
+          })
+          
+          previewMarker.addTo(this.map)
+          this.plotLayers.push(previewMarker)
+        })
+        
+        console.log(`添加了 ${markersData.length} 个 preview-mark 标记点`)
+        
+      } catch (error) {
+        console.error('添加preview-mark标记失败:', error)
+      }
+    },
+
+    // 生成地块坐标数据
+    generatePlotCoordinates(centerPoint, plotData) {
+      // 根据地块名称和面积生成不同形状的多边形坐标
+      const plotName = plotData?.name || ''
+      const area = parseFloat(plotData?.area || '40')
+      
+      // 基础偏移量，根据面积调整
+      const baseOffset = Math.sqrt(area) * 0.0008 // 面积越大，地块越大
+      
+      // 根据地块名称生成不同形状
+      let coordinates = []
+      
+      if (plotName.includes('新村') || plotName.includes('合作')) {
+        // 新村合作地块 - 不规则农田形状
+        coordinates = [
+          [centerPoint.lat + baseOffset * 0.8, centerPoint.lng - baseOffset * 1.2],
+          [centerPoint.lat + baseOffset * 1.1, centerPoint.lng - baseOffset * 0.3],
+          [centerPoint.lat + baseOffset * 0.9, centerPoint.lng + baseOffset * 0.8],
+          [centerPoint.lat + baseOffset * 0.2, centerPoint.lng + baseOffset * 1.3],
+          [centerPoint.lat - baseOffset * 0.5, centerPoint.lng + baseOffset * 1.1],
+          [centerPoint.lat - baseOffset * 1.0, centerPoint.lng + baseOffset * 0.4],
+          [centerPoint.lat - baseOffset * 1.2, centerPoint.lng - baseOffset * 0.2],
+          [centerPoint.lat - baseOffset * 0.8, centerPoint.lng - baseOffset * 0.9],
+          [centerPoint.lat - baseOffset * 0.3, centerPoint.lng - baseOffset * 1.4],
+          [centerPoint.lat + baseOffset * 0.2, centerPoint.lng - baseOffset * 1.3]
+        ]
+      } else if (plotName.includes('大楞') || plotName.includes('乡')) {
+        // 大楞乡地块 - 梯田形状
+        coordinates = [
+          [centerPoint.lat + baseOffset * 0.9, centerPoint.lng - baseOffset * 1.1],
+          [centerPoint.lat + baseOffset * 1.0, centerPoint.lng - baseOffset * 0.1],
+          [centerPoint.lat + baseOffset * 0.7, centerPoint.lng + baseOffset * 0.6],
+          [centerPoint.lat + baseOffset * 0.3, centerPoint.lng + baseOffset * 1.2],
+          [centerPoint.lat - baseOffset * 0.1, centerPoint.lng + baseOffset * 1.0],
+          [centerPoint.lat - baseOffset * 0.6, centerPoint.lng + baseOffset * 0.8],
+          [centerPoint.lat - baseOffset * 0.9, centerPoint.lng + baseOffset * 0.2],
+          [centerPoint.lat - baseOffset * 1.1, centerPoint.lng - baseOffset * 0.3],
+          [centerPoint.lat - baseOffset * 0.8, centerPoint.lng - baseOffset * 0.8],
+          [centerPoint.lat - baseOffset * 0.4, centerPoint.lng - baseOffset * 1.2],
+          [centerPoint.lat + baseOffset * 0.1, centerPoint.lng - baseOffset * 1.3]
+        ]
+      } else if (plotName.includes('山') || plotName.includes('坡')) {
+        // 山坡地块 - 山地轮廓形状
+        coordinates = [
+          [centerPoint.lat + baseOffset * 1.2, centerPoint.lng - baseOffset * 0.8],
+          [centerPoint.lat + baseOffset * 0.8, centerPoint.lng - baseOffset * 0.2],
+          [centerPoint.lat + baseOffset * 1.0, centerPoint.lng + baseOffset * 0.5],
+          [centerPoint.lat + baseOffset * 0.4, centerPoint.lng + baseOffset * 1.1],
+          [centerPoint.lat - baseOffset * 0.2, centerPoint.lng + baseOffset * 1.3],
+          [centerPoint.lat - baseOffset * 0.7, centerPoint.lng + baseOffset * 0.9],
+          [centerPoint.lat - baseOffset * 1.1, centerPoint.lng + baseOffset * 0.1],
+          [centerPoint.lat - baseOffset * 0.9, centerPoint.lng - baseOffset * 0.6],
+          [centerPoint.lat - baseOffset * 1.3, centerPoint.lng - baseOffset * 0.9],
+          [centerPoint.lat - baseOffset * 0.5, centerPoint.lng - baseOffset * 1.1],
+          [centerPoint.lat + baseOffset * 0.3, centerPoint.lng - baseOffset * 1.4],
+          [centerPoint.lat + baseOffset * 0.8, centerPoint.lng - baseOffset * 1.0]
+        ]
+      } else {
+        // 默认地块形状 - 标准农田
+        coordinates = [
+          [centerPoint.lat + baseOffset * 1.0, centerPoint.lng - baseOffset * 1.0],
+          [centerPoint.lat + baseOffset * 1.0, centerPoint.lng + baseOffset * 1.0],
+          [centerPoint.lat + baseOffset * 0.2, centerPoint.lng + baseOffset * 1.2],
+          [centerPoint.lat - baseOffset * 0.8, centerPoint.lng + baseOffset * 1.0],
+          [centerPoint.lat - baseOffset * 1.0, centerPoint.lng + baseOffset * 0.3],
+          [centerPoint.lat - baseOffset * 1.0, centerPoint.lng - baseOffset * 0.5],
+          [centerPoint.lat - baseOffset * 0.6, centerPoint.lng - baseOffset * 1.2],
+          [centerPoint.lat + baseOffset * 0.4, centerPoint.lng - baseOffset * 1.1]
+        ]
+      }
+      
+      return coordinates
+    },
+
+    // 计算多边形中心点
+    calculatePolygonCenter(coordinates) {
+      let latSum = 0
+      let lngSum = 0
+      
+      coordinates.forEach(coord => {
+        latSum += coord[0]
+        lngSum += coord[1]
+      })
+      
+      return [
+        latSum / coordinates.length,
+        lngSum / coordinates.length
+      ]
+    },
+
+    // 显示地块详情弹窗
+    showPlotDetailPopup(plotCenter, plotData) {
+      try {
+        const mapContainer = document.getElementById('leaflet-map')
+        const mapRect = mapContainer.getBoundingClientRect()
+        
+        // 计算弹窗位置（在地图右上角区域）
+        this.popupPosition = {
+          top: mapRect.top + 20, // 距离地图顶部20px
+          left: mapRect.right - 420 // 距离地图右边420px（弹窗宽度400px + 20px边距）
+        }
+        
+        // 设置弹窗数据
+        this.popupData = {
+          ...plotData,
+          photo: '/images/pop-banner.png' // 地块实景照片 - 八角植物
+        }
+        
+        // 显示弹窗
+        this.showDetailPopup = true
+        
+        // 创建连接线
+        this.createConnectorLine(plotCenter, {
+          x: this.popupPosition.left + 20, // 弹窗左边缘 + 20px
+          y: this.popupPosition.top + 200  // 弹窗中部
+        })
+        
+        console.log('地块详情弹窗已显示', {
+          plotCenter,
+          popupPosition: this.popupPosition,
+          plotData
+        })
+        
+      } catch (error) {
+        console.error('显示地块详情弹窗失败:', error)
+      }
+    },
+
+    // 关闭地块详情弹窗
+    closePlotDetailPopup() {
+      this.showDetailPopup = false
+      this.popupData = null
+      
+      // 移除连接线
+      if (this.connectorLine) {
+        this.map.removeLayer(this.connectorLine)
+        this.connectorLine = null
+      }
+    },
+
+    // 创建连接线
+    createConnectorLine(plotCenter, popupPoint) {
+      try {
+        // 移除现有连接线
+        if (this.connectorLine) {
+          this.map.removeLayer(this.connectorLine)
+        }
+        
+        // 将屏幕坐标转换为地理坐标
+        const mapContainer = document.getElementById('leaflet-map')
+        const mapRect = mapContainer.getBoundingClientRect()
+        const popupLatLng = this.map.containerPointToLatLng([
+          popupPoint.x - mapRect.left,
+          popupPoint.y - mapRect.top
+        ])
+        
+        // 创建连接线
+        this.connectorLine = L.polyline([plotCenter, popupLatLng], {
+          color: '#4CFDEB',
+          weight: 2,
+          opacity: 0.8,
+          dashArray: '5,5'
+        })
+        
+        this.connectorLine.addTo(this.map)
+        
+      } catch (error) {
+        console.error('创建连接线失败:', error)
+      }
     }
   }
 }
@@ -1068,5 +1582,187 @@ export default {
   transform: scale(1.05);
   transition: transform 0.2s ease;
   z-index: 1000;
+}
+
+/* 乡镇标签样式 */
+.township-label {
+  background: none !important;
+  border: none !important;
+}
+
+.township-name {
+  background: rgba(255, 215, 0, 0.9) !important;
+  color: #000 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  border: 1px solid #FFD700 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 地块详情标记样式 */
+.plot-detail-marker-container {
+  background: none !important;
+  border: none !important;
+}
+
+.plot-detail-marker {
+  width: 160px !important;
+  height: 80px !important;
+  background: linear-gradient(135deg, rgba(76, 252, 234, 0.9) 0%, rgba(10, 20, 32, 0.9) 100%) !important;
+  border: 2px solid #4CFDEB !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 20px rgba(76, 252, 234, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  animation: plot-detail-glow 2s infinite alternate !important;
+}
+
+@keyframes plot-detail-glow {
+  from {
+    box-shadow: 0 0 20px rgba(76, 252, 234, 0.5) !important;
+  }
+  to {
+    box-shadow: 0 0 30px rgba(76, 252, 234, 0.8) !important;
+  }
+}
+
+.marker-content {
+  text-align: center !important;
+  padding: 8px !important;
+}
+
+.marker-title {
+  color: #4CFDEB !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  margin-bottom: 4px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 140px !important;
+}
+
+.marker-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.marker-info span {
+  color: white !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+}
+
+/* Preview Mark 标记样式 */
+.preview-mark-container {
+  background: none !important;
+  border: none !important;
+}
+
+.preview-mark-icon {
+  width: 32px !important;
+  height: 40px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3)) !important;
+}
+
+.preview-mark-icon:hover {
+  transform: scale(1.2) !important;
+  filter: drop-shadow(0 0 10px rgba(76, 252, 234, 0.8)) !important;
+}
+
+/* 地块详情弹窗样式 */
+.plot-detail-popup {
+  position: fixed;
+  width: 400px;
+  background: linear-gradient(135deg, rgba(10, 20, 32, 0.95) 0%, rgba(15, 30, 45, 0.95) 100%);
+  border: 2px solid rgba(76, 252, 234, 0.8);
+  border-radius: 12px;
+  box-shadow: 
+    0 0 30px rgba(76, 252, 234, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+  animation: popup-fade-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popup-close-button {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4CFDEB 0%, #00BCD4 100%);
+  border: 2px solid rgba(10, 20, 32, 1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10001;
+  box-shadow: 0 0 10px rgba(76, 252, 234, 0.5);
+}
+
+.popup-close-button:hover {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.close-icon {
+  color: #0a1420;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.popup-content {
+  padding: 15px;
+}
+
+.popup-image-container {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(76, 252, 234, 0.3);
+}
+
+.popup-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .plot-detail-popup {
+    width: 300px;
+    left: 10px !important;
+    top: 10px !important;
+  }
+  
+  .popup-image {
+    height: 160px;
+  }
 }
 </style>

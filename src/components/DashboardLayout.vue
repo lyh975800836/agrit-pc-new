@@ -13,11 +13,18 @@
 
       <!-- 主体内容区域 group_4 -->
       <div class="group_4 flex-row">
-        <!-- 左侧数据展示区域 -->
-        <LeftDataPanel 
-          :project-data="projectData"
-          :statistics-data="statisticsData"
-        />
+        <!-- 左侧区域 - 根据插槽内容决定显示什么 -->
+        <template v-if="$slots['left-panel']">
+          <!-- 如果有left-panel插槽，使用插槽内容 -->
+          <slot name="left-panel"></slot>
+        </template>
+        <template v-else>
+          <!-- 默认显示数据展示区域 -->
+          <LeftDataPanel 
+            :project-data="projectData"
+            :statistics-data="statisticsData"
+          />
+        </template>
         
         <!-- 中间地图区域 group_5 - 通过插槽自定义 -->
         <div class="group_5 flex-grow">
@@ -26,12 +33,19 @@
           </div>
         </div>
 
-        <!-- 右侧排名区域 -->
-        <RightRankingPanel 
-          :region-name="regionName"
-          :ranking-data="rankingData"
-          :quality-data="qualityData"
-        />
+        <!-- 右侧区域 - 根据插槽内容决定显示什么 -->
+        <template v-if="$slots['right-panel']">
+          <!-- 如果有right-panel插槽，使用插槽内容 -->
+          <slot name="right-panel"></slot>
+        </template>
+        <template v-else>
+          <!-- 默认显示排名区域 -->
+          <RightRankingPanel 
+            :region-name="regionName"
+            :ranking-data="rankingData"
+            :quality-data="qualityData"
+          />
+        </template>
       </div>
     </div>
   </div>

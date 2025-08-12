@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Dashboard from '@/views/Dashboard.vue'
 import DetailMap from '@/views/DetailMap.vue'
+import PlotDetail from '@/views/PlotDetail.vue'
 
 Vue.use(VueRouter)
 
@@ -20,6 +21,15 @@ const routes = [
     component: DetailMap,
     meta: {
       title: '八角地块详情'
+    }
+  },
+  {
+    path: '/plot/:plotId',
+    name: 'PlotDetail',
+    component: PlotDetail,
+    props: true,
+    meta: {
+      title: '地块详情'
     }
   }
 ]
