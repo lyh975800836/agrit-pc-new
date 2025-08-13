@@ -86,7 +86,10 @@ export default {
         '德保县': [23.3, 106.6],
         '靖西市': [23.1, 106.4],
         '田阳区': [23.7, 106.9],
-        '田东县': [23.6, 107.1]
+        '田东县': [23.6, 107.1],
+        '巴塘': [24.236, 106.205], // 添加巴塘坐标
+        '大楞乡': [24.236, 106.205], // 大楞乡坐标
+        '新村合作地块': [24.236, 106.205] // 地块坐标
       }
     }
   },
@@ -129,7 +132,9 @@ export default {
       
       this.map = L.map('leaflet-map', {
         center: center,
-        zoom: 15, // 提高初始缩放级别
+        zoom: 12, // 设置合理的初始缩放级别
+        minZoom: 1,
+        maxZoom: 21, // 支持更高清晰度缩放
         zoomControl: false, // 禁用缩放控件
         scrollWheelZoom: false, // 禁用滚轮缩放
         doubleClickZoom: false, // 禁用双击缩放
@@ -143,35 +148,40 @@ export default {
         zoomAnimation: false // 禁用缩放动画提高响应速度
       })
 
-      // 添加多个地图图层 - 使用更快的瓦片服务
+      // 添加多个地图图层 - 使用高清卫星瓦片服务
       const layers = {
-        '高德卫星': L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
-          attribution: '© 高德地图',
-          subdomains: ['1', '2', '3', '4'],
-          maxZoom: 18,
-          tileSize: 256
-        }),
-        '天地图影像': L.tileLayer('https://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a', {
-          attribution: '© 天地图',
-          subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
-          maxZoom: 18
-        }),
         '谷歌卫星': L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
           attribution: '© Google',
           subdomains: ['0', '1', '2', '3'],
-          maxZoom: 18,
-          tileSize: 256
-        }),
-        '高德地图': L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-          attribution: '© 高德地图',
-          maxZoom: 18,
+          maxZoom: 21,
+          minZoom: 3,
           tileSize: 256,
           crossOrigin: true
+        }),
+        '高德卫星': L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+          attribution: '© 高德地图',
+          subdomains: ['1', '2', '3', '4'],
+          maxZoom: 19,
+          minZoom: 3,
+          tileSize: 256,
+          crossOrigin: true
+        }),
+        'Bing卫星': L.tileLayer('https://mt{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+          attribution: '© Google Hybrid',
+          subdomains: ['0', '1', '2', '3'],
+          maxZoom: 20,
+          minZoom: 1,
+          crossOrigin: true
+        }),
+        'OpenStreetMap': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19,
+          minZoom: 1
         })
       }
 
-      // 默认使用高德卫星地图
-      const defaultLayer = layers['高德卫星']
+      // 默认使用谷歌卫星地图 - 支持更高清晰度
+      const defaultLayer = layers['谷歌卫星']
       
       // 监听瓦片加载事件
       let loadedTiles = 0
@@ -200,6 +210,29 @@ export default {
         setTimeout(() => {
           this.isLoading = false
         }, 500)
+      })
+      
+      // 添加瓦片加载错误处理 - 多层fallback确保高清晰度
+      let fallbackUsed = false
+      defaultLayer.on('tileerror', (e) => {
+        if (!fallbackUsed) {
+          console.warn('谷歌卫星地图瓦片加载失败，切换到高德卫星:', e)
+          fallbackUsed = true
+          // 移除当前图层
+          this.map.removeLayer(defaultLayer)
+          // 切换到高德卫星
+          const gaodeLayer = layers['高德卫星']
+          gaodeLayer.addTo(this.map)
+          this.loadingText = '切换到高德卫星地图'
+          
+          // 高德也失败时切换到Bing
+          gaodeLayer.on('tileerror', () => {
+            this.map.removeLayer(gaodeLayer)
+            const bingLayer = layers['Bing卫星']
+            bingLayer.addTo(this.map)
+            this.loadingText = '切换到Bing卫星地图'
+          })
+        }
       })
       
       defaultLayer.addTo(this.map)
@@ -273,10 +306,10 @@ export default {
         // 添加区域外遮罩层效果
         this.addRegionMask(regionFeature)
         
-        // 调整地图视野以适应区域边界，设置更高的最小缩放级别
+        // 调整地图视野以适应区域边界
         this.map.fitBounds(regionLayer.getBounds(), {
           padding: [30, 30],
-          maxZoom: 17  // 设置更高的最大缩放级别
+          maxZoom: 14  // 设置合理的最大缩放级别确保卫星瓦片可用
         })
         
         console.log('区域轮廓已添加到地图')
@@ -999,15 +1032,32 @@ export default {
     },
 
     // 添加地块详情标记（用于三级页面）
-    addPlotDetailMarker(regionFeature) {
+    async addPlotDetailMarker(regionFeature) {
       try {
-        // 获取区域中心点作为基准
-        const geoJsonLayer = L.geoJSON(regionFeature)
-        const bounds = geoJsonLayer.getBounds()
-        const center = bounds.getCenter()
+        console.log('开始添加地块详情标记，使用真实GeoJSON数据')
         
-        // 生成具体地块的mock坐标数据
-        const plotCoordinates = this.generatePlotCoordinates(center, this.plotData)
+        // 加载巴塘真实地块数据
+        const plotDataImport = await import('@/assets/mapdata/巴塘2.json')
+        const plotGeoJsonData = plotDataImport.default || plotDataImport
+        
+        console.log('已加载巴塘地块数据:', plotGeoJsonData)
+        
+        // 取第一个地块的坐标数据（主要地块）
+        const mainPlotFeature = plotGeoJsonData.features[0]
+        if (!mainPlotFeature || !mainPlotFeature.geometry) {
+          console.error('未找到有效的地块数据')
+          return
+        }
+        
+        // 转换GeoJSON坐标为Leaflet格式
+        const plotCoordinates = this.convertGeoJsonCoordinates(mainPlotFeature.geometry.coordinates)
+        
+        if (plotCoordinates.length === 0) {
+          console.error('地块坐标转换失败')
+          return
+        }
+        
+        console.log('转换后的地块坐标点数量:', plotCoordinates.length)
         
         // 添加地块轮廓多边形
         const plotPolygon = L.polygon(plotCoordinates, {
@@ -1039,61 +1089,110 @@ export default {
         plotPolygon.addTo(this.map)
         this.plotLayers.push(plotPolygon)
         
+        // 获取地块边界用于放置标记点
+        const plotBounds = plotPolygon.getBounds()
+        
+        // 创建多个preview-mark标记点
+        this.addMultiplePreviewMarks(plotCoordinates, plotBounds)
+        
+        // 调整地图视野聚焦到真实地块多边形，提供高清晰度视野
+        this.map.fitBounds(plotBounds, {
+          padding: [20, 20],
+          maxZoom: 18  // 提供更高清晰度的卫星影像
+        })
+        
+        console.log('真实地块详情标记已添加，坐标点数量:', plotCoordinates.length)
+        
+      } catch (error) {
+        console.error('添加地块详情标记失败:', error)
+        // 如果加载失败，回退到mock数据
+        this.addPlotDetailMarkerFallback(regionFeature)
+      }
+    },
+    
+    // 回退方法：使用mock数据
+    addPlotDetailMarkerFallback(regionFeature) {
+      try {
+        console.log('使用fallback方法添加地块标记')
+        
+        // 获取区域中心点作为基准
+        const geoJsonLayer = L.geoJSON(regionFeature)
+        const bounds = geoJsonLayer.getBounds()
+        const center = bounds.getCenter()
+        
+        // 生成具体地块的mock坐标数据
+        const plotCoordinates = this.generatePlotCoordinates(center, this.plotData)
+        
+        // 添加地块轮廓多边形
+        const plotPolygon = L.polygon(plotCoordinates, {
+          color: '#4CFDEB',
+          weight: 4,
+          opacity: 1,
+          fillColor: 'rgba(76, 252, 234, 0.3)',
+          fillOpacity: 0.3,
+          dashArray: '8,4'
+        })
+        
+        plotPolygon.addTo(this.map)
+        this.plotLayers.push(plotPolygon)
+        
         // 创建多个preview-mark标记点
         this.addMultiplePreviewMarks(plotCoordinates, bounds)
         
         // 调整地图视野聚焦到地块多边形
         this.map.fitBounds(plotPolygon.getBounds(), {
-          padding: [30, 30],
-          maxZoom: 17
+          padding: [20, 20],
+          maxZoom: 18
         })
         
-        console.log('地块详情标记已添加，地块坐标:', plotCoordinates)
+        console.log('Fallback地块详情标记已添加')
         
       } catch (error) {
-        console.error('添加地块详情标记失败:', error)
+        console.error('Fallback添加地块详情标记失败:', error)
       }
     },
 
     // 添加多个preview-mark标记点
     addMultiplePreviewMarks(plotCoordinates, bounds) {
       try {
-        // 在地块范围内创建多个标记点
+        // 计算地块内部的有效位置
+        const validPositions = this.generatePositionsInsidePolygon(plotCoordinates, 5)
+        
         const markersData = [
           { 
-            position: [bounds.getCenter().lat + 0.001, bounds.getCenter().lng - 0.002],
+            position: validPositions[0] || [bounds.getCenter().lat, bounds.getCenter().lng],
             name: '监测点A',
             type: 'sensor'
           },
           { 
-            position: [bounds.getCenter().lat - 0.002, bounds.getCenter().lng + 0.001],
+            position: validPositions[1] || [bounds.getCenter().lat, bounds.getCenter().lng],
             name: '监测点B', 
             type: 'sensor'
           },
           { 
-            position: [bounds.getCenter().lat + 0.0015, bounds.getCenter().lng + 0.0018],
+            position: validPositions[2] || [bounds.getCenter().lat, bounds.getCenter().lng],
             name: '监测点C',
             type: 'sensor'
           },
           { 
-            position: [bounds.getCenter().lat - 0.001, bounds.getCenter().lng - 0.0015],
+            position: validPositions[3] || [bounds.getCenter().lat, bounds.getCenter().lng],
             name: '监测点D',
             type: 'sensor'
           },
           { 
-            position: [bounds.getCenter().lat + 0.0005, bounds.getCenter().lng + 0.0005],
+            position: validPositions[4] || [bounds.getCenter().lat, bounds.getCenter().lng],
             name: '中心监测点',
             type: 'main'
           }
         ]
 
         markersData.forEach((markerData) => {
-          // 使用preview-mark.png图片作为标记图标
+          // 使用preview-mark.png图片作为标记图标，增大尺寸提升体验
           const previewIcon = L.divIcon({
             className: 'preview-mark-container',
             html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${markerData.name}" />`,
-            iconSize: [32, 40],
-            iconAnchor: [16, 40]
+            iconSize: [40, 50],
+            iconAnchor: [20, 50]
           })
           
           const previewMarker = L.marker(markerData.position, { icon: previewIcon })
@@ -1131,6 +1230,118 @@ export default {
         
       } catch (error) {
         console.error('添加preview-mark标记失败:', error)
+      }
+    },
+
+    // 在多边形内部生成有效位置点
+    generatePositionsInsidePolygon(polygonCoordinates, numPoints) {
+      try {
+        const positions = []
+        
+        // 计算多边形的边界框
+        let minLat = Infinity, maxLat = -Infinity
+        let minLng = Infinity, maxLng = -Infinity
+        
+        polygonCoordinates.forEach(coord => {
+          const lat = coord[0]
+          const lng = coord[1]
+          minLat = Math.min(minLat, lat)
+          maxLat = Math.max(maxLat, lat)
+          minLng = Math.min(minLng, lng)
+          maxLng = Math.max(maxLng, lng)
+        })
+        
+        // 计算多边形重心作为第一个点
+        const centroid = this.calculatePolygonCentroid(polygonCoordinates)
+        if (this.isPointInPolygonCoords([centroid[1], centroid[0]], polygonCoordinates)) {
+          positions.push(centroid)
+        }
+        
+        // 生成其他点位
+        let attempts = 0
+        const maxAttempts = numPoints * 20
+        
+        while (positions.length < numPoints && attempts < maxAttempts) {
+          // 在边界框内随机生成点
+          const lat = minLat + Math.random() * (maxLat - minLat)
+          const lng = minLng + Math.random() * (maxLng - minLng)
+          
+          // 检查点是否在多边形内部
+          if (this.isPointInPolygonCoords([lng, lat], polygonCoordinates)) {
+            // 确保与已有点保持一定距离
+            let tooClose = false
+            for (const existingPos of positions) {
+              const distance = Math.sqrt(
+                Math.pow(lat - existingPos[0], 2) + 
+                Math.pow(lng - existingPos[1], 2)
+              )
+              if (distance < 0.0008) { // 最小距离阈值
+                tooClose = true
+                break
+              }
+            }
+            
+            if (!tooClose) {
+              positions.push([lat, lng])
+            }
+          }
+          
+          attempts++
+        }
+        
+        console.log(`在多边形内生成了 ${positions.length} 个有效位置点`)
+        return positions
+        
+      } catch (error) {
+        console.error('生成多边形内部位置失败:', error)
+        return []
+      }
+    },
+
+    // 计算多边形重心
+    calculatePolygonCentroid(coordinates) {
+      let centroidLat = 0
+      let centroidLng = 0
+      let signedArea = 0
+      
+      for (let i = 0; i < coordinates.length - 1; i++) {
+        const lat0 = coordinates[i][0]
+        const lng0 = coordinates[i][1]
+        const lat1 = coordinates[i + 1][0]
+        const lng1 = coordinates[i + 1][1]
+        
+        const a = lat0 * lng1 - lat1 * lng0
+        signedArea += a
+        centroidLat += (lat0 + lat1) * a
+        centroidLng += (lng0 + lng1) * a
+      }
+      
+      signedArea *= 0.5
+      centroidLat /= (6 * signedArea)
+      centroidLng /= (6 * signedArea)
+      
+      return [centroidLat, centroidLng]
+    },
+
+    // 检查点是否在多边形坐标内部
+    isPointInPolygonCoords(point, polygonCoordinates) {
+      try {
+        const [x, y] = point
+        let inside = false
+        
+        for (let i = 0, j = polygonCoordinates.length - 1; i < polygonCoordinates.length; j = i++) {
+          const [xi, yi] = [polygonCoordinates[i][1], polygonCoordinates[i][0]] // 注意坐标顺序
+          const [xj, yj] = [polygonCoordinates[j][1], polygonCoordinates[j][0]]
+          
+          if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+            inside = !inside
+          }
+        }
+        
+        return inside
+      } catch (error) {
+        console.warn('点在多边形检测失败:', error)
+        return false
       }
     },
 
@@ -1667,8 +1878,8 @@ export default {
 }
 
 .preview-mark-icon {
-  width: 32px !important;
-  height: 40px !important;
+  width: 40px !important;
+  height: 50px !important;
   cursor: pointer !important;
   transition: all 0.3s ease !important;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3)) !important;
