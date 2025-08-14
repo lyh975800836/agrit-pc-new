@@ -1,16 +1,17 @@
 <template>
-  <DashboardLayout
-    :weather="weather"
-    :user="user"
-    :project-data="projectData"
-    :statistics-data="statisticsData"
-    :ranking-data="rankingData"
-    :quality-data="qualityData"
-    :region-name="regionName"
-    :show-back-button="true"
-    :page-title="plotData.name || '地块详情'"
-    @back="handleBackClick"
-  >
+  <div class="plot-detail-container">
+    <DashboardLayout
+      :weather="weather"
+      :user="user"
+      :project-data="projectData"
+      :statistics-data="statisticsData"
+      :ranking-data="rankingData"
+      :quality-data="qualityData"
+      :region-name="regionName"
+      :show-back-button="true"
+      :page-title="plotData.name || '地块详情'"
+      @back="handleBackClick"
+    >
     <template #center-map>
       <!-- 地块详情真实卫星地图 -->
       <RegionDetailMap 
@@ -91,7 +92,7 @@
         <div class="health-section">
           <div class="health-header">
             <span class="health-title">林地健康指标</span>
-            <div class="health-link">
+            <div class="health-link" @click="showHealthModal">
               <span class="link-text">查看详情</span>
               <span class="link-arrow">>></span>
             </div>
@@ -306,19 +307,30 @@
           </div>
         </div>
       </div>
+      
+      <!-- 健康指标详情面板 - 在左侧面板旁边显示 -->
+      <div v-if="healthModalVisible" class="health-detail-panel">
+        <HealthIndicatorModal 
+          :visible="true" 
+          @close="healthModalVisible = false"
+        />
+      </div>
     </template>
-  </DashboardLayout>
+    </DashboardLayout>
+  </div>
 </template>
 
 <script>
 import DashboardLayout from '@/components/DashboardLayout.vue'
 import RegionDetailMap from '@/components/RegionDetailMap.vue'
+import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue'
 
 export default {
   name: 'PlotDetail',
   components: {
     DashboardLayout,
-    RegionDetailMap
+    RegionDetailMap,
+    HealthIndicatorModal
   },
   props: {
     plotId: {
@@ -328,6 +340,8 @@ export default {
   },
   data() {
     return {
+      // 健康指标弹窗控制
+      healthModalVisible: false,
       // 图片资源引用
       images: {
         leftPanelBg: '/images/left-panel-bg.png',
@@ -474,6 +488,11 @@ export default {
       // 这里可以加载乡镇级别的轮廓地图
       // 暂时显示提示信息
       this.$message && this.$message.info(`正在加载${township.name}乡镇轮廓地图...`)
+    },
+    
+    showHealthModal() {
+      // 显示健康指标弹窗
+      this.healthModalVisible = true
     }
   }
 }
@@ -481,6 +500,20 @@ export default {
 
 <style lang="less" scoped>
 /* ===== 地块详情页面样式 ===== */
+
+/* 根容器样式 */
+.plot-detail-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.health-detail-panel {
+  position: absolute;
+  left: 402px;
+  top: 0;
+  z-index: 100;
+}
 
 /* 左侧地块详情面板 */
 .plot-details-panel {
@@ -762,6 +795,15 @@ export default {
   display: flex;
   align-items: center;
   gap: 5px;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(76, 252, 234, 0.1);
+    transform: translateX(2px);
+  }
 }
 
 .link-text {
