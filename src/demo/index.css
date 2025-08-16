@@ -1,2679 +1,67 @@
 .page {
   position: relative;
   width: 3840px;
-  height: 2160px;
+  height: 2800px;
   overflow: hidden;
 }
 
-.group_1 {
-  height: 2160px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/7f36b386551e26c0dcb1e0f4022e9a59)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 3840px;
-}
-
-.image-wrapper_1 {
-  height: 2160px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/af070b17af4ae2b43895a7efa4ad5b4e)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 3840px;
-}
-
-.image_1 {
-  width: 2918px;
-  height: 2160px;
-  margin-left: 477px;
-}
-
-.group_2 {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 3840px;
-  height: 2053px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/e94e3c3c9ed3c9bdc7f0a50386c28ef1)
-    100% no-repeat;
-  background-size: 100% 100%;
-}
-
-.group_3 {
-  position: relative;
-  width: 3840px;
-  height: 1905px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/d99b404e4b956da26a2c39cfab9d7d41)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 255px;
-  justify-content: flex-center;
-}
-
-.group_4 {
-  width: 901px;
-  height: 1761px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/2832fdba91dd09345853390ec2800a39)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin: 121px 0 0 12px;
-}
-
-.image_2 {
-  width: 822px;
-  height: 28px;
-  margin: -1px 0 0 67px;
-}
-
-.block_1 {
-  width: 742px;
-  height: 42px;
-  margin: 55px 0 0 86px;
-}
-
-.text_1 {
-  width: 388px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 39px;
-  margin-top: 1px;
-}
-
-.label_1 {
-  width: 31px;
-  height: 42px;
-  margin-left: 179px;
-}
-
-.text_2 {
-  width: 123px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(57, 180, 74, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 39px;
-  margin: 3px 0 0 21px;
-}
-
-.image_3 {
-  width: 383px;
-  height: 7px;
-  margin: 11px 0 0 88px;
-}
-
-.block_2 {
-  width: 755px;
-  height: 256px;
-  margin: 50px 0 0 80px;
-}
-
 .box_1 {
-  width: 237px;
-  height: 256px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/f8ee04efca11ed2f22818a77d2b523a6)
+  height: 2799px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/293cf9404205b26239925517e1340a01)
     100% no-repeat;
   background-size: 100% 100%;
-  justify-content: flex-center;
-}
-
-.image_4 {
-  width: 220px;
-  height: 9px;
-  margin: 2px 0 0 9px;
-}
-
-.text_3 {
-  width: 141px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin: 60px 0 0 44px;
-}
-
-.text_4 {
-  width: 84px;
-  height: 77px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 107px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 107px;
-  margin: 23px 0 0 71px;
-}
-
-.image_5 {
-  width: 220px;
-  height: 9px;
-  margin: 49px 0 2px 9px;
+  width: 3840px;
 }
 
 .box_2 {
-  width: 237px;
-  height: 256px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/136b6b8392a92ff9eba1975da8c7acbd)
+  height: 2796px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/4f283165f0cd192d9384edfb7c6040c0)
     100% no-repeat;
   background-size: 100% 100%;
-  margin-left: 10px;
-  justify-content: flex-center;
-}
-
-.image_6 {
-  width: 220px;
-  height: 9px;
-  margin: 2px 0 0 7px;
-}
-
-.text_5 {
-  width: 141px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin: 60px 0 0 43px;
-}
-
-.text_6 {
-  width: 85px;
-  height: 77px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 107px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 107px;
-  margin: 23px 0 0 70px;
-}
-
-.image_7 {
-  width: 220px;
-  height: 9px;
-  margin: 49px 0 2px 7px;
-}
-
-.text-wrapper_1 {
-  width: 261px;
-  height: 256px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/92517eefaee19cf4c844227679d6655d)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-left: 10px;
-}
-
-.text_7 {
-  width: 177px;
-  height: 27px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin: 71px 0 0 44px;
-}
-
-.text_8 {
-  width: 164px;
-  height: 77px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 107px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 107px;
-  margin: 21px 0 60px 48px;
-}
-
-.block_3 {
-  width: 820px;
-  height: 722px;
-  margin: 41px 0 0 80px;
-}
-
-.group_5 {
-  width: 755px;
-  height: 722px;
-}
-
-.group_6 {
-  width: 755px;
-  height: 414px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/667edbd5bd8eeebf59c2582adca9678e)
-    100% no-repeat;
-  background-size: 100% 100%;
-}
-
-.image_8 {
-  width: 347px;
-  height: 368px;
-  margin: 20px 0 0 30px;
-}
-
-.group_7 {
-  width: 337px;
-  height: 324px;
-  margin: 37px 25px 0 16px;
-}
-
-.text_9 {
-  width: 225px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 39px;
-  margin-left: 57px;
-}
-
-.image_9 {
-  width: 229px;
-  height: 8px;
-  margin: 12px 0 0 56px;
-}
-
-.text_10 {
-  width: 186px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 39px;
-  margin: 31px 0 0 76px;
-}
-
-.text-wrapper_2 {
-  width: 164px;
-  height: 29px;
-  overflow-wrap: break-word;
-  font-size: 0;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 31px;
-  margin: 30px 0 0 88px;
-}
-
-.text_11 {
-  width: 164px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 31px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 31px;
-}
-
-.text_12 {
-  width: 164px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(32, 119, 106, 1);
-  font-size: 31px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 31px;
-}
-
-.group_8 {
-  width: 337px;
-  height: 40px;
-  margin-top: 98px;
-}
-
-.text-wrapper_3 {
-  height: 38px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/98f91bfb7fb41ab2c96350ac528c08f1)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 2px;
-  width: 109px;
-}
-
-.text_13 {
-  width: 67px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(14, 164, 164, 1);
-  font-size: 22px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 22px;
-  margin: 7px 0 0 23px;
-}
-
-.text-wrapper_4 {
-  height: 38px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/30cdc39ca866e29a0193a41ccfacb600)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 108px;
-  margin: 2px 0 0 6px;
-}
-
-.text_14 {
-  width: 69px;
-  height: 21px;
-  overflow-wrap: break-word;
-  color: rgba(14, 164, 164, 1);
-  font-size: 22px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 22px;
-  margin: 8px 0 0 18px;
-}
-
-.text-wrapper_5 {
-  height: 40px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/146243459e36c5cbe5c19258b8b7272a)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-left: 5px;
-  width: 109px;
-}
-
-.text_15 {
-  width: 68px;
-  height: 21px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 22px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 22px;
-  margin: 9px 0 0 21px;
-}
-
-.group_9 {
-  width: 755px;
-  height: 256px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/f2f9d20ed013d5e1ef3e88ef20052071)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 52px;
-}
-
-.image_10 {
-  width: 822px;
-  height: 21px;
-  margin: 4px 0 0 -51px;
-}
-
-.text-group_1 {
-  width: 674px;
-  height: 118px;
-  margin: 48px 0 0 42px;
-}
-
-.text_16 {
-  width: 674px;
-  height: 46px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 43px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 43px;
-  margin-top: 41px;
-}
-
-.text_17 {
-  width: 233px;
-  height: 118px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 165px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 165px;
-  margin: 0 141px 0 -374px;
-}
-
-.image_11 {
-  width: 822px;
-  height: 21px;
-  margin: 42px 0 2px -51px;
-}
-
-.image_12 {
-  width: 28px;
-  height: 557px;
-  margin-top: 12px;
-}
-
-.text_18 {
-  width: 248px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 39px;
-  margin: 72px 0 0 83px;
-}
-
-.image_13 {
-  width: 247px;
-  height: 8px;
-  margin: 12px 0 0 84px;
-}
-
-.block_4 {
-  width: 750px;
-  height: 195px;
-  margin: 63px 0 0 97px;
-}
-
-.group_10 {
-  width: 473px;
-  height: 195px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/b7ac09936dd0418a5eeb4d846286977b)
-    100% no-repeat;
-  background-size: 100% 100%;
-}
-
-.text_19 {
-  width: 101px;
-  height: 54px;
-  overflow-wrap: break-word;
-  color: rgba(121, 218, 206, 1);
-  font-size: 73px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 73px;
-  margin: 71px 0 0 47px;
-}
-
-.text-wrapper_6 {
-  height: 191px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/9b1b0f902d9490b8b3a7e755155e745e)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 188px;
-  margin: 4px 8px 0 129px;
-}
-
-.text_20 {
-  width: 102px;
-  height: 54px;
-  overflow-wrap: break-word;
-  color: rgba(121, 218, 206, 1);
-  font-size: 73px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 73px;
-  margin: 67px 0 0 47px;
-}
-
-.text-wrapper_7 {
-  height: 163px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/70877cd825177c0a835b59b46e5ba5c8)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 26px;
-  width: 217px;
-}
-
-.text_21 {
-  width: 55px;
-  height: 54px;
-  overflow-wrap: break-word;
-  color: rgba(0, 255, 0, 1);
-  font-size: 73px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 73px;
-  margin: 29px 0 0 81px;
-}
-
-.text-wrapper_8 {
-  width: 636px;
-  height: 27px;
-  margin: 37px 0 98px 150px;
-}
-
-.text_22 {
-  width: 88px;
-  height: 27px;
-  overflow-wrap: break-word;
-  color: rgba(0, 255, 241, 1);
-  font-size: 27px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 27px;
-}
-
-.text_23 {
-  width: 144px;
-  height: 26px;
-  overflow-wrap: break-word;
-  color: rgba(0, 255, 241, 1);
-  font-size: 27px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 27px;
-  margin-left: 169px;
-}
-
-.text_24 {
-  width: 87px;
-  height: 27px;
-  overflow-wrap: break-word;
-  color: rgba(0, 255, 241, 1);
-  font-size: 27px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 27px;
-  margin-left: 148px;
-}
-
-.image_14 {
-  width: 243px;
-  height: 116px;
-  margin: 1341px 0 0 -212px;
-}
-
-.group_11 {
+  margin-left: 47px;
+  width: 3778px;
   position: relative;
-  width: 1343px;
-  height: 1644px;
-  margin: 213px 0 0 430px;
 }
 
 .box_3 {
-  width: 1100px;
-  height: 76px;
-  margin-top: 1568px;
-}
-
-.text-wrapper_9 {
-  height: 76px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/63584475f2b4b40d6df9a09edf6fa029)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 327px;
-}
-
-.text_25 {
-  width: 148px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(7, 73, 76, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 20px 0 0 128px;
-}
-
-.text-wrapper_10 {
-  width: 763px;
-  height: 76px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/b76fc0fc8b3cf5226899a97214942352)
-    100% no-repeat;
-  background-size: 100% 100%;
-  justify-content: flex-center;
-}
-
-.text_26 {
-  width: 72px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 20px 0 0 54px;
-}
-
-.text_27 {
-  width: 156px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 20px 0 0 31px;
-}
-
-.text_28 {
-  width: 156px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 20px 0 0 35px;
-}
-
-.text_29 {
-  width: 154px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 20px 55px 0 50px;
-}
-
-.box_4 {
-  height: 1603px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/c2ad323cb4d278bb81d5e392dd18401a)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 1250px;
-  position: absolute;
-  left: 93px;
-  top: 0;
-}
-
-.group_12 {
-  width: 973px;
-  height: 970px;
-  margin: -49px 0 0 226px;
-}
-
-.group_13 {
-  width: 973px;
-  height: 970px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/3332968db86c702acce14eec46aff195)
-    100% no-repeat;
-  background-size: 100% 100%;
-}
-
-.group_14 {
-  width: 917px;
-  height: 77px;
-  margin: 14px 0 0 38px;
-}
-
-.text_30 {
-  width: 388px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 39px;
-  margin-top: 39px;
-}
-
-.label_2 {
-  width: 46px;
-  height: 46px;
-}
-
-.image_15 {
-  width: 921px;
-  height: 672px;
-  margin: 39px 0 168px 26px;
-}
-
-.image-wrapper_2 {
-  width: 348px;
-  height: 134px;
-  margin: 69px 0 0 239px;
-}
-
-.image_16 {
-  width: 59px;
-  height: 81px;
-}
-
-.image_17 {
-  width: 59px;
-  height: 81px;
-  margin-top: 53px;
-}
-
-.image-wrapper_3 {
-  width: 493px;
-  height: 134px;
-  margin: 90px 0 0 116px;
-}
-
-.image_18 {
-  width: 59px;
-  height: 81px;
-  margin-top: 53px;
-}
-
-.image_19 {
-  width: 59px;
-  height: 81px;
-}
-
-.image-wrapper_4 {
-  width: 59px;
-  height: 81px;
-  margin: 47px 0 127px 439px;
-}
-
-.image_20 {
-  width: 59px;
-  height: 81px;
-}
-
-.group_15 {
-  width: 901px;
-  height: 1760px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/e8a9f7c749e7ccb5ee5e1f7755b36c94)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin: 121px 12px 0 210px;
-}
-
-.image_21 {
-  width: 822px;
-  height: 28px;
-  margin: -1px 0 0 -6px;
-}
-
-.text_31 {
-  width: 164px;
-  height: 38px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 39px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 39px;
-  margin: 33px 0 0 73px;
-}
-
-.image_22 {
-  width: 161px;
-  height: 7px;
-  margin: 12px 0 0 74px;
-}
-
-.group_16 {
-  height: 1551px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/c58cf4dabb00713e78af8ef40e75b7d2)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 832px;
   position: relative;
-  margin: 61px 0 31px 2px;
-}
-
-.box_5 {
-  width: 831px;
-  height: 975px;
-  margin-left: 1px;
-}
-
-.box_6 {
-  width: 339px;
-  height: 974px;
-}
-
-.image_23 {
-  width: 339px;
-  height: 13px;
-}
-
-.text_32 {
-  width: 149px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 30px 0 0 70px;
-}
-
-.image_24 {
-  width: 243px;
-  height: 6px;
-  margin: 11px 0 0 53px;
-}
-
-.group_17 {
-  width: 211px;
-  height: 57px;
-  margin: 81px 0 0 56px;
-}
-
-.image_25 {
-  width: 57px;
-  height: 57px;
-}
-
-.text_33 {
-  width: 123px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 29px;
-  margin-top: 17px;
-}
-
-.image_26 {
-  width: 242px;
-  height: 2px;
-  margin: 20px 0 0 56px;
-}
-
-.group_18 {
-  width: 298px;
-  height: 644px;
-  margin-top: 40px;
-}
-
-.image_27 {
-  width: 27px;
-  height: 557px;
-  margin-top: 29px;
-}
-
-.group_19 {
-  width: 242px;
-  height: 644px;
-}
-
-.group_20 {
-  width: 210px;
-  height: 64px;
-}
-
-.image_28 {
-  width: 57px;
-  height: 57px;
-  margin-top: 4px;
-}
-
-.paragraph_1 {
-  width: 122px;
-  height: 64px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 29px;
-}
-
-.image_29 {
-  width: 242px;
-  height: 2px;
-  margin-top: 43px;
-}
-
-.group_21 {
-  width: 211px;
-  height: 64px;
-  margin-top: 40px;
-}
-
-.image_30 {
-  width: 57px;
-  height: 57px;
-  margin-top: 4px;
-}
-
-.paragraph_2 {
-  width: 123px;
-  height: 64px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 29px;
-}
-
-.image_31 {
-  width: 242px;
-  height: 2px;
-  margin-top: 44px;
-}
-
-.group_22 {
-  position: relative;
-  width: 211px;
-  height: 56px;
-  margin-top: 21px;
-}
-
-.image_32 {
-  width: 57px;
-  height: 56px;
-}
-
-.text_34 {
-  width: 123px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 29px;
-  margin-top: 17px;
-}
-
-.text_35 {
-  position: absolute;
-  left: 88px;
-  top: 17px;
-  width: 123px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 29px;
-}
-
-.image_33 {
-  width: 242px;
-  height: 3px;
-  margin-top: 23px;
-}
-
-.group_23 {
-  width: 242px;
-  height: 101px;
-  margin-top: 37px;
-}
-
-.image_34 {
-  width: 57px;
-  height: 57px;
-  margin-top: 16px;
-}
-
-.paragraph_3 {
-  width: 154px;
-  height: 101px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 29px;
-}
-
-.image_35 {
-  width: 242px;
-  height: 2px;
-  margin-top: 40px;
-}
-
-.group_24 {
-  width: 211px;
-  height: 65px;
-  margin-top: 37px;
-}
-
-.image_36 {
-  width: 57px;
-  height: 56px;
-  margin-top: 4px;
-}
-
-.paragraph_4 {
-  width: 124px;
-  height: 65px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 29px;
-}
-
-.image_37 {
-  width: 242px;
-  height: 2px;
-  margin: 34px 0 0 56px;
-}
-
-.box_7 {
-  width: 481px;
-  height: 975px;
-}
-
-.block_5 {
-  width: 481px;
-  height: 378px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/cb4e0575cef6fd76a9eaa0cd77d12022)
+  width: 3840px;
+  height: 2053px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/0b755da7ec7b1730558f3846bcfbd7b8)
     100% no-repeat;
   background-size: 100% 100%;
+  margin-left: -47px;
 }
 
-.image_38 {
-  width: 427px;
-  height: 13px;
-  margin-left: 24px;
-}
-
-.text_36 {
-  width: 148px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 30px 0 0 46px;
-}
-
-.text_37 {
-  width: 286px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-  margin: 39px 0 0 46px;
-}
-
-.block_6 {
-  width: 339px;
-  height: 24px;
-  margin: 36px 0 0 44px;
-}
-
-.text_38 {
-  width: 146px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-}
-
-.text-wrapper_11 {
-  width: 90px;
-  height: 24px;
-  overflow-wrap: break-word;
-  font-size: 0;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-}
-
-.text_39 {
-  width: 90px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-}
-
-.text_40 {
-  width: 90px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(250, 175, 59, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-}
-
-.text-group_2 {
-  width: 337px;
-  height: 113px;
-  margin: 23px 0 42px 42px;
-}
-
-.paragraph_5 {
-  width: 337px;
-  height: 58px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 33px;
-}
-
-.text_41 {
-  width: 176px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-  margin-top: 31px;
-}
-
-.image_39 {
-  width: 427px;
-  height: 13px;
-  margin: 7px 0 0 24px;
-}
-
-.label_3 {
-  width: 46px;
-  height: 46px;
-  margin: 1px 0 0 410px;
-}
-
-.text-wrapper_12 {
-  width: 198px;
-  height: 24px;
-  overflow-wrap: break-word;
-  font-size: 0;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 43px 0 0 42px;
-}
-
-.text_42 {
-  width: 198px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.text_43 {
-  width: 198px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.text_44 {
-  width: 198px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-  margin: 19px 0 0 42px;
-}
-
-.image_40 {
-  width: 398px;
-  height: 2px;
-  margin: 18px 0 0 40px;
-}
-
-.text_45 {
-  width: 187px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 33px;
-  margin: 15px 0 0 41px;
-}
-
-.image_41 {
-  width: 398px;
-  height: 2px;
-  margin: 12px 0 0 40px;
-}
-
-.paragraph_6 {
-  width: 360px;
-  height: 58px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 33px;
-  margin: 13px 0 0 42px;
-}
-
-.image_42 {
-  width: 397px;
-  height: 1px;
-  margin: 14px 0 0 40px;
-}
-
-.paragraph_7 {
-  width: 388px;
-  height: 58px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 33px;
-  margin: 12px 0 0 42px;
-}
-
-.paragraph_8 {
-  width: 374px;
-  height: 160px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 33px;
-  margin: 31px 0 0 42px;
-}
-
-.box_8 {
-  width: 212px;
-  height: 65px;
-  margin: 35px 0 0 57px;
-}
-
-.image_43 {
-  width: 57px;
-  height: 56px;
-  margin-top: 4px;
-}
-
-.paragraph_9 {
-  width: 125px;
-  height: 65px;
-  overflow-wrap: break-word;
-  color: rgba(250, 175, 59, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 29px;
-}
-
-.image-wrapper_5 {
-  width: 242px;
-  height: 3px;
-  margin: 33px 0 0 57px;
-}
-
-.image_44 {
-  width: 242px;
-  height: 3px;
-}
-
-.box_9 {
-  width: 833px;
-  height: 426px;
-  margin: 16px 0 2px 0;
+.group_1 {
+  height: 376px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/033dd16e346a264ac5bba81d74a1d7f7)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-top: 11px;
+  width: 3840px;
+  position: relative;
 }
 
 .section_1 {
-  width: 340px;
-  height: 426px;
-}
-
-.box_10 {
-  width: 212px;
-  height: 57px;
-  margin-left: 57px;
-}
-
-.image_45 {
-  width: 57px;
-  height: 57px;
-}
-
-.text_46 {
-  width: 124px;
-  height: 28px;
-  overflow-wrap: break-word;
-  color: rgba(250, 175, 59, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 29px;
-  margin-top: 19px;
-}
-
-.image_46 {
-  width: 242px;
-  height: 2px;
-  margin: 27px 0 0 57px;
-}
-
-.box_11 {
-  width: 212px;
-  height: 57px;
-  margin: 15px 0 0 57px;
-}
-
-.image_47 {
-  width: 57px;
-  height: 57px;
-}
-
-.text_47 {
-  width: 124px;
-  height: 28px;
-  overflow-wrap: break-word;
-  color: rgba(250, 175, 59, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 29px;
-  margin-top: 21px;
-}
-
-.image_48 {
-  width: 242px;
-  height: 2px;
-  margin: 28px 0 0 57px;
-}
-
-.box_12 {
-  width: 211px;
-  height: 57px;
-  margin: 14px 0 0 57px;
-}
-
-.image_49 {
-  width: 57px;
-  height: 57px;
-}
-
-.text_48 {
-  width: 123px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(250, 175, 59, 1);
-  font-size: 29px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 29px;
-  margin-top: 19px;
-}
-
-.box_13 {
-  height: 113px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/5823ea927a4d74dd6015cb25cfc31952)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 54px;
-  width: 340px;
-}
-
-.text-wrapper_13 {
-  width: 227px;
-  height: 26px;
-  margin: 31px 0 0 67px;
-}
-
-.text_49 {
-  width: 79px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 25px;
-  margin-top: 1px;
-}
-
-.text_50 {
-  width: 80px;
-  height: 26px;
-  overflow-wrap: break-word;
-  color: rgba(250, 175, 59, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 25px;
-}
-
-.image-wrapper_6 {
-  width: 223px;
-  height: 8px;
-  margin: 14px 0 34px 69px;
-}
-
-.image_50 {
-  width: 76px;
-  height: 8px;
-}
-
-.image_51 {
-  width: 77px;
-  height: 8px;
-}
-
-.section_2 {
-  width: 482px;
-  height: 383px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/21fef6c44a5897a0c96c1d1fbab0f7af)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 39px;
-}
-
-.image_52 {
-  width: 427px;
-  height: 13px;
-  margin-left: 24px;
-}
-
-.text_51 {
-  width: 147px;
-  height: 34px;
-  overflow-wrap: break-word;
-  color: rgba(76, 252, 234, 1);
-  font-size: 35px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 35px;
-  margin: 30px 0 0 47px;
-}
-
-.image-wrapper_7 {
-  width: 421px;
-  height: 105px;
-  margin: 43px 0 0 28px;
-}
-
-.image_53 {
-  width: 127px;
-  height: 105px;
-}
-
-.image_54 {
-  width: 127px;
-  height: 105px;
-  margin-left: 20px;
-}
-
-.image_55 {
-  width: 127px;
-  height: 97px;
-  margin: 8px 0 0 20px;
-}
-
-.text-wrapper_14 {
-  width: 365px;
-  height: 25px;
-  margin: 28px 0 0 56px;
-}
-
-.text_52 {
-  width: 70px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(93, 215, 206, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-}
-
-.text_53 {
-  width: 70px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(93, 215, 206, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin-left: 77px;
-}
-
-.text_54 {
-  width: 70px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(93, 215, 206, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin-left: 78px;
-}
-
-.text-wrapper_15 {
-  width: 387px;
-  height: 25px;
-  margin: 18px 0 62px 38px;
-}
-
-.text_55 {
-  width: 107px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(93, 215, 206, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-}
-
-.text_56 {
-  width: 107px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(93, 215, 206, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin-left: 40px;
-}
-
-.text_57 {
-  width: 78px;
-  height: 25px;
-  overflow-wrap: break-word;
-  color: rgba(93, 215, 206, 1);
-  font-size: 25px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 25px;
-  margin-left: 55px;
-}
-
-.text-wrapper_16 {
-  position: absolute;
-  left: 379px;
-  top: 417px;
-  width: 419px;
-  height: 49px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/e0ab6f598bfdd9e71a560c32f07f99d2)
-    100% no-repeat;
-  background-size: 100% 100%;
-}
-
-.text_58 {
-  width: 149px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(9, 48, 54, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 14px 0 0 59px;
-}
-
-.text_59 {
-  width: 65px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(0, 255, 0, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 14px 41px 0 105px;
-}
-
-.image_56 {
-  position: absolute;
-  left: 1715px;
-  top: 162px;
-  width: 921px;
-  height: 28px;
-}
-
-.group_25 {
-  position: absolute;
-  left: 941px;
-  top: 123px;
-  width: 669px;
-  height: 1760px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/5c2120a287707cd5cd63873cd3d1f2ac)
-    100% no-repeat;
-  background-size: 100% 100%;
-}
-
-.group_26 {
-  width: 603px;
-  height: 74px;
-  margin: 20px 0 0 47px;
-}
-
-.text_60 {
-  width: 125px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 30px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 30px;
-  margin-top: 45px;
-}
-
-.label_4 {
-  width: 46px;
-  height: 46px;
-}
-
-.image_57 {
-  width: 123px;
-  height: 5px;
-  margin: 8px 0 0 48px;
-}
-
-.group_27 {
-  width: 557px;
-  height: 304px;
-  margin: 43px 0 0 61px;
-}
-
-.text-wrapper_17 {
-  width: 30px;
-  height: 186px;
-  margin-top: 15px;
-}
-
-.text_61 {
-  width: 30px;
-  height: 15px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 19px;
-}
-
-.text_62 {
-  width: 21px;
-  height: 15px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 19px;
-  margin: 28px 0 0 9px;
-}
-
-.text_63 {
-  width: 20px;
-  height: 15px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 19px;
-  margin: 28px 0 0 10px;
-}
-
-.text_64 {
-  width: 21px;
-  height: 15px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 19px;
-  margin: 29px 0 0 9px;
-}
-
-.text_65 {
-  width: 21px;
-  height: 15px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 19px;
-  margin: 26px 0 0 9px;
-}
-
-.image-text_1 {
-  width: 512px;
-  height: 304px;
-}
-
-.box_14 {
-  height: 241px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/872654bda75a85895b9838de018c6cdf)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 512px;
-}
-
-.group_28 {
-  height: 92px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/39b6f7fa4e6f3a756362a02925b37145)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin-top: 30px;
-  width: 457px;
-  position: relative;
-}
-
-.image-wrapper_8 {
-  width: 10px;
-  height: 10px;
-  margin: 13px 0 0 337px;
-}
-
-.thumbnail_1 {
-  width: 10px;
-  height: 10px;
-}
-
-.image-wrapper_9 {
-  width: 124px;
-  height: 16px;
-  margin: 3px 0 0 281px;
-}
-
-.thumbnail_2 {
-  width: 10px;
-  height: 10px;
-}
-
-.thumbnail_3 {
-  width: 10px;
-  height: 10px;
-  margin-top: 6px;
-}
-
-.image-wrapper_10 {
-  width: 181px;
-  height: 24px;
-  margin: 12px 0 14px 53px;
-}
-
-.thumbnail_4 {
-  width: 10px;
-  height: 10px;
-  margin-top: 14px;
-}
-
-.thumbnail_5 {
-  width: 10px;
-  height: 10px;
-  margin-left: 104px;
-}
-
-.thumbnail_6 {
-  width: 10px;
-  height: 10px;
-  margin: 9px 0 0 47px;
-}
-
-.thumbnail_7 {
-  position: absolute;
-  left: 110px;
-  top: 84px;
-  width: 10px;
-  height: 10px;
-}
-
-.thumbnail_8 {
-  position: absolute;
-  left: 451px;
-  top: -2px;
-  width: 10px;
-  height: 10px;
-}
-
-.text-group_3 {
-  width: 449px;
-  height: 51px;
-  margin: 12px 0 0 48px;
-}
-
-.text_66 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-}
-
-.text_67 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 3px;
-}
-
-.text_68 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 4px;
-}
-
-.text_69 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 4px;
-}
-
-.text_70 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 3px;
-}
-
-.text_71 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 4px;
-}
-
-.text_72 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 4px;
-}
-
-.text_73 {
-  width: 53px;
-  height: 51px;
-  overflow-wrap: break-word;
-  color: rgba(56, 247, 132, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  line-height: 19px;
-  margin-left: 3px;
-}
-
-.text_74 {
-  width: 249px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 30px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 30px;
-  margin: 40px 0 0 47px;
-}
-
-.image_58 {
-  width: 247px;
-  height: 5px;
-  margin: 9px 0 0 49px;
-}
-
-.group_29 {
-  height: 267px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/d77cab2fb3a1f50fdc1fd86d18dcbea5)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 570px;
-  margin: 30px 0 0 48px;
-}
-
-.text-wrapper_18 {
-  width: 511px;
-  height: 23px;
-  margin: 15px 0 0 20px;
-}
-
-.text_75 {
-  width: 49px;
-  height: 22px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-top: 1px;
-}
-
-.text_76 {
-  width: 33px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 116px;
-}
-
-.text_77 {
-  width: 32px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 65px;
-}
-
-.text_78 {
-  width: 14px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 69px;
-}
-
-.text_79 {
-  width: 49px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 84px;
-}
-
-.group_30 {
-  width: 528px;
-  height: 23px;
-  margin: 30px 0 0 20px;
-}
-
-.text_80 {
-  width: 99px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.text_81 {
-  width: 26px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 66px;
-}
-
-.text_82 {
-  width: 25px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 72px;
-}
-
-.text_83 {
-  width: 25px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 76px;
-}
-
-.image-text_2 {
-  width: 65px;
-  height: 23px;
-  margin-left: 74px;
-}
-
-.text-group_4 {
-  width: 48px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.image_59 {
-  width: 11px;
-  height: 21px;
-  margin-top: 2px;
-}
-
-.text-wrapper_19 {
-  width: 511px;
-  height: 23px;
-  margin: 30px 0 0 20px;
-}
-
-.text_84 {
-  width: 124px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.text_85 {
-  width: 46px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 44px;
-}
-
-.text_86 {
-  width: 47px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 50px;
-}
-
-.text_87 {
-  width: 47px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 54px;
-}
-
-.text_88 {
-  width: 49px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 50px;
-}
-
-.group_31 {
-  width: 528px;
-  height: 23px;
-  margin: 31px 0 0 20px;
-}
-
-.text_89 {
-  width: 124px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.text_90 {
-  width: 47px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 42px;
-}
-
-.text_91 {
-  width: 47px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 51px;
-}
-
-.text_92 {
-  width: 48px;
-  height: 18px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 3px 0 0 53px;
-}
-
-.image-text_3 {
-  width: 66px;
-  height: 22px;
-  margin: 1px 0 0 50px;
-}
-
-.text-group_5 {
-  width: 49px;
-  height: 22px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.image_60 {
-  width: 12px;
-  height: 21px;
-  margin-top: 1px;
-}
-
-.text-wrapper_20 {
-  width: 511px;
-  height: 24px;
-  margin: 29px 0 16px 20px;
-}
-
-.text_93 {
-  width: 124px;
-  height: 24px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-}
-
-.text_94 {
-  width: 24px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin: 1px 0 0 41px;
-}
-
-.text_95 {
-  width: 21px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 77px;
-}
-
-.text_96 {
-  width: 21px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 80px;
-}
-
-.text_97 {
-  width: 50px;
-  height: 23px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 23px;
-  font-family: SourceHanSansCN-Light;
-  font-weight: 300;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 23px;
-  margin-left: 73px;
-}
-
-.text_98 {
-  width: 187px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 30px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 30px;
-  margin: 55px 0 0 47px;
-}
-
-.image_61 {
-  width: 186px;
-  height: 6px;
-  margin: 10px 0 0 48px;
-}
-
-.image_62 {
-  width: 568px;
-  height: 328px;
-  margin: 20px 0 0 50px;
-}
-
-.text-wrapper_21 {
-  width: 558px;
-  height: 19px;
-  margin: 23px 0 0 51px;
-}
-
-.text_99 {
-  width: 150px;
-  height: 19px;
-  overflow-wrap: break-word;
-  color: rgba(59, 252, 134, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 19px;
-}
-
-.text_100 {
-  width: 150px;
-  height: 19px;
-  overflow-wrap: break-word;
-  color: rgba(59, 252, 134, 1);
-  font-size: 19px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: right;
-  white-space: nowrap;
-  line-height: 19px;
-}
-
-.text-wrapper_22 {
-  width: 622px;
-  height: 306px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/722be3211d0437b75882ebf46ed98e6a)
-    100% no-repeat;
-  background-size: 100% 100%;
-  margin: 53px 0 77px 14px;
-}
-
-.text_101 {
-  width: 231px;
-  height: 29px;
-  overflow-wrap: break-word;
-  color: rgba(56, 254, 131, 1);
-  font-size: 30px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 30px;
-  margin: 40px 0 0 36px;
-}
-
-.paragraph_10 {
-  width: 541px;
-  height: 130px;
-  overflow-wrap: break-word;
-  color: rgba(188, 247, 206, 1);
-  font-size: 21px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: left;
-  line-height: 35px;
-  margin: 55px 0 52px 36px;
-}
-
-.image_63 {
-  position: absolute;
-  left: 341px;
-  top: 942px;
-  width: 2px;
-  height: 351px;
-}
-
-.group_32 {
-  height: 376px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/0939e6ebfe2b3889cd8817fcd9cff342)
-    100% no-repeat;
-  background-size: 100% 100%;
-  width: 3840px;
-  position: absolute;
-  left: 0;
-  top: 11px;
-}
-
-.group_33 {
   width: 3585px;
   height: 251px;
   margin-top: -11px;
 }
 
-.image_64 {
+.image_1 {
   width: 91px;
   height: 82px;
   margin-top: 62px;
 }
 
-.text-wrapper_23 {
+.text-wrapper_1 {
   width: 157px;
   height: 87px;
   margin: 75px 0 0 54px;
 }
 
-.text_102 {
+.text_1 {
   width: 157px;
   height: 45px;
   overflow-wrap: break-word;
@@ -2686,7 +74,7 @@
   line-height: 52px;
 }
 
-.text_103 {
+.text_2 {
   width: 152px;
   height: 25px;
   overflow-wrap: break-word;
@@ -2700,13 +88,13 @@
   margin: 17px 0 0 1px;
 }
 
-.text-wrapper_24 {
+.text-wrapper_2 {
   width: 183px;
   height: 81px;
   margin: 81px 0 0 119px;
 }
 
-.text_104 {
+.text_3 {
   width: 124px;
   height: 39px;
   overflow-wrap: break-word;
@@ -2720,7 +108,7 @@
   margin-left: 33px;
 }
 
-.text_105 {
+.text_4 {
   width: 183px;
   height: 25px;
   overflow-wrap: break-word;
@@ -2734,7 +122,7 @@
   margin-top: 17px;
 }
 
-.text_106 {
+.text_5 {
   width: 149px;
   height: 49px;
   overflow-wrap: break-word;
@@ -2748,9 +136,9 @@
   margin: 76px 0 0 77px;
 }
 
-.image-wrapper_11 {
+.image-wrapper_1 {
   height: 251px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/ba5d8b11522cdfe825c0cce87e462883)
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/680a2951f76557652aacde6255e49b92)
     100% no-repeat;
   background-size: 100% 100%;
   margin-left: 47px;
@@ -2758,13 +146,13 @@
   position: relative;
 }
 
-.image_65 {
+.image_2 {
   width: 900px;
   height: 86px;
   margin: 123px 0 0 468px;
 }
 
-.image_66 {
+.image_3 {
   position: absolute;
   left: 293px;
   top: 135px;
@@ -2772,16 +160,16 @@
   height: 68px;
 }
 
-.text-wrapper_25 {
+.text-wrapper_3 {
   height: 107px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/e7e238fc206784ba499290a3719092dd)
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/6a69eece992cba7fa5ea86378425e443)
     100% no-repeat;
   background-size: 100% 100%;
   width: 271px;
   margin: 48px 0 0 81px;
 }
 
-.text_107 {
+.text_6 {
   width: 152px;
   height: 29px;
   overflow-wrap: break-word;
@@ -2795,16 +183,16 @@
   margin: 38px 0 0 60px;
 }
 
-.text-wrapper_26 {
+.text-wrapper_4 {
   height: 107px;
-  background: url(https://lanhu-oss-proxy.lanhuapp.com/e823f222830688a45fce83bb336789c9)
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/cf875df54c9c9ab0f47209bc7b8c668d)
     100% no-repeat;
   background-size: 100% 100%;
   width: 269px;
   margin: 48px 0 0 2px;
 }
 
-.text_108 {
+.text_7 {
   width: 153px;
   height: 29px;
   overflow-wrap: break-word;
@@ -2818,13 +206,13 @@
   margin: 38px 0 0 63px;
 }
 
-.image_67 {
+.image_4 {
   width: 68px;
   height: 68px;
   margin: 71px 0 0 77px;
 }
 
-.text_109 {
+.text_8 {
   width: 91px;
   height: 29px;
   overflow-wrap: break-word;
@@ -2838,21 +226,2465 @@
   margin: 87px 0 0 13px;
 }
 
-.image-wrapper_12 {
+.image-wrapper_2 {
   width: 1748px;
   height: 28px;
   margin: 4px 0 104px 1019px;
 }
 
-.image_68 {
+.image_5 {
   width: 1748px;
   height: 28px;
 }
 
-.image_69 {
+.image_6 {
   position: absolute;
   left: 309px;
   top: 181px;
   width: 3224px;
   height: 29px;
+}
+
+.group_2 {
+  width: 3576px;
+  height: 948px;
+  margin: 385px 0 333px 126px;
+}
+
+.section_2 {
+  position: relative;
+  width: 1760px;
+  height: 947px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/0c18a309b0439de1e3085e481b3aef44)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_7 {
+  width: 1653px;
+  height: 35px;
+  margin: -1px 0 0 60px;
+}
+
+.box_4 {
+  width: 1585px;
+  height: 199px;
+  margin: 37px 0 0 76px;
+}
+
+.box_5 {
+  width: 406px;
+  height: 196px;
+}
+
+.text-group_1 {
+  width: 398px;
+  height: 146px;
+  margin-left: 4px;
+}
+
+.text_9 {
+  width: 397px;
+  height: 50px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 52px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 52px;
+  margin-left: 1px;
+}
+
+.text_10 {
+  width: 172px;
+  height: 34px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 31px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 31px;
+  margin-top: 15px;
+}
+
+.text_11 {
+  width: 396px;
+  height: 26px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 27px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 27px;
+  margin-top: 21px;
+}
+
+.box_6 {
+  width: 406px;
+  height: 44px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/3d5f6bc0c08491651b16db5d272af612)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-top: 6px;
+}
+
+.text_12 {
+  width: 86px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 12px 0 0 21px;
+}
+
+.image_8 {
+  width: 22px;
+  height: 12px;
+  margin: 16px 20px 0 257px;
+}
+
+.box_7 {
+  width: 463px;
+  height: 182px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/c73b0356e11448481cc602ad86940d92)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin: 17px 0 0 272px;
+}
+
+.image_9 {
+  width: 68px;
+  height: 56px;
+  margin: 22px 0 0 26px;
+}
+
+.text-group_2 {
+  width: 304px;
+  height: 118px;
+  margin: 31px 40px 0 25px;
+}
+
+.text_13 {
+  width: 166px;
+  height: 38px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 39px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 39px;
+}
+
+.paragraph_1 {
+  width: 303px;
+  height: 61px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  line-height: 35px;
+  margin: 19px 0 0 1px;
+}
+
+.box_8 {
+  width: 435px;
+  height: 182px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/ffd9ce8039f69a997ed3b76b94773dbb)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin: 17px 0 0 9px;
+}
+
+.image_10 {
+  width: 53px;
+  height: 53px;
+  margin: 22px 0 0 30px;
+}
+
+.text-group_3 {
+  width: 297px;
+  height: 118px;
+  margin: 31px 32px 0 23px;
+}
+
+.text_14 {
+  width: 165px;
+  height: 38px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 39px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 39px;
+}
+
+.paragraph_2 {
+  width: 296px;
+  height: 61px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  line-height: 35px;
+  margin: 19px 0 0 1px;
+}
+
+.box_9 {
+  width: 1586px;
+  height: 483px;
+  margin: 91px 0 0 80px;
+}
+
+.text-wrapper_5 {
+  width: 54px;
+  height: 334px;
+  margin-top: 142px;
+}
+
+.text_15 {
+  width: 54px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 83px;
+}
+
+.text_16 {
+  width: 54px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 83px;
+  margin-top: 54px;
+}
+
+.text_17 {
+  width: 54px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 83px;
+  margin-top: 55px;
+}
+
+.text_18 {
+  width: 37px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 56px 0 0 8px;
+}
+
+.text_19 {
+  width: 37px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 54px 0 0 8px;
+}
+
+.group_3 {
+  width: 1473px;
+  height: 483px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/673d77f98d2afe961ed7c9d39986a4e1)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-left: 17px;
+}
+
+.text_20 {
+  width: 74px;
+  height: 21px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 55px;
+  margin: 25px 0 0 752px;
+}
+
+.group_4 {
+  height: 402px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/fb85a68122821060672c8b1a4cbc5012)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 1377px;
+  position: relative;
+  margin: 16px 0 19px 34px;
+}
+
+.image_11 {
+  width: 1398px;
+  height: 18px;
+  margin: 46px 0 0 -7px;
+}
+
+.group_5 {
+  position: absolute;
+  left: 345px;
+  top: -143px;
+  width: 103px;
+  height: 548px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/aeb55fd78a988e2688fd0fac1abc7c26)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image-text_1 {
+  width: 79px;
+  height: 78px;
+  margin: 70px 0 0 13px;
+}
+
+.label_1 {
+  width: 31px;
+  height: 43px;
+  margin-left: 21px;
+}
+
+.text-group_4 {
+  width: 79px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(0, 255, 0, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 79px;
+  margin-top: 13px;
+}
+
+.text_21 {
+  width: 72px;
+  height: 21px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 55px;
+  margin: 101px 0 0 -30px;
+}
+
+.image_12 {
+  width: 1320px;
+  height: 27px;
+  margin: 20px 0 56px 216px;
+}
+
+.box_10 {
+  position: absolute;
+  left: 74px;
+  top: 272px;
+  width: 435px;
+  height: 215px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/d9a941ddb209e09342f9367e4a57b368)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.text_22 {
+  width: 74px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 43px 0 0 24px;
+}
+
+.image-text_2 {
+  width: 406px;
+  height: 84px;
+  margin: 18px 0 50px 1px;
+}
+
+.text-wrapper_6 {
+  height: 43px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/ea0c25f9985e0a38eafaea5409c9c0de)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 406px;
+}
+
+.text_23 {
+  width: 86px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 11px 0 0 23px;
+}
+
+.text-group_5 {
+  width: 86px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 21px 0 0 23px;
+}
+
+.section_3 {
+  height: 948px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/7166c4470e687efcef39c99ab33e5b12)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-left: 54px;
+  width: 857px;
+}
+
+.box_11 {
+  width: 437px;
+  height: 98px;
+  margin: 69px 0 0 67px;
+}
+
+.text-group_6 {
+  width: 437px;
+  height: 98px;
+}
+
+.text_24 {
+  width: 437px;
+  height: 50px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 52px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 52px;
+}
+
+.text_25 {
+  width: 126px;
+  height: 31px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 31px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 31px;
+  margin-top: 17px;
+}
+
+.box_12 {
+  width: 220px;
+  height: 44px;
+  margin: 17px 0 0 64px;
+}
+
+.text-wrapper_7 {
+  height: 44px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/727e9d4423f72adee99fd6d3615f8221)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 99px;
+}
+
+.text_26 {
+  width: 65px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 13px 0 0 14px;
+}
+
+.text-wrapper_8 {
+  height: 44px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/5472f77b885a04e73958aa8e3fd49a5d)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-left: -1px;
+  width: 122px;
+}
+
+.text_27 {
+  width: 88px;
+  height: 21px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 13px 0 0 15px;
+}
+
+.box_13 {
+  width: 745px;
+  height: 502px;
+  margin: 114px 0 0 65px;
+}
+
+.text-wrapper_9 {
+  width: 65px;
+  height: 495px;
+}
+
+.text_28 {
+  width: 65px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+}
+
+.text_29 {
+  width: 65px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin-top: 101px;
+}
+
+.text_30 {
+  width: 64px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 103px 0 0 1px;
+}
+
+.text_31 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 81px 0 0 2px;
+}
+
+.text_32 {
+  width: 14px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 100px 0 0 51px;
+}
+
+.image-wrapper_3 {
+  height: 493px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/1753066d04a8f2614fd1496bff924dd0)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 553px;
+  position: relative;
+  margin: 9px 0 0 31px;
+}
+
+.image_13 {
+  width: 600px;
+  height: 18px;
+  margin: 141px 0 0 -16px;
+}
+
+.image_14 {
+  position: absolute;
+  left: 22px;
+  top: 13px;
+  width: 513px;
+  height: 462px;
+}
+
+.text_33 {
+  width: 65px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 147px 0 0 31px;
+}
+
+.image-wrapper_4 {
+  width: 534px;
+  height: 22px;
+  margin: 22px 0 60px 172px;
+}
+
+.image_15 {
+  width: 534px;
+  height: 22px;
+}
+
+.section_4 {
+  height: 948px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/ab109f54d1da4fa16b45d9a82d6fd83f)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-left: 48px;
+  width: 857px;
+}
+
+.box_14 {
+  width: 437px;
+  height: 98px;
+  margin: 69px 0 0 64px;
+}
+
+.text-group_7 {
+  width: 437px;
+  height: 98px;
+}
+
+.text_34 {
+  width: 437px;
+  height: 50px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 52px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 52px;
+}
+
+.text_35 {
+  width: 125px;
+  height: 31px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 31px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 31px;
+  margin: 17px 0 0 1px;
+}
+
+.box_15 {
+  width: 745px;
+  height: 567px;
+  margin: 110px 0 0 65px;
+}
+
+.text-wrapper_10 {
+  width: 63px;
+  height: 559px;
+}
+
+.text_36 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+}
+
+.text_37 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin-top: 85px;
+}
+
+.text_38 {
+  width: 48px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 85px 0 0 15px;
+}
+
+.text_39 {
+  width: 49px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 81px 0 0 14px;
+}
+
+.text_40 {
+  width: 48px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 89px 0 0 15px;
+}
+
+.text_41 {
+  width: 14px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 87px 0 0 49px;
+}
+
+.image-wrapper_5 {
+  height: 555px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/f53f4b50d04a85626fc89abcfafb2c66)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 553px;
+  position: relative;
+  margin: 12px 0 0 31px;
+}
+
+.image_16 {
+  width: 600px;
+  height: 18px;
+  margin: 126px 0 0 -16px;
+}
+
+.image_17 {
+  position: absolute;
+  left: 22px;
+  top: 39px;
+  width: 513px;
+  height: 498px;
+}
+
+.text_42 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 29px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 83px;
+  margin: 135px 0 0 35px;
+}
+
+.image-wrapper_6 {
+  width: 534px;
+  height: 22px;
+  margin: 22px 0 60px 170px;
+}
+
+.image_18 {
+  width: 534px;
+  height: 22px;
+}
+
+.group_6 {
+  position: absolute;
+  left: 126px;
+  top: 374px;
+  width: 855px;
+  height: 338px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/888a7672c5baa8b8abd64d15058b37e2)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_19 {
+  width: 822px;
+  height: 28px;
+  margin: -2px 0 0 55px;
+}
+
+.section_5 {
+  width: 732px;
+  height: 150px;
+  margin: 75px 0 87px 59px;
+}
+
+.text_43 {
+  width: 326px;
+  height: 149px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 186px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 186px;
+  margin-top: 1px;
+}
+
+.box_16 {
+  width: 283px;
+  height: 136px;
+}
+
+.box_17 {
+  width: 199px;
+  height: 54px;
+  margin-left: 84px;
+}
+
+.label_2 {
+  width: 26px;
+  height: 48px;
+  margin-top: 6px;
+}
+
+.text_44 {
+  width: 154px;
+  height: 54px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 74px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 74px;
+}
+
+.text_45 {
+  width: 281px;
+  height: 38px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 39px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 39px;
+  margin-top: 44px;
+}
+
+.group_7 {
+  position: absolute;
+  left: 1033px;
+  top: 374px;
+  width: 854px;
+  height: 338px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/f7fcc0698b5f867bd24fefde9f03c55a)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_20 {
+  width: 822px;
+  height: 28px;
+  margin: -2px 0 0 42px;
+}
+
+.block_1 {
+  width: 741px;
+  height: 150px;
+  margin: 75px 0 87px 50px;
+}
+
+.text_46 {
+  width: 345px;
+  height: 149px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 186px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 186px;
+  margin-top: 1px;
+}
+
+.box_18 {
+  width: 284px;
+  height: 136px;
+}
+
+.block_2 {
+  width: 219px;
+  height: 54px;
+  margin-left: 65px;
+}
+
+.label_3 {
+  width: 26px;
+  height: 48px;
+  margin-top: 6px;
+}
+
+.text_47 {
+  width: 183px;
+  height: 54px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 74px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 74px;
+}
+
+.text_48 {
+  width: 282px;
+  height: 38px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 39px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 39px;
+  margin-top: 44px;
+}
+
+.group_8 {
+  position: absolute;
+  left: 1940px;
+  top: 374px;
+  width: 854px;
+  height: 338px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/c7c8c91fea8a94671482940a19062311)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_21 {
+  width: 822px;
+  height: 28px;
+  margin: -2px 0 0 22px;
+}
+
+.group_9 {
+  width: 731px;
+  height: 136px;
+  margin: 75px 0 101px 60px;
+}
+
+.text_49 {
+  width: 277px;
+  height: 133px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 186px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 186px;
+  margin-top: 1px;
+}
+
+.box_19 {
+  width: 283px;
+  height: 136px;
+}
+
+.section_6 {
+  width: 199px;
+  height: 54px;
+  margin-left: 84px;
+}
+
+.label_4 {
+  width: 26px;
+  height: 48px;
+  margin-top: 6px;
+}
+
+.text_50 {
+  width: 141px;
+  height: 53px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 74px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 74px;
+}
+
+.text_51 {
+  width: 281px;
+  height: 38px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 39px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 39px;
+  margin-top: 44px;
+}
+
+.group_10 {
+  position: absolute;
+  left: 2848px;
+  top: 374px;
+  width: 854px;
+  height: 338px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/f5a9a1d790fef96e3ef974711202644b)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_22 {
+  width: 822px;
+  height: 28px;
+  margin: -2px 0 0 -12px;
+}
+
+.group_11 {
+  width: 731px;
+  height: 136px;
+  margin: 75px 0 101px 62px;
+}
+
+.text_52 {
+  width: 234px;
+  height: 132px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 186px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 186px;
+  margin-top: 1px;
+}
+
+.section_7 {
+  width: 323px;
+  height: 136px;
+}
+
+.block_3 {
+  width: 202px;
+  height: 54px;
+  margin-left: 121px;
+}
+
+.label_5 {
+  width: 26px;
+  height: 48px;
+  margin-top: 6px;
+}
+
+.text_53 {
+  width: 145px;
+  height: 54px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 74px;
+  font-family: BebasNeueRegular;
+  font-weight: normal;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 74px;
+}
+
+.text_54 {
+  width: 321px;
+  height: 38px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 39px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 39px;
+  margin-top: 44px;
+}
+
+.image_23 {
+  position: absolute;
+  left: 1962px;
+  top: 769px;
+  width: 822px;
+  height: 28px;
+}
+
+.image_24 {
+  position: absolute;
+  left: 2855px;
+  top: 769px;
+  width: 822px;
+  height: 28px;
+}
+
+.box_20 {
+  position: absolute;
+  left: 0;
+  top: 2053px;
+  width: 3778px;
+  height: 744px;
+}
+
+.group_12 {
+  position: absolute;
+  left: 80px;
+  top: -274px;
+  width: 1759px;
+  height: 947px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/39d1d7f8e7e4579d9a006da14d74ed8a)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_25 {
+  width: 1653px;
+  height: 35px;
+  margin: -1px 0 0 59px;
+}
+
+.box_21 {
+  width: 1536px;
+  height: 819px;
+  margin: 34px 0 60px 79px;
+}
+
+.box_22 {
+  width: 491px;
+  height: 774px;
+}
+
+.text_55 {
+  width: 491px;
+  height: 50px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 52px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 52px;
+}
+
+.section_8 {
+  width: 365px;
+  height: 44px;
+  margin: 24px 0 0 5px;
+}
+
+.box_23 {
+  width: 186px;
+  height: 44px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/bdef84319ffa35af3a1290e6cb55c732)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image-text_3 {
+  width: 145px;
+  height: 23px;
+  margin: 11px 0 0 17px;
+}
+
+.label_6 {
+  width: 26px;
+  height: 23px;
+}
+
+.text-group_8 {
+  width: 110px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin-top: 1px;
+}
+
+.box_24 {
+  width: 176px;
+  height: 44px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/ce763373a6d5ec0413e42cac1198d02e)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image-text_4 {
+  width: 126px;
+  height: 22px;
+  margin: 11px 0 0 24px;
+}
+
+.label_7 {
+  width: 27px;
+  height: 22px;
+}
+
+.text-group_9 {
+  width: 86px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin-top: 1px;
+}
+
+.section_9 {
+  width: 285px;
+  height: 44px;
+  margin: 386px 0 0 5px;
+}
+
+.image_26 {
+  width: 186px;
+  height: 44px;
+}
+
+.text_56 {
+  width: 79px;
+  height: 25px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin-top: 12px;
+}
+
+.section_10 {
+  width: 285px;
+  height: 44px;
+  margin: 12px 0 0 5px;
+}
+
+.image_27 {
+  width: 186px;
+  height: 44px;
+}
+
+.text_57 {
+  width: 77px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin-top: 7px;
+}
+
+.section_11 {
+  width: 285px;
+  height: 44px;
+  margin: 13px 0 0 5px;
+}
+
+.image_28 {
+  width: 186px;
+  height: 44px;
+}
+
+.text_58 {
+  width: 77px;
+  height: 24px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin-top: 8px;
+}
+
+.section_12 {
+  width: 285px;
+  height: 44px;
+  margin: 13px 0 0 5px;
+}
+
+.image_29 {
+  width: 186px;
+  height: 44px;
+}
+
+.text_59 {
+  width: 79px;
+  height: 24px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin-top: 8px;
+}
+
+.section_13 {
+  width: 286px;
+  height: 44px;
+  margin: 12px 0 0 5px;
+}
+
+.image_30 {
+  width: 186px;
+  height: 44px;
+}
+
+.text_60 {
+  width: 80px;
+  height: 24px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin-top: 8px;
+}
+
+.box_25 {
+  height: 808px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/2c5b1029fa3871a114e96fbc7f1a6ccc)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-top: 11px;
+  width: 812px;
+}
+
+.text-wrapper_11 {
+  width: 433px;
+  height: 109px;
+  margin: 177px 0 0 238px;
+}
+
+.paragraph_3 {
+  width: 91px;
+  height: 94px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  line-height: 35px;
+  margin-top: 15px;
+}
+
+.paragraph_4 {
+  width: 91px;
+  height: 94px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  line-height: 35px;
+}
+
+.text-wrapper_12 {
+  width: 79px;
+  height: 94px;
+  margin: 77px 0 0 48px;
+}
+
+.paragraph_5 {
+  width: 79px;
+  height: 94px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  line-height: 35px;
+}
+
+.text-wrapper_13 {
+  width: 374px;
+  height: 135px;
+  margin: 100px 0 116px 227px;
+}
+
+.paragraph_6 {
+  width: 91px;
+  height: 94px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  line-height: 35px;
+  margin-top: 41px;
+}
+
+.paragraph_7 {
+  width: 91px;
+  height: 93px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  line-height: 35px;
+}
+
+.group_13 {
+  position: absolute;
+  left: 1894px;
+  top: -273px;
+  width: 855px;
+  height: 947px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/a5d1482e73671f2dc5a8131e787e5bc4)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.section_14 {
+  width: 747px;
+  height: 50px;
+  margin: 68px 0 0 66px;
+}
+
+.text_61 {
+  width: 216px;
+  height: 50px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 52px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 52px;
+}
+
+.group_14 {
+  width: 313px;
+  height: 41px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/9f4f2c6f813e509951bf1a87c1790c7f)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin-top: 7px;
+}
+
+.image-text_5 {
+  width: 146px;
+  height: 27px;
+  margin: 8px 0 0 18px;
+}
+
+.label_8 {
+  width: 27px;
+  height: 27px;
+}
+
+.text-group_10 {
+  width: 107px;
+  height: 20px;
+  overflow-wrap: break-word;
+  font-size: 0;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 20px;
+  margin-top: 3px;
+}
+
+.text_62 {
+  width: 107px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 20px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 20px;
+}
+
+.text_63 {
+  width: 107px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 20px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 20px;
+}
+
+.section_15 {
+  height: 697px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/774ab8f45384d8b25824fb3898f6a67f)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 830px;
+  margin: 71px 0 61px 13px;
+}
+
+.text-wrapper_14 {
+  width: 690px;
+  height: 24px;
+  margin: 57px 0 0 42px;
+}
+
+.text_64 {
+  width: 100px;
+  height: 24px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+}
+
+.text_65 {
+  width: 100px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 51px;
+}
+
+.text_66 {
+  width: 99px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 42px;
+}
+
+.text_67 {
+  width: 73px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 63px;
+}
+
+.text_68 {
+  width: 99px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 63px;
+}
+
+.text-wrapper_15 {
+  width: 730px;
+  height: 23px;
+  margin: 89px 0 0 40px;
+}
+
+.text_69 {
+  width: 106px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-top: 1px;
+}
+
+.text_70 {
+  width: 50px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 48px;
+}
+
+.text_71 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 92px;
+}
+
+.text_72 {
+  width: 71px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 99px;
+}
+
+.text_73 {
+  width: 136px;
+  height: 19px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 2px 0 0 65px;
+}
+
+.text-wrapper_16 {
+  width: 729px;
+  height: 23px;
+  margin: 93px 0 0 40px;
+}
+
+.text_74 {
+  width: 107px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-top: 1px;
+}
+
+.text_75 {
+  width: 50px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 47px;
+}
+
+.text_76 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 92px;
+}
+
+.text_77 {
+  width: 74px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 97px;
+}
+
+.text_78 {
+  width: 135px;
+  height: 19px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 2px 0 0 64px;
+}
+
+.text-wrapper_17 {
+  width: 729px;
+  height: 24px;
+  margin: 92px 0 0 40px;
+}
+
+.text_79 {
+  width: 107px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-top: 1px;
+}
+
+.text_80 {
+  width: 50px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 47px;
+}
+
+.text_81 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 92px;
+}
+
+.text_82 {
+  width: 73px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 98px;
+}
+
+.text_83 {
+  width: 135px;
+  height: 19px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 2px 0 0 64px;
+}
+
+.text-wrapper_18 {
+  width: 730px;
+  height: 23px;
+  margin: 93px 0 0 40px;
+}
+
+.text_84 {
+  width: 108px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-top: 1px;
+}
+
+.text_85 {
+  width: 50px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 46px;
+}
+
+.text_86 {
+  width: 50px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 91px;
+}
+
+.text_87 {
+  width: 74px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 111px;
+}
+
+.text_88 {
+  width: 136px;
+  height: 19px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 2px 0 0 64px;
+}
+
+.text-wrapper_19 {
+  width: 729px;
+  height: 23px;
+  margin: 91px 0 42px 40px;
+}
+
+.text_89 {
+  width: 107px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-top: 1px;
+}
+
+.text_90 {
+  width: 50px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 47px;
+}
+
+.text_91 {
+  width: 63px;
+  height: 22px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 1px 0 0 92px;
+}
+
+.text_92 {
+  width: 73px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-left: 98px;
+}
+
+.text_93 {
+  width: 135px;
+  height: 19px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin: 2px 0 0 64px;
+}
+
+.group_15 {
+  position: absolute;
+  left: 2798px;
+  top: -274px;
+  width: 856px;
+  height: 947px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/6cf46ab0cd9cd0288da5ed97c5a9444c)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.image_31 {
+  width: 822px;
+  height: 28px;
+  margin: -1px 0 0 10px;
+}
+
+.text_94 {
+  width: 490px;
+  height: 50px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 52px;
+  font-family: SourceHanSansCN-Medium;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 52px;
+  margin: 42px 0 0 67px;
+}
+
+.section_16 {
+  width: 406px;
+  height: 45px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/772bbd6828e26ab9e8b0786e450402c1)
+    100% no-repeat;
+  background-size: 100% 100%;
+  margin: 15px 0 0 66px;
+}
+
+.text_95 {
+  width: 68px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 13px 0 0 31px;
+}
+
+.image_32 {
+  width: 22px;
+  height: 11px;
+  margin: 17px 20px 0 265px;
+}
+
+.section_17 {
+  width: 739px;
+  height: 639px;
+  margin: 25px 0 104px 66px;
+}
+
+.image-wrapper_7 {
+  width: 83px;
+  height: 214px;
+  margin-top: 424px;
+}
+
+.image_33 {
+  width: 83px;
+  height: 44px;
+}
+
+.image_34 {
+  width: 83px;
+  height: 44px;
+  margin-top: 13px;
+}
+
+.image_35 {
+  width: 83px;
+  height: 44px;
+  margin-top: 13px;
+}
+
+.image_36 {
+  width: 83px;
+  height: 44px;
+  margin-top: 12px;
+}
+
+.block_4 {
+  position: relative;
+  width: 634px;
+  height: 639px;
+}
+
+.text_96 {
+  width: 108px;
+  height: 24px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin-top: 430px;
+}
+
+.text_97 {
+  width: 132px;
+  height: 26px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+  margin: 605px 0 0 -107px;
+}
+
+.image-text_6 {
+  width: 248px;
+  height: 139px;
+  margin-left: 231px;
+}
+
+.image_37 {
+  width: 49px;
+  height: 133px;
+  margin-top: 6px;
+}
+
+.text-group_11 {
+  width: 192px;
+  height: 24px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+}
+
+.image-text_7 {
+  width: 209px;
+  height: 82px;
+  margin: 557px 20px 0 -207px;
+}
+
+.image_38 {
+  width: 83px;
+  height: 77px;
+}
+
+.text-group_12 {
+  width: 118px;
+  height: 23px;
+  overflow-wrap: break-word;
+  color: rgba(76, 252, 234, 1);
+  font-size: 23px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 23px;
+  margin-top: 59px;
+}
+
+.box_26 {
+  height: 523px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/ab403f84ad7f136646ebf204b284baa8)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 522px;
+  position: absolute;
+  left: 112px;
+  top: 58px;
+}
+
+.group_16 {
+  height: 140px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/6319fb2c607e8498ad180f402b7e027a)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 123px;
+  margin: 38px 0 0 110px;
+}
+
+.image-wrapper_8 {
+  height: 104px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/ae956926c69d1839c5654155c8fe49ea)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 45px;
+  margin: 13px 0 0 97px;
+}
+
+.image_39 {
+  width: 17px;
+  height: 82px;
+  margin: 19px 0 0 37px;
+}
+
+.text_98 {
+  position: absolute;
+  left: 0;
+  top: 486px;
+  width: 133px;
+  height: 26px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+}
+
+.text_99 {
+  position: absolute;
+  left: 2px;
+  top: 548px;
+  width: 131px;
+  height: 26px;
+  overflow-wrap: break-word;
+  color: rgba(248, 247, 252, 1);
+  font-size: 25px;
+  font-family: SourceHanSansCN-Regular;
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 35px;
+}
+
+.image_40 {
+  position: absolute;
+  left: 459px;
+  top: 229px;
+  width: 53px;
+  height: 107px;
+}
+
+.section_18 {
+  position: absolute;
+  left: 66px;
+  top: 177px;
+  width: 434px;
+  height: 294px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/a2d55c1b8d057f93919e9a74403043bf)
+    100% no-repeat;
+  background-size: 100% 100%;
+}
+
+.text_100 {
+  width: 68px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 37px 0 0 31px;
+}
+
+.text_101 {
+  width: 68px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 27px 0 0 31px;
+}
+
+.text_102 {
+  width: 68px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 28px 0 0 31px;
+}
+
+.text_103 {
+  width: 68px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 27px 0 0 31px;
+}
+
+.text-wrapper_20 {
+  height: 43px;
+  background: url(https://lanhu-oss-proxy.lanhuapp.com/032d033bcde8baa58891f90993e19234)
+    100% no-repeat;
+  background-size: 100% 100%;
+  width: 406px;
+  margin: 16px 0 36px 0;
+}
+
+.text_104 {
+  width: 68px;
+  height: 20px;
+  overflow-wrap: break-word;
+  color: rgba(15, 55, 52, 1);
+  font-size: 21px;
+  font-family: SourceHanSansCN-Light;
+  font-weight: 300;
+  text-align: left;
+  white-space: nowrap;
+  line-height: 21px;
+  margin: 11px 0 0 31px;
+}
+
+.image_41 {
+  position: absolute;
+  left: 1915px;
+  top: -276px;
+  width: 822px;
+  height: 28px;
 }

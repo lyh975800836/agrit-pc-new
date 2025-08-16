@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Dashboard from '@/views/Dashboard.vue'
+import DataDashboard from '@/views/DataDashboard.vue'
 import DetailMap from '@/views/DetailMap.vue'
 import PlotDetail from '@/views/PlotDetail.vue'
 
@@ -12,7 +13,15 @@ const routes = [
     name: 'Dashboard',
     component: Dashboard,
     meta: {
-      title: '八角数据驾驶舱'
+      title: '八角总览图'
+    }
+  },
+  {
+    path: '/data-dashboard',
+    name: 'DataDashboard',
+    component: DataDashboard,
+    meta: {
+      title: '数据驾驶舱'
     }
   },
   {

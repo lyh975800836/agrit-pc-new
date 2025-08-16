@@ -60,12 +60,16 @@
         >
           <span class="nav-text">返回总览图</span>
         </div>
-        <div v-else class="nav-button flex-col align-center justify-center" :style="getHeaderImageStyle('NAV_BUTTON_BG')">
+        <div v-else class="nav-button flex-col align-center justify-center" :style="getHeaderImageStyle('NAV_BUTTON_BG')" @click="handleNavButtonClick">
           <span class="nav-text">八角总览图</span>
         </div>
         
         <!-- 页面标题 -->
-        <div class="page-title flex-col align-center justify-center" :style="getHeaderImageStyle('PAGE_TITLE_BG')">
+        <div 
+          class="page-title flex-col align-center justify-center" 
+          :style="getHeaderImageStyle('PAGE_TITLE_BG')"
+          @click="handlePageTitleClick"
+        >
           <span class="title-text">{{ pageTitle }}</span>
         </div>
         
@@ -160,6 +164,20 @@ export default {
       // 更新星期
       const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
       this.weekday = days[now.getDay()]
+    },
+    
+    // 处理页面标题点击事件
+    handlePageTitleClick() {
+      this.$router.push('/data-dashboard').catch(() => {
+        // 静默处理重复导航错误
+      })
+    },
+    
+    // 处理导航按钮点击事件
+    handleNavButtonClick() {
+      this.$router.push('/').catch(() => {
+        // 静默处理重复导航错误
+      })
     }
   }
 }
@@ -302,6 +320,19 @@ export default {
   width: 113px;
   /* background moved to inline style */
   background-size: contain;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 10;
+
+  &:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .title-text {
