@@ -1,0 +1,162 @@
+/**
+ * CSS Reset 和基础样式
+ * 提供一致的浏览器样式基础
+ */
+
+// ========== CSS Reset ==========
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    line-height: 1.15;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+// ========== HTML 元素重置 ==========
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+}
+
+p {
+    margin: 0;
+}
+
+ul,
+ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        color: var(--color-primary);
+    }
+}
+
+button {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font: inherit;
+
+    color: inherit;
+    outline: none;
+    background: none;
+    cursor: pointer;
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+}
+
+input,
+textarea,
+select {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font: inherit;
+
+    color: inherit;
+    outline: none;
+    background: none;
+
+    &::placeholder {
+        color: var(--color-text-muted);
+    }
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+table {
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+// ========== 辅助功能 ==========
+
+// 屏幕阅读器隐藏
+.sr-only {
+    position: absolute !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+}
+
+// 视觉隐藏但保持布局
+.invisible {
+    visibility: hidden;
+}
+
+// 完全隐藏
+.hidden {
+    display: none !important;
+}
+
+// ========== 聚焦样式 ==========
+
+// 自定义聚焦环
+.focus-ring {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+// 移除默认聚焦样式（当有自定义样式时）
+.focus-visible:focus:not(:focus-visible) {
+    outline: none;
+}
+
+// ========== 选择样式 ==========
+
+::selection {
+    color: var(--color-black);
+    background-color: var(--color-primary);
+}
+
+::selection {
+    color: var(--color-black);
+    background-color: var(--color-primary);
+}

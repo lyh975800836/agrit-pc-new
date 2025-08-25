@@ -1,168 +1,213 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Vue from 'vue';
+import Vuex from 'vuex';
+import createLogger from 'vuex/dist/logger';
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
-export default new Vuex.Store({
-  state: {
+// 全局状态
+const state = {
+    // 应用配置
+    app: {
+        name: '百色农林大数据中心',
+        version: '1.0.0',
+        theme: 'default'
+    },
+
     // 用户信息
     user: {
-      name: '管理员',
-      avatar: 'https://lanhu-oss-proxy.lanhuapp.com/d49070cc001560a5a4eb371bc487d8ba'
-    },
-    
-    // 天气信息
-    weather: {
-      temperature: '26.8°C',
-      description: '晴多云转阵雨',
-      icon: 'https://lanhu-oss-proxy.lanhuapp.com/0e038d919f708019d8a2851a3416e179'
-    },
-
-    // 统计数据
-    statistics: {
-      totalArea: 810,
-      totalProjects: 5,
-      totalRegions: 12,
-      averagePrice: 3.08
-    },
-
-    // 区域数据
-    regions: [
-      { name: '德保县', area: 38, percentage: 27.34 },
-      { name: '那坡县', area: 30, percentage: 21.58 },
-      { name: '右江区', area: 23.6, percentage: 16.98 },
-      { name: '田林县', area: 21, percentage: 15.11 },
-      { name: '凌云县', area: 17, percentage: 12.23 },
-      { name: '乐业县', area: 10, percentage: 7.19 }
-    ],
-
-    // 项目排名
-    projectRankings: [
-      {
         id: 1,
-        name: '千户十亩-大楞乡巴平村',
-        area: 30,
-        region: '右江区',
-        manager: '隆起雷',
-        yield: 1970,
-        avatar: 'https://lanhu-oss-proxy.lanhuapp.com/52bf36ad5e30ea17b9112caef8c27c87'
-      },
-      {
-        id: 2,
-        name: '千户十亩-大楞乡巴平村',
-        area: 30,
-        region: '右江区',
-        manager: '李子顺',
-        yield: 1970,
-        avatar: 'https://lanhu-oss-proxy.lanhuapp.com/b7e8db7f31322989f319ca7f44a1234c'
-      },
-      {
-        id: 3,
-        name: '千户十亩-大楞乡巴平村',
-        area: 30,
-        region: '右江区',
-        manager: '李子顺',
-        yield: 1970,
-        avatar: 'https://lanhu-oss-proxy.lanhuapp.com/a45c100031ad5c87dd145f1905d318a3'
-      }
-    ],
-
-    // 林地质量分布
-    forestQuality: {
-      good: 20,
-      average: 30,
-      poor: 50
-    }
-  },
-
-  getters: {
-    // 获取总面积
-    getTotalArea: state => state.statistics.totalArea,
-    
-    // 获取项目总数
-    getTotalProjects: state => state.statistics.totalProjects,
-    
-    // 获取区域排名前5
-    getTopRegions: state => state.regions.slice(0, 5),
-    
-    // 获取项目排名前3
-    getTopProjects: state => state.projectRankings.slice(0, 3)
-  },
-
-  mutations: {
-    // 更新用户信息
-    UPDATE_USER(state, user) {
-      state.user = { ...state.user, ...user }
+        name: '管理员',
+        role: 'admin',
+        avatar: '/images/user-avatar.png',
+        permissions: ['dashboard:read', 'data:read', 'export:all']
     },
 
-    // 更新天气信息
-    UPDATE_WEATHER(state, weather) {
-      state.weather = { ...state.weather, ...weather }
+    // 系统设置
+    settings: {
+        autoRefresh: true,
+        refreshInterval: 300000,
+        language: 'zh-CN',
+        timezone: 'Asia/Shanghai'
     },
 
-    // 更新统计数据
-    UPDATE_STATISTICS(state, statistics) {
-      state.statistics = { ...state.statistics, ...statistics }
+    // 全局通知
+    notifications: [],
+
+    // 加载状态
+    globalLoading: false
+};
+
+// 全局获取器
+const getters = {
+    // 用户信息
+    currentUser: state => state.user,
+    userPermissions: state => state.user.permissions || [],
+    hasPermission: state => permission => state.user.permissions?.includes(permission) || false,
+
+    // 系统设置
+    appSettings: state => state.settings,
+    appName: state => state.app.name,
+    appVersion: state => state.app.version,
+    currentTheme: state => state.app.theme,
+
+    // 通知
+    unreadNotifications: state => state.notifications.filter(n => !n.read),
+    notificationCount: (state, getters) => getters.unreadNotifications.length,
+
+    // 加载状态
+    isGlobalLoading: state => state.globalLoading
+};
+
+// 全局变更
+const mutations = {
+    // 用户信息更新
+    SET_USER(state, user) {
+        state.user = { ...state.user, ...user };
     },
 
-    // 更新区域数据
-    UPDATE_REGIONS(state, regions) {
-      state.regions = regions
+    // 系统设置更新
+    SET_SETTING(state, { key, value }) {
+        state.settings[key] = value;
     },
 
-    // 更新项目排名
-    UPDATE_PROJECT_RANKINGS(state, rankings) {
-      state.projectRankings = rankings
+    SET_SETTINGS(state, settings) {
+        state.settings = { ...state.settings, ...settings };
     },
 
-    // 更新林地质量
-    UPDATE_FOREST_QUALITY(state, quality) {
-      state.forestQuality = { ...state.forestQuality, ...quality }
-    }
-  },
-
-  actions: {
-    // 获取仪表板数据
-    async fetchDashboardData({ commit }) {
-      try {
-        // 这里可以调用API获取数据
-        // const response = await api.getDashboardData()
-        
-        // 模拟数据更新
-        commit('UPDATE_STATISTICS', {
-          totalArea: 810,
-          totalProjects: 5,
-          totalRegions: 12,
-          averagePrice: 3.08
-        })
-        
-        return Promise.resolve()
-      } catch (error) {
-        return Promise.reject(error)
-      }
+    // 主题更新
+    SET_THEME(state, theme) {
+        state.app.theme = theme;
     },
 
-    // 更新天气数据
-    async updateWeatherData({ commit }) {
-      try {
-        // 这里可以调用天气API
-        // const weather = await weatherApi.getCurrentWeather()
-        
-        // 模拟天气数据更新
-        const weather = {
-          temperature: `${Math.floor(Math.random() * 10 + 20)}°C`,
-          description: '晴多云转阵雨'
+    // 通知管理
+    ADD_NOTIFICATION(state, notification) {
+        state.notifications.unshift({
+            id: Date.now(),
+            read: false,
+            createdAt: new Date().toISOString(),
+            ...notification
+        });
+    },
+
+    MARK_NOTIFICATION_READ(state, id) {
+        const notification = state.notifications.find(n => n.id === id);
+        if (notification) {
+            notification.read = true;
         }
-        
-        commit('UPDATE_WEATHER', weather)
-        return Promise.resolve(weather)
-      } catch (error) {
-        return Promise.reject(error)
-      }
-    }
-  },
+    },
 
-  modules: {
-    // 可以在这里添加模块化的store
-  }
-}) 
+    REMOVE_NOTIFICATION(state, id) {
+        const index = state.notifications.findIndex(n => n.id === id);
+        if (index > -1) {
+            state.notifications.splice(index, 1);
+        }
+    },
+
+    CLEAR_NOTIFICATIONS(state) {
+        state.notifications = [];
+    },
+
+    // 全局加载状态
+    SET_GLOBAL_LOADING(state, loading) {
+        state.globalLoading = loading;
+    }
+};
+
+// 全局动作
+const actions = {
+    // 初始化应用
+    async initializeApp({ commit }) {
+        commit('SET_GLOBAL_LOADING', true);
+
+        try {
+            // 初始化用户信息
+            const user = JSON.parse(localStorage.getItem('user_info') || '{}');
+            if (user.id) {
+                commit('SET_USER', user);
+            }
+
+            // 初始化系统设置
+            const settings = JSON.parse(localStorage.getItem('app_settings') || '{}');
+            if (Object.keys(settings).length > 0) {
+                commit('SET_SETTINGS', settings);
+            }
+
+            return true;
+        }
+        catch (error) {
+            console.error('[Store] 初始化失败:', error);
+            throw error;
+        }
+        finally {
+            commit('SET_GLOBAL_LOADING', false);
+        }
+    },
+
+    // 更新用户信息
+    updateUser({ commit }, user) {
+        commit('SET_USER', user);
+        localStorage.setItem('user_info', JSON.stringify(user));
+    },
+
+    // 更新设置
+    updateSetting({ commit, state }, { key, value }) {
+        commit('SET_SETTING', { key, value });
+        localStorage.setItem('app_settings', JSON.stringify(state.settings));
+    },
+
+    updateSettings({ commit }, settings) {
+        commit('SET_SETTINGS', settings);
+        localStorage.setItem('app_settings', JSON.stringify(settings));
+    },
+
+    // 主题切换
+    switchTheme({ commit }, theme) {
+        commit('SET_THEME', theme);
+        localStorage.setItem('app_theme', theme);
+    },
+
+    // 通知管理
+    showNotification({ commit }, notification) {
+        commit('ADD_NOTIFICATION', notification);
+    },
+
+    markNotificationRead({ commit }, id) {
+        commit('MARK_NOTIFICATION_READ', id);
+    },
+
+    removeNotification({ commit }, id) {
+        commit('REMOVE_NOTIFICATION', id);
+    },
+
+    clearNotifications({ commit }) {
+        commit('CLEAR_NOTIFICATIONS');
+    },
+
+    // 全局加载
+    setGlobalLoading({ commit }, loading) {
+        commit('SET_GLOBAL_LOADING', loading);
+    }
+};
+
+// 创建 store 实例
+const store = new Vuex.Store({
+    state,
+    getters,
+    mutations,
+    actions,
+
+    modules: {},
+
+    // 仅在开发环境下启用日志
+    plugins: process.env.NODE_ENV === 'development' ? [createLogger()] : [],
+
+    // 严格模式
+    strict: process.env.NODE_ENV !== 'production'
+});
+
+// 热重载支持
+if (module.hot) {
+    // 热重载其他模块时在此添加
+}
+
+export default store;

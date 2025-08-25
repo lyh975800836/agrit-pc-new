@@ -1,0 +1,271 @@
+/**
+ * 字体排版系统
+ * 定义标准化的文本样式类
+ */
+
+@import "../abstracts/index.less";
+
+// ========== 字体族类 ==========
+
+.font-base {
+    font-family: var(--font-family-base);
+}
+
+.font-display {
+    font-family: var(--font-family-display);
+}
+
+.font-number {
+    font-family: var(--font-family-number);
+}
+
+// ========== 字体大小类 ==========
+
+.text-xs {
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-tight);
+}
+
+.text-sm {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-snug);
+}
+
+.text-base {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+}
+
+.text-lg {
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-normal);
+}
+
+.text-xl {
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-snug);
+}
+
+.text-2xl {
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-snug);
+}
+
+.text-3xl {
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+}
+
+.text-4xl {
+    font-size: var(--font-size-4xl);
+    line-height: var(--line-height-tight);
+}
+
+.text-5xl {
+    font-size: var(--font-size-5xl);
+    line-height: var(--line-height-none);
+}
+
+.text-6xl {
+    font-size: var(--font-size-6xl);
+    line-height: var(--line-height-none);
+}
+
+// ========== 字体粗细类 ==========
+
+.font-thin {
+    font-weight: var(--font-weight-thin);
+}
+
+.font-light {
+    font-weight: var(--font-weight-light);
+}
+
+.font-normal {
+    font-weight: var(--font-weight-normal);
+}
+
+.font-medium {
+    font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+    font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+    font-weight: var(--font-weight-bold);
+}
+
+.font-black {
+    font-weight: var(--font-weight-black);
+}
+
+// ========== 文本颜色类 ==========
+
+.text-primary {
+    color: var(--color-text-primary);
+}
+
+.text-secondary {
+    color: var(--color-text-secondary);
+}
+
+.text-accent {
+    color: var(--color-text-accent);
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.text-white {
+    color: var(--color-white);
+}
+
+.text-success {
+    color: var(--color-success);
+}
+
+.text-warning {
+    color: var(--color-warning);
+}
+
+.text-error {
+    color: var(--color-error);
+}
+
+// ========== 文本对齐类 ==========
+
+.text-left {
+    text-align: left;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+// ========== 文本装饰类 ==========
+
+.no-underline {
+    text-decoration: none;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
+.line-through {
+    text-decoration: line-through;
+}
+
+// ========== 文本变换类 ==========
+
+.uppercase {
+    text-transform: uppercase;
+}
+
+.lowercase {
+    text-transform: lowercase;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.normal-case {
+    text-transform: none;
+}
+
+// ========== 空白字符处理类 ==========
+
+.whitespace-normal {
+    white-space: normal;
+}
+
+.whitespace-nowrap {
+    white-space: nowrap;
+}
+
+.whitespace-pre {
+    white-space: pre;
+}
+
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+.whitespace-pre-wrap {
+    white-space: pre-wrap;
+}
+
+// ========== 文本溢出类 ==========
+
+.truncate {
+    .text-ellipsis(1);
+}
+
+.text-ellipsis-2 {
+    .text-ellipsis(2);
+}
+
+.text-ellipsis-3 {
+    .text-ellipsis(3);
+}
+
+// ========== 业务相关文本样式 ==========
+
+// 标题样式
+.title {
+    .text-preset(var(--font-size-2xl), var(--font-weight-medium));
+    font-family: var(--font-family-display);
+
+    &--large {
+        font-size: var(--font-size-3xl);
+    }
+
+    &--small {
+        font-size: var(--font-size-xl);
+    }
+}
+
+// 数字显示样式
+.number {
+    .number-display();
+
+    &--small {
+        .number-display(var(--font-size-xl));
+    }
+
+    &--medium {
+        .number-display(var(--font-size-3xl));
+    }
+
+    &--large {
+        .number-display(var(--font-size-5xl));
+    }
+
+    &--xl {
+        .number-display(var(--font-size-6xl));
+    }
+}
+
+// 标签文本
+.label {
+    .text-preset(var(--font-size-sm), var(--font-weight-normal), var(--color-text-muted));
+    font-family: "SourceHanSansCN-Light", var(--font-family-base);
+}
+
+// 描述文本
+.description {
+    .text-preset(var(--font-size-sm), var(--font-weight-light), var(--color-text-muted));
+    line-height: var(--line-height-relaxed);
+}

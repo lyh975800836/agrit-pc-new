@@ -26,8 +26,8 @@
       <div class="ranking-decoration" :style="{ backgroundImage: `url(${images.rankingDecoration})` }"></div>
       <div class="ranking-items">
         <!-- 排名项目 -->
-        <div 
-          v-for="(item, index) in rankingData.slice(0, 3)" 
+        <div
+          v-for="(item, index) in rankingData.slice(0, 3)"
           :key="index"
           :class="['ranking-item', getRankClass(index)]"
           :style="{ backgroundImage: `url(${getPlaceBgImage(index)})` }">
@@ -62,10 +62,10 @@
         <span class="section-title">林地质量类别</span>
         <div class="quality-icon" :style="{ backgroundImage: `url(${images.qualityIcon})` }"></div>
       </div>
-      
+
       <!-- 分隔线 -->
       <div class="quality-divider" :style="{ backgroundImage: `url(${images.qualityDivider})` }"></div>
-      
+
       <!-- 质量数据展示 -->
       <div class="quality-data">
         <div class="quality-item" v-for="(item, index) in qualityItems" :key="index" :class="item.type">
@@ -82,513 +82,530 @@
 <script>
 // 直接使用公共路径的图片
 const images = {
-  rankingPanelBg: '/images/ranking-panel-bg.png',
-  productionRankingHeader: '/images/production-ranking-header.png',
-  teamRankingHeader: '/images/team-ranking-header.png',
-  productionUnderline: '/images/production-underline.png',
-  teamUnderline: '/images/team-underline.png',
-  sectionDivider: '/images/section-divider.png',
-  rankingDecoration: '/images/ranking-decoration.png',
-  firstPlaceBg: '/images/first-place-bg.png',
-  secondPlaceBg: '/images/second-place-bg.png',
-  thirdPlaceBg: '/images/third-place-bg.png',
-  firstPlaceIcon: '/images/first-place-icon.png',
-  secondPlaceIcon: '/images/second-place-icon.png',
-  thirdPlaceIcon: '/images/third-place-icon.png',
-  firstManagerBg: '/images/first-manager-bg.png',
-  secondManagerBg: '/images/second-manager-bg.png',
-  thirdManagerBg: '/images/third-manager-bg.png',
-  qualityIcon: '/images/quality-icon.png',
-  qualityDivider: '/images/quality-divider.png',
-  qualityGood: '/images/quality-good.png',
-  qualityAverage: '/images/quality-average.png',
-  qualityPoor: '/images/quality-poor.png'
-}
+    rankingPanelBg: '/images/ranking-panel-bg.png',
+    productionRankingHeader: '/images/production-ranking-header.png',
+    teamRankingHeader: '/images/team-ranking-header.png',
+    productionUnderline: '/images/production-underline.png',
+    teamUnderline: '/images/team-underline.png',
+    sectionDivider: '/images/section-divider.png',
+    rankingDecoration: '/images/ranking-decoration.png',
+    firstPlaceBg: '/images/first-place-bg.png',
+    secondPlaceBg: '/images/second-place-bg.png',
+    thirdPlaceBg: '/images/third-place-bg.png',
+    firstPlaceIcon: '/images/first-place-icon.png',
+    secondPlaceIcon: '/images/second-place-icon.png',
+    thirdPlaceIcon: '/images/third-place-icon.png',
+    firstManagerBg: '/images/first-manager-bg.png',
+    secondManagerBg: '/images/second-manager-bg.png',
+    thirdManagerBg: '/images/third-manager-bg.png',
+    qualityIcon: '/images/quality-icon.png',
+    qualityDivider: '/images/quality-divider.png',
+    qualityGood: '/images/quality-good.png',
+    qualityAverage: '/images/quality-average.png',
+    qualityPoor: '/images/quality-poor.png'
+};
 
 export default {
-  name: 'RightRankingPanel',
-  props: {
-    regionName: {
-      type: String,
-      default: '百色市'
+    name: 'RightRankingPanel',
+    props: {
+        regionName: {
+            type: String,
+            default: '百色市'
+        },
+        rankingData: {
+            type: Array,
+            required: true
+        },
+        qualityData: {
+            type: Object,
+            required: true
+        }
     },
-    rankingData: {
-      type: Array,
-      required: true
+    data() {
+        return {
+            images
+        };
     },
-    qualityData: {
-      type: Object,
-      required: true
+    computed: {
+        titlePrefix() {
+            return this.regionName === '百色市' ? '八角基地' : this.regionName;
+        },
+        itemType() {
+            return this.regionName === '百色市' ? '八角地' : '地块';
+        },
+        subTitle() {
+            return this.regionName === '百色市' ? '优质产区排行榜' : `${ this.regionName }优质地块排行榜`;
+        },
+        qualityItems() {
+            return [
+                { type: 'good', value: this.qualityData.good, label: '良好' },
+                { type: 'average', value: this.qualityData.average, label: '一般' },
+                { type: 'poor', value: this.qualityData.poor, label: '较差' }
+            ];
+        }
+    },
+    methods: {
+        getRankClass(index) {
+            const ranks = ['first', 'second', 'third'];
+            return ranks[index] || 'other';
+        },
+        getPlaceBgImage(index) {
+            const bgs = [this.images.firstPlaceBg, this.images.secondPlaceBg, this.images.thirdPlaceBg];
+            return bgs[index] || '';
+        },
+        getPlaceIconImage(index) {
+            const icons = [this.images.firstPlaceIcon, this.images.secondPlaceIcon, this.images.thirdPlaceIcon];
+            return icons[index] || '';
+        },
+        getManagerBgImage(index) {
+            const bgs = [this.images.firstManagerBg, this.images.secondManagerBg, this.images.thirdManagerBg];
+            return bgs[index] || '';
+        },
+        getQualityBgImage(type) {
+            const mapping = {
+                good: this.images.qualityGood,
+                average: this.images.qualityAverage,
+                poor: this.images.qualityPoor
+            };
+            return mapping[type] || '';
+        }
     }
-  },
-  data() {
-    return {
-      images
-    }
-  },
-  computed: {
-    titlePrefix() {
-      return this.regionName === '百色市' ? '八角基地' : this.regionName
-    },
-    itemType() {
-      return this.regionName === '百色市' ? '八角地' : '地块'
-    },
-    subTitle() {
-      return this.regionName === '百色市' ? '优质产区排行榜' : `${this.regionName}优质地块排行榜`
-    },
-    qualityItems() {
-      return [
-        { type: 'good', value: this.qualityData.good, label: '良好' },
-        { type: 'average', value: this.qualityData.average, label: '一般' },
-        { type: 'poor', value: this.qualityData.poor, label: '较差' }
-      ]
-    }
-  },
-  methods: {
-    getRankClass(index) {
-      const ranks = ['first', 'second', 'third']
-      return ranks[index] || 'other'
-    },
-    getPlaceBgImage(index) {
-      const bgs = [this.images.firstPlaceBg, this.images.secondPlaceBg, this.images.thirdPlaceBg]
-      return bgs[index] || ''
-    },
-    getPlaceIconImage(index) {
-      const icons = [this.images.firstPlaceIcon, this.images.secondPlaceIcon, this.images.thirdPlaceIcon]
-      return icons[index] || ''
-    },
-    getManagerBgImage(index) {
-      const bgs = [this.images.firstManagerBg, this.images.secondManagerBg, this.images.thirdManagerBg]
-      return bgs[index] || ''
-    },
-    getQualityBgImage(type) {
-      const mapping = {
-        good: this.images.qualityGood,
-        average: this.images.qualityAverage,
-        poor: this.images.qualityPoor
-      }
-      return mapping[type] || ''
-    }
-  }
-}
+};
 </script>
 
 <style lang="less" scoped>
 .right-ranking-panel {
-  padding: 0 30px 60px;
-  width: 375px;
-  height: 734px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  box-sizing: border-box;
-  overflow: hidden;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 375px;
+    height: 734px;
+    padding: 0 30px 60px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 // 排名标题区域
 .ranking-headers {
-  width: 315px;
-  height: 58px;
-  margin: -6px 0 0 0;
-  justify-content: space-between;
+    justify-content: space-between;
+    width: 315px;
+    height: 58px;
+    margin: -6px 0 0;
 }
 
 .header-section {
-  width: 155px;
-  height: 58px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  
-  &.production-ranking {
-  }
-  
-  &.team-ranking {
-  }
+    width: 155px;
+    height: 58px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    &.production-ranking {
+    }
+
+    &.team-ranking {
+    }
 }
 
 .header-title {
-  color: rgba(76, 253, 235, 1);
-  font-size: 12px;
-  font-family: SourceHanSansCN-Light;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 15px;
-  margin: 21px 0 5px 0;
-  
-  .production-ranking & {
-    width: 117px;
-    margin-left: 20px;
-  }
-  
-  .team-ranking & {
-    width: 71px;
-    margin-left: 42px;
-  }
+    margin: 21px 0 5px;
+    font-family: SourceHanSansCN-Light;
+    font-size: 12px;
+    line-height: 15px;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #4cfdeb;
+
+    .production-ranking & {
+        width: 117px;
+        margin-left: 20px;
+    }
+
+    .team-ranking & {
+        width: 71px;
+        margin-left: 42px;
+    }
 }
 
 .header-underline {
-  width: 110px;
-  height: 5px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 0 auto;
-  
-  .production-ranking & {
-  }
-  
-  .team-ranking & {
-  }
+    width: 110px;
+    height: 5px;
+    margin: 0 auto;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    .production-ranking & {
+    }
+
+    .team-ranking & {
+    }
 }
 
 // Top5标题
 .top5-title {
-  margin: 20px 0 0 2px;
-  
-  .main-title {
-    color: rgba(76, 253, 235, 1);
-    font-size: 17px;
-    font-family: SourceHanSansCN-Medium;
-    font-weight: 500;
-  }
-  
-  .sub-title {
-    color: rgba(76, 253, 235, 1);
-    font-size: 14px;
-    font-family: SourceHanSansCN-Light;
-  }
+    margin: 20px 0 0 2px;
+
+    .main-title {
+        font-family: SourceHanSansCN-Medium;
+        font-size: 17px;
+        font-weight: 500;
+        color: #4cfdeb;
+    }
+
+    .sub-title {
+        font-family: SourceHanSansCN-Light;
+        font-size: 14px;
+        color: #4cfdeb;
+    }
 }
 
 // 分隔线
 .section-divider {
-  width: 334px;
-  height: 4px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 9px 0 0 -20px;
+    width: 334px;
+    height: 4px;
+    margin: 9px 0 0 -20px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 // 排名列表
 .ranking-list {
-  position: relative;
-  width: 340px;
-  margin: 13px 0 0 -29px;
+    position: relative;
+    width: 340px;
+    margin: 13px 0 0 -29px;
 }
 
 .ranking-decoration {
-  position: absolute;
-  left: 0;
-  top: 114px;
-  width: 14px;
-  height: 279px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 1;
+    position: absolute;
+    z-index: 1;
+    top: 114px;
+    left: 0;
+    width: 14px;
+    height: 279px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 .ranking-items {
-  margin-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+    gap: 18px;
 }
 
 // 排名项目样式
 .ranking-item {
-  position: relative;
-  width: 320px;
-  height: 121px;
-  display: flex;
-  align-items: flex-start;
-  
-  &.first {
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  
-  &.second {
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  
-  &.third {
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    width: 320px;
+    height: 121px;
+
+    &.first {
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+    }
+
+    &.second {
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+    }
+
+    &.third {
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+    }
 }
 
 .rank-icon {
-  width: 54px;
-  height: 69px;
-  margin: 30px 0 0 12px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  flex-shrink: 0;
-  
-  &.first {
-  }
-  
-  &.second {
-  }
-  
-  &.third {
-  }
+    flex-shrink: 0;
+    width: 54px;
+    height: 69px;
+    margin: 30px 0 0 12px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    &.first {
+    }
+
+    &.second {
+    }
+
+    &.third {
+    }
 }
 
 .item-content {
-  flex: 1;
-  margin: 0 0 0 10px;
-  display: flex;
-  flex-direction: column;
-  width: 173px;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 173px;
+    margin: 0 0 0 10px;
 }
 
 .manager-info {
-  width: 173px;
-  height: 47px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  margin-top: -4px;
-  
-  .first & {
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-  }
-  
-  .second & {
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-  }
-  
-  .third & {
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-  }
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 173px;
+    height: 47px;
+    margin-top: -4px;
+
+    .first & {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+    }
+
+    .second & {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+    }
+
+    .third & {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+    }
 }
 
 .manager-name {
-  color: rgba(87, 144, 66, 1);
-  font-size: 12px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #579042;
 }
 
 .location-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
 .location-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 }
 
 .location-name {
-  color: rgba(76, 253, 235, 1);
-  font-size: 13px;
-  font-family: SourceHanSansCN-Light;
-  white-space: nowrap;
-  text-align: center;
+    font-family: SourceHanSansCN-Light;
+    font-size: 13px;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #4cfdeb;
 }
 
 .area-info {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  justify-content: center;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
 }
 
 .area-number {
-  color: rgba(76, 253, 235, 1);
-  font-size: 13px;
-  font-family: SourceHanSansCN-Medium;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 13px;
+    color: #4cfdeb;
 }
 
 .area-unit {
-  color: rgba(76, 253, 235, 1);
-  font-size: 13px;
-  font-family: SourceHanSansCN-Light;
+    font-family: SourceHanSansCN-Light;
+    font-size: 13px;
+    color: #4cfdeb;
 }
 
 .district-name {
-  color: rgba(76, 253, 235, 1);
-  font-size: 13px;
-  font-family: SourceHanSansCN-Bold;
-  font-weight: 700;
-  text-align: center;
-  white-space: nowrap;
+    font-family: SourceHanSansCN-Bold;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #4cfdeb;
 }
 
 .yield-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-self: center;
-  justify-content: center;
-  gap: 4px;
-  flex-shrink: 0;
-  position: relative;
-  right: 10px;
+    position: relative;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: center;
+    align-self: center;
+    justify-content: center;
+
+    gap: 4px;
 }
 
 .yield-number {
-  color: rgba(76, 253, 235, 1);
-  font-size: 32px;
-  font-family: BebasNeueRegular;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 1;
+    font-family: BebasNeueRegular;
+    font-size: 32px;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #4cfdeb;
 }
 
 .yield-unit {
-  color: rgba(76, 253, 235, 1);
-  font-size: 14px;
-  font-family: SourceHanSansCN-Normal;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  margin-top: 2px;
+    margin-top: 2px;
+    font-family: SourceHanSansCN-Normal;
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #4cfdeb;
 }
 
 // 林地质量类别区域
 .quality-section {
-  margin-top: 35px;
-  padding: 0 2px;
+    margin-top: 35px;
+    padding: 0 2px;
 }
 
 .quality-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 320px;
-  height: 21px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 320px;
+    height: 21px;
 }
 
 .section-title {
-  color: rgba(76, 253, 235, 1);
-  font-size: 20px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: left;
-  white-space: nowrap;
-  line-height: 20px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 20px;
+    text-align: left;
+    white-space: nowrap;
+
+    color: #4cfdeb;
 }
 
 .quality-icon {
-  width: 30px;
-  height: 20px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  flex-shrink: 0;
+    flex-shrink: 0;
+    width: 30px;
+    height: 20px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 .quality-divider {
-  width: 122px;
-  height: 4px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 8px 0 0 0;
+    width: 122px;
+    height: 4px;
+    margin: 8px 0 0;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 .quality-data {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 300px;
-  margin: 15px 0 0 5px;
-  gap: 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 300px;
+    margin: 15px 0 0 5px;
+
+    gap: 10px;
 }
 
 .quality-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  
-  .percentage-display {
-    height: 80px;
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-  }
-  
-  &.good .percentage-display {
-    width: 80px;
-  }
-  
-  &.average .percentage-display {
-    width: 80px;
-  }
-  
-  &.poor .percentage-display {
-    width: 80px;
-  }
+    gap: 10px;
+
+    .percentage-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+    }
+
+    &.good .percentage-display {
+        width: 80px;
+    }
+
+    &.average .percentage-display {
+        width: 80px;
+    }
+
+    &.poor .percentage-display {
+        width: 80px;
+    }
 }
 
 .percentage-number {
-  color: rgba(121, 219, 207, 1);
-  font-size: 26px;
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 1;
+    font-family: BebasNeueRegular;
+    font-size: 26px;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #79dbcf;
 }
 
 .quality-label {
-  color: rgba(0, 255, 242, 1);
-  font-size: 12px;
-  font-family: SourceHanSansCN-Medium;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  line-height: 14px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 14px;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #00fff2;
 }
 
 // 通用样式
 .flex-row {
-  display: flex;
-  flex-direction: row;
+    display: flex;
+    flex-direction: row;
 }
 
 .flex-col {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .justify-between {
-  justify-content: space-between;
+    justify-content: space-between;
 }
 
 .number-display {
-  font-family: BebasNeueRegular;
-  font-weight: normal;
-  text-align: center;
-  white-space: nowrap;
+    font-family: BebasNeueRegular;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .number-medium {
-  font-size: 46px;
-  line-height: 46px;
+    font-size: 46px;
+    line-height: 46px;
 }
 </style>

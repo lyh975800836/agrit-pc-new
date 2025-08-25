@@ -1,0 +1,322 @@
+/**
+ * 通用 Mixins 集合
+ * 包含常用的样式模式和工具函数
+ */
+
+// ========== 布局 Mixins ==========
+
+// Flexbox 居中
+.flex-center() {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Flexbox 行布局
+.flex-row(@align: center, @justify: flex-start, @gap: 0) {
+    display: flex;
+    flex-direction: row;
+    align-items: @align;
+    justify-content: @justify;
+
+    gap: @gap;
+}
+
+// Flexbox 列布局
+.flex-col(@align: stretch, @justify: flex-start, @gap: 0) {
+    display: flex;
+    flex-direction: column;
+    align-items: @align;
+    justify-content: @justify;
+
+    gap: @gap;
+}
+
+// Grid 布局
+.grid(@columns: 1, @gap: var(--space-4)) {
+    display: grid;
+    grid-template-columns: repeat(@columns, 1fr);
+    gap: @gap;
+}
+
+// 绝对居中定位
+.absolute-center() {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+// ========== 背景 Mixins ==========
+
+// 背景图片样式（保持原项目风格）
+.bg-image(@position: center, @repeat: no-repeat, @size: cover) {
+    background-repeat: @repeat;
+    background-position: @position;
+    background-size: @size;
+}
+
+// 全尺寸背景图片（项目常用）
+.bg-image-full() {
+    .bg-image(100%, no-repeat, 100% 100%);
+}
+
+// 渐变背景
+.bg-gradient(@direction: 135deg, @start-color, @end-color) {
+    background: linear-gradient(@direction, @start-color, @end-color);
+}
+
+// ========== 文本 Mixins ==========
+
+// 文本省略
+.text-ellipsis(@lines: 1) when (@lines = 1) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.text-ellipsis(@lines) when (@lines > 1) {
+    display: box;
+    overflow: hidden;
+    box-orient: vertical;
+    -webkit-line-clamp: @lines;
+}
+
+// 文本样式预设
+.text-preset(@size: var(--font-size-base), @weight: var(--font-weight-normal), @color: var(--color-text-primary), @line-height: var(--line-height-normal)) {
+    font-size: @size;
+    font-weight: @weight;
+    line-height: @line-height;
+    color: @color;
+}
+
+// 数字显示样式
+.number-display(@size: var(--font-size-4xl)) {
+    font-family: var(--font-family-number);
+    font-size: @size;
+    font-weight: var(--font-weight-normal);
+    text-align: center;
+    white-space: nowrap;
+
+    color: var(--color-primary);
+}
+
+// ========== 组件 Mixins ==========
+
+// 卡片样式
+.card(@bg: var(--color-bg-secondary), @border: 1px solid var(--color-primary), @radius: var(--radius-lg)) {
+    border: @border;
+    border-radius: @radius;
+    background: @bg;
+    backdrop-filter: blur(10px);
+}
+
+// 按钮样式
+.button(@bg: var(--color-primary), @color: var(--color-black), @padding: var(--space-2) var(--space-4)) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: @padding;
+    border: none;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-weight-medium);
+
+    color: @color;
+    border-radius: var(--radius-md);
+    background: @bg;
+    transition: all var(--duration-200) var(--ease-in-out);
+    cursor: pointer;
+
+    &:hover {
+        opacity: .8;
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: .5;
+        transform: none;
+        cursor: not-allowed;
+    }
+}
+
+// 面板容器样式
+.panel(@width: var(--panel-width)) {
+    box-sizing: border-box;
+    width: @width;
+    padding: var(--space-6);
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+}
+
+// ========== 动画 Mixins ==========
+
+// 过渡动画
+.transition(@property: all, @duration: var(--duration-200), @easing: var(--ease-in-out)) {
+    transition: @property @duration @easing;
+}
+
+// 淡入动画
+.fade-in(@duration: var(--duration-300)) {
+    animation: fadeIn @duration var(--ease-out);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+// 滑入动画
+.slide-in(@direction: up, @distance: 20px, @duration: 0.3s) {
+    animation: ~"slideIn-@{direction}" @duration var(--ease-out);
+}
+
+@keyframes slideIn-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes slideIn-down {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes slideIn-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+@keyframes slideIn-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// ========== 响应式 Mixins ==========
+
+// 媒体查询
+.media-sm(@rules) {
+    @media (min-width: var(--breakpoint-sm)) {
+        @rules();
+    }
+}
+
+.media-md(@rules) {
+    @media (min-width: var(--breakpoint-md)) {
+        @rules();
+    }
+}
+
+.media-lg(@rules) {
+    @media (min-width: var(--breakpoint-lg)) {
+        @rules();
+    }
+}
+
+.media-xl(@rules) {
+    @media (min-width: var(--breakpoint-xl)) {
+        @rules();
+    }
+}
+
+.media-2xl(@rules) {
+    @media (min-width: var(--breakpoint-2xl)) {
+        @rules();
+    }
+}
+
+// 移动优先响应式
+.responsive(@mobile, @tablet: @mobile, @desktop: @tablet) {
+    @mobile();
+
+    @media (min-width: var(--breakpoint-md)) {
+        @tablet();
+    }
+
+    @media (min-width: var(--breakpoint-lg)) {
+        @desktop();
+    }
+}
+
+// ========== 工具 Mixins ==========
+
+// 清除浮动
+.clearfix() {
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+// 硬件加速
+.hardware-accelerate() {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+// 隐藏滚动条
+.hide-scrollbar() {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+// 自定义滚动条
+.custom-scrollbar(@width: 6px, @track-color: var(--color-gray-100), @thumb-color: var(--color-primary)) {
+    &::-webkit-scrollbar {
+        width: @width;
+        height: @width;
+    }
+
+    &::-webkit-scrollbar-track {
+        border-radius: calc(@width / 2);
+        background: @track-color;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border-radius: calc(@width / 2);
+        background: @thumb-color;
+
+        &:hover {
+            opacity: .8;
+        }
+    }
+}

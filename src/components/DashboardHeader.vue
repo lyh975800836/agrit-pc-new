@@ -11,7 +11,7 @@
           :src="getImagePath('HEADER', 'WEATHER_ICON')"
           alt="天气图标"
         />
-        
+
         <!-- 天气信息 -->
         <div class="weather-info flex-col justify-center">
           <span class="temperature">{{ weather.temperature }}</span>
@@ -52,9 +52,9 @@
       <!-- 右侧：八角总揽图、数据驾驶舱、管理员 -->
       <div class="header-right flex-row align-center">
         <!-- 返回按钮或主标题 -->
-        <div 
-          v-if="showBackButton" 
-          class="nav-button flex-col align-center justify-center" 
+        <div
+          v-if="showBackButton"
+          class="nav-button flex-col align-center justify-center"
           :style="getHeaderImageStyle('NAV_BUTTON_BG')"
           @click="$emit('back')"
         >
@@ -63,16 +63,16 @@
         <div v-else class="nav-button flex-col align-center justify-center" :style="getHeaderImageStyle('NAV_BUTTON_BG')" @click="handleNavButtonClick">
           <span class="nav-text">八角总览图</span>
         </div>
-        
+
         <!-- 页面标题 -->
-        <div 
-          class="page-title flex-col align-center justify-center" 
+        <div
+          class="page-title flex-col align-center justify-center"
           :style="getHeaderImageStyle('PAGE_TITLE_BG')"
           @click="handlePageTitleClick"
         >
           <span class="title-text">{{ pageTitle }}</span>
         </div>
-        
+
         <!-- 用户头像和姓名 -->
         <img
           class="user-avatar"
@@ -95,287 +95,297 @@
 </template>
 
 <script>
-import imageMixin from '@/mixins/imageMixin'
+import imageMixin from '@/mixins/imageMixin';
 
 export default {
-  name: 'DashboardHeader',
-  mixins: [imageMixin],
-  data() {
-    return {
-      currentTime: '',
-      currentDate: '',
-      weekday: '',
-      timeTimer: null
-    }
-  },
-  props: {
-    weather: {
-      type: Object,
-      required: true
+    name: 'DashboardHeader',
+    mixins: [imageMixin],
+    data() {
+        return {
+            currentTime: '',
+            currentDate: '',
+            weekday: '',
+            timeTimer: null
+        };
     },
-    user: {
-      type: Object,
-      required: true
+    props: {
+        weather: {
+            type: Object,
+            required: true
+        },
+        user: {
+            type: Object,
+            required: true
+        },
+        showBackButton: {
+            type: Boolean,
+            default: false
+        },
+        pageTitle: {
+            type: String,
+            default: '数据驾驶舱'
+        }
     },
-    showBackButton: {
-      type: Boolean,
-      default: false
-    },
-    pageTitle: {
-      type: String,
-      default: '数据驾驶舱'
-    }
-  },
-  mounted() {
+    mounted() {
     // 组件挂载时初始化时间显示
-    this.updateTime()
-    // 启动定时器，每秒1秒更新时间
-    this.timeTimer = setInterval(() => {
-      this.updateTime()
-    }, 1000)
-  },
-  
-  beforeDestroy() {
+        this.updateTime();
+        // 启动定时器，每秒1秒更新时间
+        this.timeTimer = setInterval(() => {
+            this.updateTime();
+        }, 1000);
+    },
+
+    beforeDestroy() {
     // 组件销毁时清除定时器
-    if (this.timeTimer) {
-      clearInterval(this.timeTimer)
-      this.timeTimer = null
-    }
-  },
-  
-  methods: {
-    updateTime() {
-      const now = new Date()
-      
-      // 更新时间
-      this.currentTime = now.toLocaleTimeString('zh-CN', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      })
-      
-      // 更新日期
-      this.currentDate = now.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\//g, '年').replace(/年(\d+)年/, '年$1月') + '日'
-      
-      // 更新星期
-      const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-      this.weekday = days[now.getDay()]
+        if (this.timeTimer) {
+            clearInterval(this.timeTimer);
+            this.timeTimer = null;
+        }
     },
-    
-    // 处理页面标题点击事件
-    handlePageTitleClick() {
-      this.$router.push('/data-dashboard').catch(() => {
-        // 静默处理重复导航错误
-      })
-    },
-    
-    // 处理导航按钮点击事件
-    handleNavButtonClick() {
-      this.$router.push('/').catch(() => {
-        // 静默处理重复导航错误
-      })
+
+    methods: {
+        updateTime() {
+            const now = new Date();
+
+            // 更新时间
+            this.currentTime = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+
+            // 更新日期
+            this.currentDate = `${ now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\//g, '年')
+                .replace(/年(\d+)年/, '年$1月') }日`;
+
+            // 更新星期
+            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            this.weekday = days[now.getDay()];
+        },
+
+        // 处理页面标题点击事件
+        handlePageTitleClick() {
+            this.$router.push('/data-dashboard').catch(() => {
+                // 静默处理重复导航错误
+            });
+        },
+
+        // 处理导航按钮点击事件
+        handleNavButtonClick() {
+            this.$router.push('/').catch(() => {
+                // 静默处理重复导航错误
+            });
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="less" scoped>
-@import '@/styles/global.less';
+@import "@/styles/global.less";
 
 .dashboard-header {
-  width: 100%;
-  height: 157px;
-  /* background moved to inline style */
-  background-size: 100% 100%;
-  position: relative;
-  padding: 0 3%;
-  box-sizing: border-box;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 157px;
+    padding: 0 3%;
+
+    /* background moved to inline style */
+    background-size: 100% 100%;
 }
 
 .header-main {
-  position: relative;
-  padding: 15px 0;
-  display: flex;
-  align-items: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
 }
 
 // 左侧区域：天气、日期、时间
 .header-left {
-  margin-top: 10px;
-  flex: 0 0 auto;
-  align-items: start;
+    flex: 0 0 auto;
+    align-items: start;
+    margin-top: 10px;
 }
 
 .weather-icon {
-  width: 38px;
-  height: 34px;
+    width: 38px;
+    height: 34px;
 }
 
 .weather-info {
-  margin-left: 23px;
+    margin-left: 23px;
 }
 
 .temperature {
-  color: rgba(8, 196, 182, 1);
-  font-size: 22px;
-  text-align: right;
-  width: 65px;
+    width: 65px;
+    font-size: 22px;
+    text-align: right;
+    color: #08c4b6;
 }
 
 .weather-desc {
-  color: rgba(8, 196, 182, 1);
-  font-size: 11px;
-  font-family: SourceHanSansCN-Light;
-  white-space: nowrap;
-  text-align: center;
+    font-family: SourceHanSansCN-Light;
+    font-size: 11px;
+    text-align: center;
+    white-space: nowrap;
+
+    color: #08c4b6;
 }
 
 .time-info {
-  margin-left: 20px;
+    margin-left: 20px;
 }
 
 .current-time {
-  color: rgba(8, 196, 182, 1);
-  font-size: 22px;
-  text-align: center;
+    font-size: 22px;
+    text-align: center;
+    color: #08c4b6;
 }
 
 .current-date {
-  color: rgba(8, 196, 182, 1);
-  font-size: 11px;
-  font-family: SourceHanSansCN-Light;
-  text-align: center;
+    font-family: SourceHanSansCN-Light;
+    font-size: 11px;
+    text-align: center;
+    color: #08c4b6;
 }
 
 .weekday {
-  color: rgba(8, 196, 182, 1);
-  font-size: 22px;
-  text-align: center;
-  margin-left: 32px;
+    margin-left: 32px;
+    font-size: 22px;
+    text-align: center;
+    color: #08c4b6;
 }
 
 // 中间区域：头部装饰图片 - 绝对居中
 .header-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 765px;
-  height: 105px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 765px;
+    height: 105px;
+
+    transform: translate(-50%, -50%);
 }
 
 .center-decoration-bg {
-  position: relative;
-  width: 765px;
-  height: 105px;
-  /* background moved to inline style */
-  background-size: contain;
+    position: relative;
+    width: 765px;
+    height: 105px;
+
+    /* background moved to inline style */
+    background-size: contain;
 }
 
 .center-decoration-main {
-  position: absolute;
-  left: 195px;
-  bottom: 18px;
-  width: 375px;
-  height: 36px;
+    position: absolute;
+    bottom: 18px;
+    left: 195px;
+    width: 375px;
+    height: 36px;
 }
 
 .center-decoration-sub {
-  position: absolute;
-  left: 122px;
-  bottom: 20px;
-  width: 520px;
-  height: 28px;
+    position: absolute;
+    bottom: 20px;
+    left: 122px;
+    width: 520px;
+    height: 28px;
 }
 
 .nav-button {
-  height: 45px;
-  width: 113px;
-  /* background moved to inline style */
-  background-size: contain;
-  cursor: pointer;
-  transition: opacity 0.2s;
+    width: 113px;
+    height: 45px;
+    text-align: center;
 
-  &:hover {
-    opacity: 0.8;
-  }
+    /* background moved to inline style */
+    background-size: contain;
+    transition: opacity .2s;
+    cursor: pointer;
+
+    &:hover {
+        opacity: .8;
+    }
 }
 
 .nav-text {
-  color: rgba(76, 253, 235, 1);
-  font-size: 12px;
-  font-family: SourceHanSansCN-Regular;
-  white-space: nowrap;
+    font-family: SourceHanSansCN-Regular;
+    font-size: 12px;
+    white-space: nowrap;
+    color: #4cfdeb;
 }
 
 .page-title {
-  height: 45px;
-  width: 113px;
-  /* background moved to inline style */
-  background-size: contain;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  z-index: 10;
+    position: relative;
+    z-index: 10;
+    width: 113px;
+    height: 45px;
+    text-align: center;
 
-  &:hover {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
+    /* background moved to inline style */
+    background-size: contain;
+    transition: all .2s;
+    cursor: pointer;
 
-  &:active {
-    transform: scale(0.95);
-  }
+    &:hover {
+        opacity: .8;
+        transform: scale(1.05);
+    }
+
+    &:active {
+        transform: scale(.95);
+    }
 }
 
 .title-text {
-  color: rgba(76, 253, 235, 1);
-  font-size: 12px;
-  font-family: SourceHanSansCN-Regular;
-  white-space: nowrap;
+    font-family: SourceHanSansCN-Regular;
+    font-size: 12px;
+    white-space: nowrap;
+    color: #4cfdeb;
 }
 
 // 右侧区域：八角总揽图、数据驾驶舱、管理员
 .header-right {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    display: flex;
+    align-items: center;
+
+    transform: translateY(-50%);
 }
 
 .user-avatar {
-  margin: 0 5px 0 32px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    margin: 0 5px 0 32px;
+    border-radius: 50%;
 }
 
 .user-name {
-  color: rgba(76, 253, 235, 1);
-  font-size: 12px;
-  font-family: SourceHanSansCN-Regular;
-  white-space: nowrap;
+    font-family: SourceHanSansCN-Regular;
+    font-size: 12px;
+    white-space: nowrap;
+    color: #4cfdeb;
 }
 
 // 装饰元素
 .decoration-line {
-  margin: 10px auto;
-  width: 728px;
-  height: 12px;
+    width: 728px;
+    height: 12px;
+    margin: 10px auto;
 }
 
 .decoration-image {
-  width: 100%;
-  height: 12px;
+    width: 100%;
+    height: 12px;
 }
 
 
@@ -383,8 +393,8 @@ export default {
 .bottom-decoration {
     position: absolute;
     top: 80px;
-    left: 8%;
     right: 8%;
+    left: 8%;
     width: 84%;
     height: 12px;
 }

@@ -1,0 +1,198 @@
+/**
+ * LESS 函数和工具集合
+ * 提供常用的计算函数、工具函数和响应式设计辅助函数
+ * 支持现代 CSS 特性和可访问性标准
+ */
+
+// ========== 颜色函数 ==========
+
+// 透明度调整
+.alpha(@color, @alpha) {
+    @result: fade(@color, (@alpha * 100%));
+}
+
+// 明度调整
+.lighten-custom(@color, @amount) {
+    @result: lighten(@color, @amount);
+}
+
+.darken-custom(@color, @amount) {
+    @result: darken(@color, @amount);
+}
+
+// ========== 尺寸函数 ==========
+
+// px 转 rem (基于 16px)
+.px2rem(@px) {
+    @result: (@px / 16px * 1rem);
+}
+
+// px 转 em
+.px2em(@px, @context: 16px) {
+    @result: (@px / @context * 1em);
+}
+
+// 流体间距计算
+.fluid-space(@min-space, @max-space, @min-vw: 320px, @max-vw: 1200px) {
+    @slope: (@max-space - @min-space) / (@max-vw - @min-vw);
+    @y-axis-intersection: -@min-vw * @slope + @min-space;
+    @result: ~'clamp(@{min-space}, @{y-axis-intersection} + @{slope} * 100vw, @{max-space})';
+}
+
+// 响应式尺寸计算
+.fluid-size(@min-size, @max-size, @min-vw: 320px, @max-vw: 1920px) {
+    @slope: (@max-size - @min-size) / (@max-vw - @min-vw);
+    @y-axis-intersection: -@min-vw * @slope + @min-size;
+    @result: ~'clamp(@{min-size}, @{y-axis-intersection} + @{slope} * 100vw, @{max-size})';
+}
+
+// ========== 数学函数 ==========
+
+// 取最大值
+.max(@a, @b) when (@a >= @b) {
+    @result: @a;
+}
+
+.max(@a, @b) when (@a < @b) {
+    @result: @b;
+}
+
+// 取最小值
+.min(@a, @b) when (@a <= @b) {
+    @result: @a;
+}
+
+.min(@a, @b) when (@a > @b) {
+    @result: @b;
+}
+
+// ========== 字符串函数 ==========
+
+// 生成CSS变量名
+.css-var(@name) {
+    @result: ~'var(--@{name})';
+}
+
+// 带回退值的CSS变量
+.css-var-fallback(@name, @fallback) {
+    @result: ~'var(--@{name}, @{fallback})';
+}
+
+// ========== 布局函数 ==========
+
+// 网格列计算
+.grid-columns-responsive(@base-columns, @tablet-columns: @base-columns, @mobile-columns: 1) {
+    .grid-template-columns() {
+
+        @media (max-width: var(--breakpoint-lg)) {
+            grid-template-columns: repeat(@tablet-columns, 1fr);
+        }
+
+        @media (max-width: var(--breakpoint-md)) {
+            grid-template-columns: repeat(@mobile-columns, 1fr);
+        }
+        grid-template-columns: repeat(@base-columns, 1fr);
+    }
+}
+
+// 弹性布局计算
+.flex-gap-fallback(@gap) {
+
+    // 老浏览器回退方案
+    @supports not (gap: @gap) {
+        margin: calc(-@gap / 2);
+
+        & > * {
+            margin: calc(@gap / 2);
+        }
+    }
+    gap: @gap;
+}
+
+// ========== 动画函数 ==========
+
+// 尊重用户动画偏好
+.animation-with-preference(@animation-props) {
+    @media (prefers-reduced-motion: no-preference) {
+        @animation-props();
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        animation: none;
+    }
+}
+
+// 缓动函数生成器
+.easing(@type) when (@type = ease-out-expo) {
+    @result: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.easing(@type) when (@type = ease-out-quart) {
+    @result: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.easing(@type) when (@type = ease-out-back) {
+    @result: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// ========== 可访问性函数 ==========
+
+// 高对比度模式支持
+.high-contrast-support(@default-value, @high-contrast-value) {
+    @result: @default-value;
+
+    @media (prefers-contrast: high) {
+        @result: @high-contrast-value;
+    }
+}
+
+// 焦点可见性控制
+.focus-visible(@focus-styles) {
+    &:focus-visible {
+        @focus-styles();
+    }
+
+    // 老浏览器回退
+    &:focus:not(:focus-visible) {
+        outline: none;
+    }
+}
+
+// ========== 工具函数 ==========
+
+// Z-index 层级管理
+.z-layer(@layer) when (@layer = base) {
+    @result: var(--z-index-base, 0);
+}
+
+.z-layer(@layer) when (@layer = dropdown) {
+    @result: var(--z-index-dropdown, 1000);
+}
+
+.z-layer(@layer) when (@layer = modal) {
+    @result: var(--z-index-modal, 1400);
+}
+
+.z-layer(@layer) when (@layer = tooltip) {
+    @result: var(--z-index-tooltip, 1800);
+}
+
+// 容器查询支持
+.container-query(@min-width, @styles) {
+    @supports (container-type: inline-size) {
+        @container (min-width: @min-width) {
+            @styles();
+        }
+    }
+}
+
+// 视口单位计算
+.viewport-unit(@property, @value, @unit: vw) {
+    @{property}: ~"@{value}@{unit}";
+
+    // 移动设备优化
+    @supports (height: 100dvh) {
+        @{property}: ~"@{value}d@{unit}";
+    }
+}
