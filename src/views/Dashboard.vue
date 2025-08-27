@@ -11,8 +11,8 @@
     :page-title="'数据驾驶舱'"
   >
     <template #center-map>
-      <!-- 使用SVG地图 -->
-      <MapView
+      <!-- 使用Leaflet地图 - 解决SVG边界显示问题 -->
+      <MapViewBaise
         :map-data="mapData"
         :markers="mapMarkers"
         :labels="mapLabels"
@@ -27,13 +27,13 @@
 </template>
 
 <script>
-import MapView from '@/components/MapView.vue';
+import MapViewBaise from '@/components/MapViewBaise.vue';
 import DashboardLayout from '@/components/DashboardLayout.vue';
 
 export default {
     name: 'Dashboard',
     components: {
-        MapView,
+        MapViewBaise,
         DashboardLayout
     },
     data() {

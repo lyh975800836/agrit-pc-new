@@ -113,8 +113,26 @@
 
     <!-- 巡飞图像对比 -->
     <span class="section-title">巡飞图像对比</span>
-    <img class="comparison-image" src="/images/comparison-image-1.jpg" alt="对比图1" />
-    <img class="comparison-image2" src="/images/comparison-image-2.jpg" alt="对比图2" />
+    
+    <!-- 可拖动图像对比容器 -->
+    <div class="image-comparison-container" ref="comparisonContainer">
+      <!-- 旧图像 (底层) -->
+      <img class="comparison-image-old" src="/images/old.jpg" alt="旧图像" />
+      
+      <!-- 新图像 (顶层，带遮罩) -->
+      <div class="comparison-image-new-wrapper" :style="{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }">
+        <img class="comparison-image-new" src="/images/new.jpg" alt="新图像" />
+      </div>
+      
+      <!-- 拖动分割线 -->
+      <div 
+        class="comparison-slider" 
+        :style="{ left: `${sliderPosition}%` }"
+        @mousedown="startDrag"
+      >
+        <div class="slider-handle"></div>
+      </div>
+    </div>
 
     <div class="date-labels flex-row justify-between">
       <span class="date-text">2025年01月15日</span>
@@ -150,7 +168,9 @@ export default {
     emits: ['update:visible', 'close'],
     data() {
         return {
-            images
+            images,
+            sliderPosition: 50, // 分割线初始位置 (百分比)
+            isDragging: false
         };
     },
     methods: {
@@ -161,7 +181,44 @@ export default {
 
         handleOverlayClick() {
             this.handleClose();
+        },
+
+        // 开始拖动
+        startDrag(event) {
+            this.isDragging = true;
+            document.addEventListener('mousemove', this.onDrag);
+            document.addEventListener('mouseup', this.stopDrag);
+            event.preventDefault();
+        },
+
+        // 拖动过程
+        onDrag(event) {
+            if (!this.isDragging) return;
+
+            const container = this.$refs.comparisonContainer;
+            if (!container) return;
+
+            const rect = container.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+            
+            this.sliderPosition = percentage;
+        },
+
+        // 停止拖动
+        stopDrag() {
+            this.isDragging = false;
+            document.removeEventListener('mousemove', this.onDrag);
+            document.removeEventListener('mouseup', this.stopDrag);
         }
+    },
+
+    mounted() {
+        // 确保在组件销毁时移除事件监听器
+        this.$once('hook:beforeDestroy', () => {
+            document.removeEventListener('mousemove', this.onDrag);
+            document.removeEventListener('mouseup', this.stopDrag);
+        });
     }
 };
 </script>
@@ -392,17 +449,70 @@ export default {
     height: 9px;
 }
 
-/* 对比图片 */
-.comparison-image {
-    width: 78px;
+/* 图像对比容器 */
+.image-comparison-container {
+    position: relative;
+    width: 247px;
+    height: 120px;
     margin: 4px 0 8px;
+    overflow: hidden;
+    border-radius: 4px;
+    cursor: ew-resize;
 }
 
-comparison-image2 {
+/* 旧图像 (底层) */
+.comparison-image-old {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: auto;
-    max-height: 120px;
-    border-radius: 4px;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 新图像容器 (顶层，带裁剪) */
+.comparison-image-new-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* 新图像 */
+.comparison-image-new {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 拖动分割线 */
+.comparison-slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #4cfcea;
+    cursor: ew-resize;
+    z-index: 10;
+    transform: translateX(-50%);
+}
+
+/* 分割线手柄 */
+.slider-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: #4cfcea;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: ew-resize;
 }
 
 .date-labels {
