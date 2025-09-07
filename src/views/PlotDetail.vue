@@ -17,7 +17,7 @@
       <RegionDetailMap
         :region-name="regionName"
         :show-plot-details="true"
-        :show-plot-markers="false"
+        :show-plot-markers="true"
         :plot-data="plotData"
         :is-plot-detail-page="true"
       />
@@ -431,16 +431,23 @@ export default {
         this.loadPlotData();
     },
     methods: {
-        loadPlotData() {
+        async loadPlotData() {
             // 从路由参数获取区域名称和地块数据
             this.regionName = this.$route.query.region || '右江区';
 
+            // 解码plotId参数（处理中文字符）
+            const encodedPlotId = this.$route.params.plotId;
+            const decodedPlotId = encodedPlotId ? decodeURIComponent(encodedPlotId) : null;
+            console.log('解码后的plotId:', decodedPlotId);
+
             // 从query参数获取地块数据
-            const plotName = this.$route.query.plotName || '千户十亩-大楞乡基地';
+            const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
             const area = this.$route.query.area || '40';
             const output = this.$route.query.output || '25';
 
+            // 基础地块数据
             this.plotData = {
+                id: decodedPlotId,
                 name: plotName,
                 district: this.regionName,
                 area,
@@ -451,7 +458,58 @@ export default {
                 price: '6.08'
             };
 
+            // 尝试加载地块坐标数据
+            await this.loadPlotCoordinates(decodedPlotId);
+
             console.log('加载地块数据:', this.plotData);
+        },
+
+        // 加载地块坐标数据
+        async loadPlotCoordinates(plotId) {
+            try {
+                console.log('尝试加载地块坐标:', plotId);
+                const response = await fetch('/demo/coordinates.json');
+                const coordinateData = await response.json();
+
+                // 查找匹配的地块坐标数据
+                const plotCoordData = coordinateData[plotId];
+
+                if (plotCoordData && plotCoordData.coordinates) {
+                    console.log('找到地块坐标数据:', plotCoordData.coordinates.length, '个点');
+
+                    // 添加坐标数据到plotData
+                    this.plotData.coordinates = plotCoordData.coordinates;
+                    this.plotData.center = plotCoordData.center || this.calculateCenter(plotCoordData.coordinates);
+
+                    console.log('地块坐标数据已加载');
+                }
+                else {
+                    console.log('未找到地块坐标数据，使用默认位置');
+                    // 使用默认中心位置
+                    this.plotData.center = [23.9, 106.6];
+                }
+
+            }
+            catch (error) {
+                console.error('加载地块坐标数据失败:', error);
+                // 使用默认中心位置
+                this.plotData.center = [23.9, 106.6];
+            }
+        },
+
+        // 计算多边形中心点
+        calculateCenter(coordinates) {
+            if (!coordinates || coordinates.length === 0) {
+                return [23.9, 106.6];
+            }
+
+            let latSum = 0; let lngSum = 0;
+            coordinates.forEach(coord => {
+                latSum += coord[0];
+                lngSum += coord[1];
+            });
+
+            return [latSum / coordinates.length, lngSum / coordinates.length];
         },
 
         handleBackClick() {
@@ -623,7 +681,6 @@ export default {
     font-family: BebasNeueRegular;
     font-size: 30px;
     line-height: 1;
-
     color: #4cfcea;
 }
 
@@ -762,7 +819,6 @@ export default {
     font-family: BebasNeueRegular;
     font-size: 52px;
     line-height: 1;
-
     color: #4cfcea;
 }
 
@@ -1131,7 +1187,6 @@ export default {
     font-family: SourceHanSansCN-Normal;
     font-size: 10px;
     line-height: 10px;
-
     color: #4cfcea;
 }
 
@@ -1374,7 +1429,6 @@ export default {
     font-family: FZCKJW--GB1-0;
     font-size: 9px;
     line-height: 13px;
-
     color: #4cfcea;
 }
 
