@@ -15,6 +15,7 @@
     <template #center-map>
       <!-- 地块详情真实卫星地图 -->
       <RegionDetailMap
+        ref="regionDetailMap"
         :region-name="regionName"
         :show-plot-details="true"
         :show-plot-markers="true"
@@ -159,7 +160,11 @@
 
               <!-- 农事项目列表 -->
               <div class="farming-dynamics__items-list">
-                <div class="farming-dynamics__item" v-for="(item, index) in standardFarmingItems" :key="index">
+                <div class="farming-dynamics__item"
+                     v-for="(item, index) in standardFarmingItems"
+                     :key="index"
+                     :class="{ 'farming-dynamics__item--active': item.id === selectedFarmingItemId }"
+                     @click="handleFarmingItemClick(item, index)">
                   <img class="farming-dynamics__item-icon" :src="item.icon" />
                   <span class="farming-dynamics__item-text" :class="{ 'farming-dynamics__item-text--gold': item.isGold }" v-html="item.text"></span>
                 </div>
@@ -178,48 +183,58 @@
               </div>
             </div>
 
-            <!-- 右侧: 预警农事 -->
+            <!-- 右侧: 农事预期固定内容 -->
             <div class="farming-dynamics__warning-section">
               <!-- 预警农事头部 -->
               <div class="farming-dynamics__warning-header" :style="{ backgroundImage: `url(${images.warningHeaderBg})` }">
-                <img class="farming-dynamics__warning-icon" src="/images/warning-farming-icon.jpg" />
-                <h4 class="farming-dynamics__warning-title">预警农事</h4>
-                <div class="farming-dynamics__warning-description">名称: 加强版生物防治</div>
-                <div class="farming-dynamics__warning-info">
-                  <span class="farming-dynamics__trigger-time">触发时间：8月</span>
-                  <div class="farming-dynamics__warning-level">
-                    <span class="farming-dynamics__level-label">等级:</span>
-                    <span class="farming-dynamics__level-value farming-dynamics__level-value--high">高</span>
-                  </div>
+                <div class="farming-dynamics__warning-title-row">
+                  <img class="farming-dynamics__warning-icon" src="/images/warning-farming-icon.jpg" />
+                  <h4 class="farming-dynamics__warning-title">预警农事</h4>
+                  <div class="farming-dynamics__warning-alert-icon">⚠</div>
                 </div>
-                <div class="farming-dynamics__warning-details">
-                  <div class="farming-dynamics__treatment">处方：多种复合配方加强版<br />生物防治。</div>
-                  <div class="farming-dynamics__cycle">处理周期：7天</div>
+                
+                <div class="farming-dynamics__warning-basic-info">
+                  <span class="farming-dynamics__warning-label">名称：</span>
+                  <span class="farming-dynamics__warning-name-value">{{ selectedFarmingDetails ? selectedFarmingDetails.title.replace(/\(.*?\)/, '').trim() : '加强版生物防治' }}</span>
+                </div>
+                
+                <div class="farming-dynamics__warning-time-level">
+                  <span class="farming-dynamics__warning-label">触发时间：</span>
+                  <span class="farming-dynamics__warning-time-value">{{ getSelectedFarmingMonth() }}</span>
+                  <span class="farming-dynamics__warning-level-label">等级：</span>
+                  <span class="farming-dynamics__warning-level-value">{{ getSelectedFarmingLevel() }}</span>
+                </div>
+                
+                <div class="farming-dynamics__warning-prescription">
+                  <span class="farming-dynamics__warning-label">处方：</span>
+                  <span class="farming-dynamics__warning-prescription-text">{{ getSelectedFarmingPrescription() }}</span>
+                </div>
+                
+                <div class="farming-dynamics__warning-cycle-info">
+                  {{ getSelectedFarmingCycle() }}
                 </div>
               </div>
 
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
-
               <!-- 当前任务 -->
               <div class="farming-dynamics__current-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
-                <span class="farming-dynamics__task-name">秋季保花施肥</span>
-                <span class="farming-dynamics__current-label">（当前）</span>
+                <span class="farming-dynamics__task-name">{{ selectedFarmingDetails ? selectedFarmingDetails.title.replace(/\(.*?\)/, '').trim() : '秋季保花施肥' }}</span>
+                <span class="farming-dynamics__current-label">（{{ selectedFarmingDetails ? getStatusText(selectedFarmingDetails.status) : '当前' }}）</span>
               </div>
               <div class="farming-dynamics__task-time">
                 <div class="farming-dynamics__time-item">
                   <span class="farming-dynamics__time-label">开始时间：</span>
-                  <span class="farming-dynamics__time-value">8月01日</span>
+                  <span class="farming-dynamics__time-value">{{ selectedFarmingDetails ? selectedFarmingDetails.startDate : '8月01日' }}</span>
                 </div>
-                <div class="farming-dynamics__time-item">结束时间：8月30日</div>
+                <div class="farming-dynamics__time-item">结束时间：{{ selectedFarmingDetails ? selectedFarmingDetails.endDate : '8月30日' }}</div>
               </div>
 
               <img class="farming-dynamics__divider" src="/images/divider.png" />
 
-              <div class="farming-dynamics__prescription">处方：复合肥</div>
+              <div class="farming-dynamics__prescription">{{ selectedFarmingDetails ? selectedFarmingDetails.description : '处方：复合肥' }}</div>
 
               <img class="farming-dynamics__divider" src="/images/divider.png" />
 
-              <div class="farming-dynamics__standards">施工规范：要求再树根往外滴水的三分之二处，均匀绕树周围撒肥。</div>
+              <div class="farming-dynamics__standards">{{ selectedFarmingDetails ? selectedFarmingDetails.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
 
               <img class="farming-dynamics__divider" src="/images/divider.png" />
 
@@ -230,27 +245,51 @@
 
               <!-- 下一任务 -->
               <div class="farming-dynamics__next-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
-                <span class="farming-dynamics__next-task-name">冬季保果壮果</span>
+                <span class="farming-dynamics__next-task-name">{{ nextFarmingItem ? nextFarmingItem.details.title.replace(/\(.*?\)/, '').trim() : '冬季保果壮果' }}</span>
+                <span class="farming-dynamics__next-label">（{{ getNextTaskStatusText() }}）</span>
               </div>
               <div class="farming-dynamics__next-task-time">
                 <div class="farming-dynamics__time-item">
                   <span class="farming-dynamics__time-label">开始时间：</span>
-                  <span class="farming-dynamics__time-value">11月01日</span>
+                  <span class="farming-dynamics__time-value">{{ nextFarmingItem ? nextFarmingItem.details.startDate : '11月01日' }}</span>
                 </div>
-                <div class="farming-dynamics__time-item">结束时间：11月30日</div>
+                <div class="farming-dynamics__time-item">结束时间：{{ nextFarmingItem ? nextFarmingItem.details.endDate : '11月30日' }}</div>
               </div>
 
               <img class="farming-dynamics__divider" src="/images/divider.png" />
+
+              <div class="farming-dynamics__prescription">{{ nextFarmingItem ? nextFarmingItem.details.description : '处方：复合肥' }}</div>
+
+              <img class="farming-dynamics__divider" src="/images/divider.png" />
+
+              <div class="farming-dynamics__standards">{{ nextFarmingItem ? nextFarmingItem.details.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
+
+              <img class="farming-dynamics__divider" src="/images/divider.png" />
+
+              <div class="farming-dynamics__view-details">
+                <span class="farming-dynamics__details-text">查看详情</span>
+                <span class="farming-dynamics__details-arrow">>></span>
+              </div>
 
               <!-- 三农服务 -->
               <div class="farming-dynamics__services" :style="{ backgroundImage: `url(${images.threeNong})` }">
                 <img class="farming-dynamics__services-icon" src="/images/service-icon-main.jpg" />
                 <h4 class="farming-dynamics__services-title">三农服务</h4>
                 <div class="farming-dynamics__services-content">
-                  <div class="farming-dynamics__service-item" v-for="(service, index) in servicesData" :key="index">
-                    <img class="farming-dynamics__service-icon" :src="service.icon" />
-                    <div class="farming-dynamics__service-label">{{ service.label }}</div>
-                    <div class="farming-dynamics__service-provider">{{ service.provider }}</div>
+                  <div class="farming-dynamics__service-item">
+                    <img class="farming-dynamics__service-icon" src="/images/service-icon-1.jpg" />
+                    <div class="farming-dynamics__service-label">-农投-</div>
+                    <div class="farming-dynamics__service-provider">隆启雷</div>
+                  </div>
+                  <div class="farming-dynamics__service-item">
+                    <img class="farming-dynamics__service-icon" src="/images/service-icon-2.jpg" />
+                    <div class="farming-dynamics__service-label">-农资-</div>
+                    <div class="farming-dynamics__service-provider">泮香科技</div>
+                  </div>
+                  <div class="farming-dynamics__service-item">
+                    <img class="farming-dynamics__service-icon" src="/images/service-icon-3.jpg" />
+                    <div class="farming-dynamics__service-label">-农投-</div>
+                    <div class="farming-dynamics__service-provider">泮香科技</div>
                   </div>
                 </div>
               </div>
@@ -293,6 +332,8 @@ export default {
         return {
             // 健康指标弹窗控制
             healthModalVisible: false,
+            // 选中的农事项目ID
+            selectedFarmingItemId: 'autumn-harvest',
             // 图片资源引用
             images: {
                 leftPanelBg: '/images/left-panel-bg.png',
@@ -396,18 +437,164 @@ export default {
         // 标准农事项目 - 使用集中管理的图片常量
         standardFarmingItems() {
             return [
-                { text: '冬季施肥', icon: this.images.farmingIcon1, isGold: false },
-                { text: '春季<br />生物防治', icon: this.images.farmingIcon1, isGold: false },
-                { text: '春季<br />强梢施肥', icon: this.images.farmingIcon1, isGold: false },
-                { text: '夏季除草', icon: this.images.farmingIcon1, isGold: false },
-                { text: '夏季加强版<br />生物防治+<br />催花', icon: this.images.farmingIcon1, isGold: false },
-                { text: '秋季<br />保花施肥', icon: this.images.farmingIcon1, isGold: false },
-                { text: '冬季<br />保果壮果', icon: this.images.farmingWarm, isGold: true },
-                { text: '春季保果', icon: this.images.farmingWarm, isGold: true },
-                { text: '夏季壮果', icon: this.images.farmingWarm, isGold: true },
-                { text: '秋果采摘', icon: this.images.farmingWarm, isGold: true }
+                {
+                    id: 'winter-fertilizing',
+                    text: '冬季施肥',
+                    icon: this.images.farmingIcon1,
+                    isGold: false,
+                    details: {
+                        title: '冬季施肥 (当前)',
+                        startDate: '8月01日',
+                        endDate: '8月30日',
+                        description: '处方：复合肥',
+                        requirement: '施工规范：要求宜树根往外滴水的三分之一处，均匀绕树周围撒。',
+                        status: 'current'
+                    }
+                },
+                {
+                    id: 'spring-pest-control',
+                    text: '春季<br />生物防治',
+                    icon: this.images.farmingIcon1,
+                    isGold: false,
+                    details: {
+                        title: '春季生物防治',
+                        startDate: '3月01日',
+                        endDate: '3月30日',
+                        description: '处方：生物防治药剂',
+                        requirement: '施工规范：均匀喷洒叶面，注意天气条件。',
+                        status: 'completed'
+                    }
+                },
+                {
+                    id: 'spring-strong-fertilizing',
+                    text: '春季<br />强梢施肥',
+                    icon: this.images.farmingIcon1,
+                    isGold: false,
+                    details: {
+                        title: '春季强梢施肥',
+                        startDate: '4月01日',
+                        endDate: '4月30日',
+                        description: '处方：强梢专用肥',
+                        requirement: '施工规范：围绕树根部施用，深度15-20cm。',
+                        status: 'completed'
+                    }
+                },
+                {
+                    id: 'summer-weeding',
+                    text: '夏季除草',
+                    icon: this.images.farmingIcon1,
+                    isGold: false,
+                    details: {
+                        title: '夏季除草',
+                        startDate: '6月01日',
+                        endDate: '6月30日',
+                        description: '处方：除草剂',
+                        requirement: '施工规范：避免接触树体，选择无风天气作业。',
+                        status: 'completed'
+                    }
+                },
+                {
+                    id: 'summer-enhanced-treatment',
+                    text: '夏季加强版<br />生物防治+<br />催花',
+                    icon: this.images.farmingIcon1,
+                    isGold: false,
+                    details: {
+                        title: '夏季加强版生物防治+催花',
+                        startDate: '7月01日',
+                        endDate: '7月30日',
+                        description: '处方：生物防治剂+催花素',
+                        requirement: '施工规范：分两次施用，间隔10-15天。',
+                        status: 'completed'
+                    }
+                },
+                {
+                    id: 'autumn-flower-protection',
+                    text: '秋季<br />保花施肥',
+                    icon: this.images.farmingIcon1,
+                    isGold: false,
+                    details: {
+                        title: '秋季保花施肥',
+                        startDate: '9月01日',
+                        endDate: '9月30日',
+                        description: '处方：保花专用肥',
+                        requirement: '施工规范：花期前15天施用，薄肥勤施。',
+                        status: 'pending'
+                    }
+                },
+                {
+                    id: 'winter-fruit-strengthening',
+                    text: '冬季<br />保果壮果',
+                    icon: this.images.farmingWarm,
+                    isGold: true,
+                    details: {
+                        title: '冬季保果壮果预期',
+                        startDate: '11月01日',
+                        endDate: '11月30日',
+                        description: '处方：壮果专用肥',
+                        requirement: '施工规范：果实膨大期施用，配合适当修剪。',
+                        status: 'expected'
+                    }
+                },
+                {
+                    id: 'spring-fruit-protection',
+                    text: '春季保果',
+                    icon: this.images.farmingWarm,
+                    isGold: true,
+                    details: {
+                        title: '春季保果预期',
+                        startDate: '2月01日',
+                        endDate: '2月28日',
+                        description: '处方：保果剂',
+                        requirement: '施工规范：开花后7-10天施用，连续2-3次。',
+                        status: 'expected'
+                    }
+                },
+                {
+                    id: 'summer-fruit-strengthening',
+                    text: '夏季壮果',
+                    icon: this.images.farmingWarm,
+                    isGold: true,
+                    details: {
+                        title: '夏季壮果预期',
+                        startDate: '5月01日',
+                        endDate: '5月30日',
+                        description: '处方：壮果肥',
+                        requirement: '施工规范：果实发育期施用，注意水分管理。',
+                        status: 'expected'
+                    }
+                },
+                {
+                    id: 'autumn-harvest',
+                    text: '秋果采摘',
+                    icon: this.images.farmingWarm,
+                    isGold: true,
+                    details: {
+                        title: '秋果采摘预期',
+                        startDate: '10月01日',
+                        endDate: '10月30日',
+                        description: '处方：成熟度检测',
+                        requirement: '施工规范：选择晴天采摘，轻拿轻放。',
+                        status: 'expected'
+                    }
+                }
             ];
         },
+
+        // 选中的农事项目详情
+        selectedFarmingDetails() {
+            if (!this.selectedFarmingItemId) {
+                return null;
+            }
+            const selectedItem = this.standardFarmingItems.find(item => item.id === this.selectedFarmingItemId);
+            return selectedItem ? selectedItem.details : null;
+        },
+
+        // 下一个预期的农事项目
+        nextFarmingItem() {
+            // 获取状态为 'expected' 的第一个项目作为下一任务
+            return this.standardFarmingItems.find(item => item.details.status === 'expected');
+        },
+
         // 三农服务项目 - 使用集中管理的图片常量
         servicesData() {
             return [
@@ -538,6 +725,112 @@ export default {
             // 这里可以加载乡镇级别的轮廓地图
             // 暂时显示提示信息
             this.$message && this.$message.info(`正在加载${ township.name }乡镇轮廓地图...`);
+        },
+
+        // 处理农事项目点击
+        handleFarmingItemClick(item, index) {
+            console.log('点击农事项目:', item.text, '索引:', index);
+            console.log('农事项目详情:', item.details);
+
+            // 设置选中的农事项目ID
+            this.selectedFarmingItemId = item.id;
+
+            // 更新右侧预警农事区域显示选中项目的详细信息
+            this.updateWarningSection(item);
+
+            // 如果需要改变地图显示，可以调用地图组件的方法
+            this.updateMapForFarmingItem(item);
+        },
+
+        // 更新预警农事区域显示
+        updateWarningSection(farmingItem) {
+            // 通过更新selectedFarmingItemId来触发计算属性重新计算
+            // selectedFarmingDetails计算属性会根据selectedFarmingItemId自动更新
+            console.log('更新预警农事区域，显示:', farmingItem.details.title);
+
+            // 强制Vue重新渲染组件
+            this.$forceUpdate();
+        },
+
+        // 更新地图显示以反映选中的农事项目
+        updateMapForFarmingItem(farmingItem) {
+            // 根据不同的农事项目改变地图显示
+            console.log('更新地图显示农事项目:', farmingItem.id);
+
+            // 可以调用RegionDetailMap组件的方法来改变地图内容
+            // 例如：显示不同的覆盖层、标记或高亮区域
+            const mapComponent = this.$refs.regionDetailMap;
+            if (mapComponent && typeof mapComponent.updateForFarmingActivity === 'function') {
+                mapComponent.updateForFarmingActivity(farmingItem);
+            }
+        },
+
+        // 获取状态文本
+        getStatusText(status) {
+            const statusMap = {
+                current: '当前',
+                completed: '已完成',
+                pending: '待执行',
+                expected: '预期'
+            };
+            return statusMap[status] || status;
+        },
+
+        // 获取选中农事的月份
+        getSelectedFarmingMonth() {
+            if (!this.selectedFarmingDetails) return '8月';
+            const startDate = this.selectedFarmingDetails.startDate;
+            if (startDate.includes('月')) {
+                return startDate.split('月')[0] + '月';
+            }
+            return '8月';
+        },
+
+        // 获取选中农事的等级
+        getSelectedFarmingLevel() {
+            if (!this.selectedFarmingDetails) return '高';
+            const status = this.selectedFarmingDetails.status;
+            const levelMap = {
+                current: '高',
+                completed: '中',
+                pending: '高',
+                expected: '中'
+            };
+            return levelMap[status] || '高';
+        },
+
+        // 获取选中农事的处理周期
+        getSelectedFarmingCycle() {
+            if (!this.selectedFarmingDetails) return '处理周期：30天';
+            const startDate = this.selectedFarmingDetails.startDate;
+            const endDate = this.selectedFarmingDetails.endDate;
+            if (startDate && endDate) {
+                const start = parseInt(startDate.replace(/[^\d]/g, ''));
+                const end = parseInt(endDate.replace(/[^\d]/g, ''));
+                const cycle = end - start + 1;
+                return `处理周期：${cycle}天`;
+            }
+            return '处理周期：30天';
+        },
+
+        // 获取选中农事的处方信息
+        getSelectedFarmingPrescription() {
+            if (!this.selectedFarmingDetails) return '多种复合配方加强版生物防治。';
+            const description = this.selectedFarmingDetails.description;
+            return description.replace('处方：', '');
+        },
+
+        // 获取下一任务状态文本
+        getNextTaskStatusText() {
+            if (!this.nextFarmingItem) return '下阶段';
+            const status = this.nextFarmingItem.details.status;
+            const statusMap = {
+                expected: '下阶段',
+                pending: '待执行',
+                current: '当前',
+                completed: '已完成'
+            };
+            return statusMap[status] || '下阶段';
         },
 
         showHealthModal() {
@@ -1136,7 +1429,24 @@ export default {
     display: flex;
     align-items: center;
     margin: 8px 0 8px 23px;
+    padding: 4px 8px;
+
+    border-radius: 4px;
+    transition: all .3s ease;
+    cursor: pointer;
+
     gap: 12px;
+}
+
+.farming-dynamics__item:hover {
+    background: #4cfdeb1a;
+    transform: translateX(2px);
+}
+
+.farming-dynamics__item--active {
+    border-left: 3px solid #4cfcea;
+    background: #4cfdeb33;
+    transform: translateX(2px);
 }
 
 .farming-dynamics__item + .farming-dynamics__item {
@@ -1212,6 +1522,7 @@ export default {
 }
 
 .farming-dynamics__warning-header {
+    position: relative;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -1223,6 +1534,14 @@ export default {
     background-size: 100% 100%;
 }
 
+.farming-dynamics__warning-title-row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
 .farming-dynamics__warning-icon {
     width: 177px;
     height: 5px;
@@ -1231,13 +1550,107 @@ export default {
 }
 
 .farming-dynamics__warning-title {
-    margin: 12px 0 16px;
+    margin: 12px 0 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 15px;
     font-weight: 500;
     line-height: 15px;
-
     color: #4cfcea;
+}
+
+.farming-dynamics__warning-alert-icon {
+    position: absolute;
+    top: 15px;
+    right: 10px;
+    font-size: 18px;
+    color: #faaf3b;
+}
+
+.farming-dynamics__warning-basic-info {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.farming-dynamics__warning-time-level {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.farming-dynamics__warning-prescription {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.farming-dynamics__warning-label {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+    color: #4cfcea;
+    margin-right: 4px;
+}
+
+.farming-dynamics__warning-name-value {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+    color: #4cfcea;
+    word-break: break-all;
+    max-width: 120px;
+    flex: 1;
+}
+
+.farming-dynamics__warning-time-value {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+    color: #4cfcea;
+}
+
+.farming-dynamics__warning-prescription-text {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+    color: #4cfcea;
+    word-break: break-all;
+    max-width: 140px;
+    flex: 1;
+}
+
+.farming-dynamics__warning-level-label {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+    color: #4cfcea;
+    margin-right: 4px;
+}
+
+.farming-dynamics__warning-level-value {
+    font-family: SourceHanSansCN-Medium;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 14px;
+    color: #faaf3b;
+}
+
+.farming-dynamics__warning-cycle-info {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+    color: #4cfcea;
+    margin-top: 8px;
 }
 
 .farming-dynamics__warning-description {
@@ -1290,6 +1703,85 @@ export default {
     color: #faaf3b;
 }
 
+.farming-dynamics__level-value--completed {
+    padding: 2px 6px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 14px;
+
+    color: #000;
+    border-radius: 2px;
+    background: #00ff7f;
+}
+
+.farming-dynamics__level-value--pending {
+    padding: 2px 6px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 14px;
+
+    color: #000;
+    border-radius: 2px;
+    background: #faaf3b;
+}
+
+.farming-dynamics__level-value--expected {
+    padding: 2px 6px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 14px;
+
+    color: #000;
+    border-radius: 2px;
+    background: #4cfcea;
+}
+
+/* 查看详情链接样式 */
+.farming-dynamics__view-details {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.farming-dynamics__view-link {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    color: #4cfcea;
+    cursor: pointer;
+}
+
+.farming-dynamics__view-link:hover {
+    color: #faaf3b;
+}
+
+/* 预期农事项目样式 */
+.farming-dynamics__expected-section {
+    padding: 15px;
+}
+
+.farming-dynamics__expected-title {
+    margin: 0 0 8px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 12px;
+    font-weight: 500;
+
+    color: #faaf3b;
+}
+
+.farming-dynamics__expected-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.farming-dynamics__expected-time {
+    font-family: SourceHanSansCN-Light;
+    font-size: 10px;
+    color: #4cfcea;
+}
+
 .farming-dynamics__warning-details {
     display: flex;
     flex-direction: column;
@@ -1329,9 +1821,10 @@ export default {
     justify-content: space-between;
     box-sizing: border-box;
     width: 174px;
-    height: 20px;
-    margin: 8px 0 0 12px;
-    padding: 0 17px 0 24px;
+    min-height: 20px;
+    height: auto;
+    margin: 18px 0 0 12px;
+    padding: 2px 17px 2px 24px;
 
     background-repeat: no-repeat;
     background-size: 100% 100%;
@@ -1341,9 +1834,14 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
-    line-height: 10px;
-
+    line-height: 12px;
     color: #093036;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+    margin-right: 8px;
 }
 
 .farming-dynamics__current-label {
@@ -1351,8 +1849,9 @@ export default {
     font-size: 10px;
     font-weight: 500;
     line-height: 10px;
-
-    color: #0f0;
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #00ff7f;
 }
 
 .farming-dynamics__task-time {
@@ -1360,7 +1859,6 @@ export default {
 }
 
 .farming-dynamics__time-item {
-    margin-bottom: 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
@@ -1386,7 +1884,7 @@ export default {
 }
 
 .farming-dynamics__prescription {
-    margin: 6px 0 0 17px;
+    margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
@@ -1397,12 +1895,11 @@ export default {
 
 .farming-dynamics__standards {
     width: 149px;
-    margin: 5px 0 0 17px;
+    margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
-
     color: #4cfcea;
 }
 
@@ -1437,11 +1934,13 @@ export default {
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     box-sizing: border-box;
     width: 174px;
-    height: 20px;
+    min-height: 20px;
+    height: auto;
     margin: 8px 0 0 12px;
-    padding: 0 17px 0 25px;
+    padding: 2px 17px 2px 25px;
 
     background-repeat: no-repeat;
     background-size: 100% 100%;
@@ -1451,9 +1950,24 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
-    line-height: 10px;
-
+    line-height: 12px;
     color: #093036;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+    margin-right: 8px;
+}
+
+.farming-dynamics__next-label {
+    font-family: SourceHanSansCN-Medium;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #00ff7f;
 }
 
 .farming-dynamics__next-task-time {
@@ -1467,7 +1981,7 @@ export default {
     align-items: flex-start;
     width: 200px;
     height: 159px;
-    margin-top: 76px;
+    margin-top: 16px;
     padding: 0;
 
     background-repeat: no-repeat;
@@ -1493,10 +2007,11 @@ export default {
 
 .farming-dynamics__services-content {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     box-sizing: border-box;
     width: 100%;
-    padding: 0 12px;
+    padding: 0 20px 20px;
+    gap: 10px;
 }
 
 .farming-dynamics__service-item {
@@ -1507,15 +2022,10 @@ export default {
 }
 
 .farming-dynamics__service-icon {
-    width: 53px;
-    height: 44px;
-    margin-bottom: 12px;
-    object-fit: contain;
-}
-
-.farming-dynamics__service-icon:nth-child(3) {
+    width: 50px;
     height: 40px;
-    margin-top: 3px;
+    margin-bottom: 8px;
+    object-fit: contain;
 }
 
 .farming-dynamics__service-label {

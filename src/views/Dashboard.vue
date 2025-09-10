@@ -9,6 +9,8 @@
     :region-name="'百色市'"
     :show-back-button="false"
     :page-title="'数据驾驶舱'"
+    :selected-farming-item="selectedFarmingItem"
+    @farming-item-click="handleFarmingItemClick"
   >
     <template #center-map>
       <!-- 使用Leaflet地图 - 解决SVG边界显示问题 -->
@@ -98,7 +100,44 @@ export default {
             mapLabels: [],
 
             // 有项目的区县列表（基于百色市实际区县）
-            projectRegions: ['右江区', '田阳区', '田东县', '德保县', '那坡县', '凌云县', '乐业县', '田林县']
+            projectRegions: ['右江区', '田阳区', '田东县', '德保县', '那坡县', '凌云县', '乐业县', '田林县'],
+
+            // 农事项目数据
+            farmingItems: [
+                {
+                    id: 'autumn-flower-protection',
+                    name: '秋季保花施肥',
+                    startDate: '8月01日',
+                    endDate: '8月30日',
+                    description: '处方：复合肥',
+                    requirement: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。',
+                    status: 'current',
+                    isActive: true
+                },
+                {
+                    id: 'winter-fruit-strengthening',
+                    name: '冬季保果壮果',
+                    startDate: '11月01日',
+                    endDate: '11月30日',
+                    description: '处方：壮果专用肥',
+                    requirement: '果实膨大期施用，配合适当修剪。',
+                    status: 'expected',
+                    isActive: false
+                },
+                {
+                    id: 'spring-pest-control',
+                    name: '春季生物防治',
+                    startDate: '3月01日',
+                    endDate: '3月30日',
+                    description: '处方：生物防治药剂',
+                    requirement: '均匀喷洒叶面，注意天气条件。',
+                    status: 'completed',
+                    isActive: false
+                }
+            ],
+
+            // 选中的农事项目
+            selectedFarmingItem: null
         };
     },
     async mounted() {
@@ -193,6 +232,23 @@ export default {
         handleMarkerClick() {
             // 这里可以添加标注点点击后的逻辑
             this.selectedRegion = null;
+        },
+
+        // 处理农事项目点击事件
+        handleFarmingItemClick(farmingItem) {
+            console.log('点击农事项目:', farmingItem.name);
+            
+            // 设置选中的农事项目
+            this.selectedFarmingItem = farmingItem;
+            
+            // 更新农事项目的活跃状态
+            this.farmingItems = this.farmingItems.map(item => ({
+                ...item,
+                isActive: item.id === farmingItem.id
+            }));
+            
+            // 这里可以更新右侧面板显示选中农事项目的详细信息
+            console.log('农事项目详情:', farmingItem);
         },
 
     }

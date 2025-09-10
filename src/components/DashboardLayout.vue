@@ -76,6 +76,8 @@
             :region-name="regionName"
             :ranking-data="rankingData"
             :quality-data="qualityData"
+            :selected-farming-item="selectedFarmingItem"
+            @farming-item-click="$emit('farming-item-click', $event)"
           />
         </template>
       </div>
@@ -135,6 +137,10 @@ export default {
         showBottomNav: {
             type: Boolean,
             default: false
+        },
+        selectedFarmingItem: {
+            type: Object,
+            default: null
         }
     },
     computed: {

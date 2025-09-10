@@ -40,6 +40,14 @@ export default {
             type: Array,
             default: () => []
         },
+        farmingItems: {
+            type: Array,
+            default: () => []
+        },
+        selectedFarmingItem: {
+            type: Object,
+            default: null
+        },
     },
     data() {
         return {
@@ -212,6 +220,7 @@ export default {
                 await this.addFieldPolygons(); // 添加精确地块边界
                 await this.addMarkerLayers();
                 await this.addLabelLayers();
+                await this.addFarmingMarkers(); // 添加农事标记
 
                 // 调整视图到百色市边界
                 this.fitMapToBaise();
@@ -739,6 +748,57 @@ export default {
                 });
                 console.log(`打开 ${ fieldName } 地块详情页面`);
             }
+        },
+
+        // 添加农事标记
+        async addFarmingMarkers() {
+            if (!this.farmingItems || this.farmingItems.length === 0) {
+                return;
+            }
+
+            this.loadingText = '添加农事标记...';
+
+            this.farmingItems.forEach((item, index) => {
+                try {
+                    // 为每个农事项目在地图上添加标记
+                    const markerIcon = L.divIcon({
+                        className: 'farming-marker',
+                        html: `<div class="farming-marker-content">
+                            <div class="farming-icon" style="background: ${item.isActive ? '#FFD700' : '#4CFDEB'};">
+                                <span>${item.name}</span>
+                            </div>
+                        </div>`,
+                        iconSize: [60, 30],
+                        iconAnchor: [30, 15]
+                    });
+
+                    // 计算位置（示例：在百色市周围分布）
+                    const basePosition = [23.9, 106.6];
+                    const angle = (index * 360) / this.farmingItems.length;
+                    const radius = 0.3;
+                    const position = [
+                        basePosition[0] + radius * Math.sin(angle * Math.PI / 180),
+                        basePosition[1] + radius * Math.cos(angle * Math.PI / 180)
+                    ];
+
+                    const farmingMarker = L.marker(position, {
+                        icon: markerIcon,
+                        zIndexOffset: item.isActive ? 2000 : 1500
+                    });
+
+                    // 添加点击事件
+                    farmingMarker.on('click', () => {
+                        console.log(`点击农事项目: ${item.name}`);
+                        this.$emit('farming-item-click', item);
+                    });
+
+                    farmingMarker.addTo(this.map);
+                    this.markerLayers.push(farmingMarker);
+
+                } catch (error) {
+                    console.error('添加农事标记失败:', item, error);
+                }
+            });
         }
     }
 };
@@ -1207,5 +1267,36 @@ export default {
     box-shadow: 0 4px 12px #ffd70066 !important;
 
     backdrop-filter: blur(8px) !important;
+}
+
+/* 农事标记样式 */
+.farming-marker {
+    border: none !important;
+    background: none !important;
+}
+
+.farming-marker-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.farming-icon {
+    padding: 4px 8px;
+    border: 1px solid #4CFDEB;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    
+    color: #000;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.farming-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(76, 253, 235, 0.5);
 }
 </style>
