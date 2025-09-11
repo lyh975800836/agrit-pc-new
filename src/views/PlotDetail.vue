@@ -192,26 +192,26 @@
                   <h4 class="farming-dynamics__warning-title">预警农事</h4>
                   <div class="farming-dynamics__warning-alert-icon">⚠</div>
                 </div>
-                
+
                 <div class="farming-dynamics__warning-basic-info">
                   <span class="farming-dynamics__warning-label">名称：</span>
-                  <span class="farming-dynamics__warning-name-value">{{ selectedFarmingDetails ? selectedFarmingDetails.title.replace(/\(.*?\)/, '').trim() : '加强版生物防治' }}</span>
+                  <span class="farming-dynamics__warning-name-value">加强版生物防治</span>
                 </div>
-                
+
                 <div class="farming-dynamics__warning-time-level">
                   <span class="farming-dynamics__warning-label">触发时间：</span>
-                  <span class="farming-dynamics__warning-time-value">{{ getSelectedFarmingMonth() }}</span>
+                  <span class="farming-dynamics__warning-time-value">8月</span>
                   <span class="farming-dynamics__warning-level-label">等级：</span>
-                  <span class="farming-dynamics__warning-level-value">{{ getSelectedFarmingLevel() }}</span>
+                  <span class="farming-dynamics__warning-level-value">高</span>
                 </div>
-                
+
                 <div class="farming-dynamics__warning-prescription">
                   <span class="farming-dynamics__warning-label">处方：</span>
-                  <span class="farming-dynamics__warning-prescription-text">{{ getSelectedFarmingPrescription() }}</span>
+                  <span class="farming-dynamics__warning-prescription-text">多种复合配方加强版生物防治。</span>
                 </div>
-                
+
                 <div class="farming-dynamics__warning-cycle-info">
-                  {{ getSelectedFarmingCycle() }}
+                  处理周期：30天
                 </div>
               </div>
 
@@ -235,8 +235,6 @@
               <img class="farming-dynamics__divider" src="/images/divider.png" />
 
               <div class="farming-dynamics__standards">{{ selectedFarmingDetails ? selectedFarmingDetails.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
-
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
 
               <div class="farming-dynamics__view-details">
                 <span class="farming-dynamics__details-text">查看详情</span>
@@ -263,8 +261,6 @@
               <img class="farming-dynamics__divider" src="/images/divider.png" />
 
               <div class="farming-dynamics__standards">{{ nextFarmingItem ? nextFarmingItem.details.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
-
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
 
               <div class="farming-dynamics__view-details">
                 <span class="farming-dynamics__details-text">查看详情</span>
@@ -589,10 +585,22 @@ export default {
             return selectedItem ? selectedItem.details : null;
         },
 
-        // 下一个预期的农事项目
+        // 下一个农事项目（基于当前选中项目的下一个）
         nextFarmingItem() {
-            // 获取状态为 'expected' 的第一个项目作为下一任务
-            return this.standardFarmingItems.find(item => item.details.status === 'expected');
+            if (!this.selectedFarmingItemId) {
+                return this.standardFarmingItems.find(item => item.details.status === 'expected');
+            }
+
+            // 找到当前选中项目的索引
+            const currentIndex = this.standardFarmingItems.findIndex(item => item.id === this.selectedFarmingItemId);
+
+            if (currentIndex === -1 || currentIndex === this.standardFarmingItems.length - 1) {
+                // 如果没找到或者是最后一个，返回第一个expected项目
+                return this.standardFarmingItems.find(item => item.details.status === 'expected');
+            }
+
+            // 返回下一个项目
+            return this.standardFarmingItems[currentIndex + 1];
         },
 
         // 三农服务项目 - 使用集中管理的图片常量
@@ -778,18 +786,22 @@ export default {
 
         // 获取选中农事的月份
         getSelectedFarmingMonth() {
-            if (!this.selectedFarmingDetails) return '8月';
-            const startDate = this.selectedFarmingDetails.startDate;
+            if (!this.selectedFarmingDetails) {
+                return '8月';
+            }
+            const { startDate } = this.selectedFarmingDetails;
             if (startDate.includes('月')) {
-                return startDate.split('月')[0] + '月';
+                return `${ startDate.split('月')[0] }月`;
             }
             return '8月';
         },
 
         // 获取选中农事的等级
         getSelectedFarmingLevel() {
-            if (!this.selectedFarmingDetails) return '高';
-            const status = this.selectedFarmingDetails.status;
+            if (!this.selectedFarmingDetails) {
+                return '高';
+            }
+            const { status } = this.selectedFarmingDetails;
             const levelMap = {
                 current: '高',
                 completed: '中',
@@ -801,34 +813,52 @@ export default {
 
         // 获取选中农事的处理周期
         getSelectedFarmingCycle() {
-            if (!this.selectedFarmingDetails) return '处理周期：30天';
-            const startDate = this.selectedFarmingDetails.startDate;
-            const endDate = this.selectedFarmingDetails.endDate;
+            if (!this.selectedFarmingDetails) {
+                return '处理周期：30天';
+            }
+            const { startDate } = this.selectedFarmingDetails;
+            const { endDate } = this.selectedFarmingDetails;
             if (startDate && endDate) {
                 const start = parseInt(startDate.replace(/[^\d]/g, ''));
                 const end = parseInt(endDate.replace(/[^\d]/g, ''));
                 const cycle = end - start + 1;
-                return `处理周期：${cycle}天`;
+                return `处理周期：${ cycle }天`;
             }
             return '处理周期：30天';
         },
 
         // 获取选中农事的处方信息
         getSelectedFarmingPrescription() {
-            if (!this.selectedFarmingDetails) return '多种复合配方加强版生物防治。';
-            const description = this.selectedFarmingDetails.description;
+            if (!this.selectedFarmingDetails) {
+                return '多种复合配方加强版生物防治。';
+            }
+            const { description } = this.selectedFarmingDetails;
             return description.replace('处方：', '');
         },
 
         // 获取下一任务状态文本
         getNextTaskStatusText() {
-            if (!this.nextFarmingItem) return '下阶段';
-            const status = this.nextFarmingItem.details.status;
+            if (!this.nextFarmingItem) {
+                return '下阶段';
+            }
+
+            // 如果选中项目是最后一个或者没有下一个，显示为下阶段
+            if (!this.selectedFarmingItemId) {
+                return '下阶段';
+            }
+
+            const currentIndex = this.standardFarmingItems.findIndex(item => item.id === this.selectedFarmingItemId);
+            if (currentIndex === -1 || currentIndex === this.standardFarmingItems.length - 1) {
+                return '下阶段';
+            }
+
+            // 根据下一个项目的状态返回相应文本
+            const { status } = this.nextFarmingItem.details;
             const statusMap = {
                 expected: '下阶段',
-                pending: '待执行',
-                current: '当前',
-                completed: '已完成'
+                pending: '下阶段',
+                current: '下阶段',
+                completed: '下阶段'
             };
             return statusMap[status] || '下阶段';
         },
@@ -1555,6 +1585,7 @@ export default {
     font-size: 15px;
     font-weight: 500;
     line-height: 15px;
+
     color: #4cfcea;
 }
 
@@ -1563,49 +1594,53 @@ export default {
     top: 15px;
     right: 10px;
     font-size: 18px;
+
     color: #faaf3b;
 }
 
 .farming-dynamics__warning-basic-info {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     margin-bottom: 6px;
-    flex-wrap: wrap;
 }
 
 .farming-dynamics__warning-time-level {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     margin-bottom: 6px;
+
     gap: 8px;
-    flex-wrap: wrap;
 }
 
 .farming-dynamics__warning-prescription {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     margin-bottom: 6px;
-    flex-wrap: wrap;
 }
 
 .farming-dynamics__warning-label {
+    margin-right: 4px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
+
     color: #4cfcea;
-    margin-right: 4px;
 }
 
 .farming-dynamics__warning-name-value {
+    flex: 1;
+    max-width: 120px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
-    color: #4cfcea;
     word-break: break-all;
-    max-width: 120px;
-    flex: 1;
+
+    color: #4cfcea;
 }
 
 .farming-dynamics__warning-time-value {
@@ -1613,27 +1648,30 @@ export default {
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
+
     color: #4cfcea;
 }
 
 .farming-dynamics__warning-prescription-text {
+    flex: 1;
+    max-width: 140px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
-    color: #4cfcea;
     word-break: break-all;
-    max-width: 140px;
-    flex: 1;
+
+    color: #4cfcea;
 }
 
 .farming-dynamics__warning-level-label {
+    margin-right: 4px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
+
     color: #4cfcea;
-    margin-right: 4px;
 }
 
 .farming-dynamics__warning-level-value {
@@ -1641,16 +1679,18 @@ export default {
     font-size: 10px;
     font-weight: 500;
     line-height: 14px;
+
     color: #faaf3b;
 }
 
 .farming-dynamics__warning-cycle-info {
+    margin-top: 8px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
+
     color: #4cfcea;
-    margin-top: 8px;
 }
 
 .farming-dynamics__warning-description {
@@ -1821,8 +1861,8 @@ export default {
     justify-content: space-between;
     box-sizing: border-box;
     width: 174px;
-    min-height: 20px;
     height: auto;
+    min-height: 20px;
     margin: 18px 0 0 12px;
     padding: 2px 17px 2px 24px;
 
@@ -1831,27 +1871,29 @@ export default {
 }
 
 .farming-dynamics__task-name {
+    overflow: hidden;
+    flex: 1;
+    max-width: 100px;
+    margin-right: 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
     line-height: 12px;
-    color: #093036;
-    flex: 1;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
-    margin-right: 8px;
+
+    color: #093036;
 }
 
 .farming-dynamics__current-label {
+    padding: 2px 6px;
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
     line-height: 10px;
-    padding: 2px 6px;
-    border-radius: 2px;
+
     color: #00ff7f;
+    border-radius: 2px;
 }
 
 .farming-dynamics__task-time {
@@ -1900,6 +1942,7 @@ export default {
     font-size: 10px;
     font-weight: 300;
     line-height: 14px;
+
     color: #4cfcea;
 }
 
@@ -1937,8 +1980,8 @@ export default {
     justify-content: space-between;
     box-sizing: border-box;
     width: 174px;
-    min-height: 20px;
     height: auto;
+    min-height: 20px;
     margin: 8px 0 0 12px;
     padding: 2px 17px 2px 25px;
 
@@ -1947,27 +1990,29 @@ export default {
 }
 
 .farming-dynamics__next-task-name {
+    overflow: hidden;
+    flex: 1;
+    max-width: 100px;
+    margin-right: 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
     line-height: 12px;
-    color: #093036;
-    flex: 1;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
-    margin-right: 8px;
+
+    color: #093036;
 }
 
 .farming-dynamics__next-label {
+    padding: 2px 6px;
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
     font-weight: 500;
     line-height: 10px;
-    padding: 2px 6px;
-    border-radius: 2px;
+
     color: #00ff7f;
+    border-radius: 2px;
 }
 
 .farming-dynamics__next-task-time {
@@ -1981,7 +2026,7 @@ export default {
     align-items: flex-start;
     width: 200px;
     height: 159px;
-    margin-top: 16px;
+    margin-top: 36px;
     padding: 0;
 
     background-repeat: no-repeat;
@@ -2011,6 +2056,7 @@ export default {
     box-sizing: border-box;
     width: 100%;
     padding: 0 20px 20px;
+
     gap: 10px;
 }
 

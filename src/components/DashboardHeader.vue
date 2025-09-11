@@ -287,8 +287,8 @@ export default {
 .center-decoration-main {
     position: absolute;
     bottom: 18px;
-    left: 195px;
-    width: 375px;
+    left: 170px;
+    width: 420px;
     height: 36px;
 }
 
