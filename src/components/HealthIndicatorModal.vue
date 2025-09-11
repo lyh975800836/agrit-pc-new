@@ -1,152 +1,180 @@
 <template>
-  <div class="health-indicator-panel flex-col">
-    <!-- 标题和详情按钮 -->
-    <div class="flex-row justify-between">
-      <span class="panel-title">健康指标</span>
-      <img class="detail-button" src="/images/popup-detail-btn.png" alt="查看详情" />
-    </div>
-
-    <!-- 健康指标背景图 -->
-    <img class="chart-background" src="/images/health-indicator-bg.jpg" alt="健康指标图表" />
-    <img class="chart-demo" src="/images/zhibiao-demo.png" alt="健康指标图表" />
-
-    <!-- 图表区域 -->
-    <!-- <div class="chart-area flex-row justify-between">
-      <div class="scale-labels flex-col">
-        <span class="scale-text">100</span>
-        <span class="scale-text">80</span>
-        <span class="scale-text">60</span>
-        <span class="scale-text">40</span>
-        <span class="scale-text">20</span>
-      </div>
-
-      <div class="chart-content-area flex-col justify-between">
-        <div class="thumbnail-box flex-col">
-          <div class="thumbnail-group flex-col">
-            <div class="thumbnail-row flex-row">
-              <img class="chart-thumbnail" src="/images/health-chart-thumb-1.jpg" alt="缩略图1" />
+  <div class="health-indicator-panel">
+    <!-- 关闭按钮 -->
+    <img class="close-button" src="/images/close-btn.png" @click="handleClose" alt="关闭" />
+      
+      <!-- 上半部分：健康指标图表 + 指标趋势表格 -->
+      <div class="top-section flex-row">
+        <!-- 左侧：健康指标图表区域 -->
+        <div class="chart-section">
+          <div class="section-title">健康指标</div>
+          
+          <!-- 图表区域 -->
+          <div class="chart-area">
+            <div class="chart-container">
+              <!-- Y轴标签 -->
+              <div class="y-axis">
+                <span class="axis-label">100</span>
+                <span class="axis-label">80</span>
+                <span class="axis-label">60</span>
+                <span class="axis-label">40</span>
+                <span class="axis-label">20</span>
+              </div>
+              
+              <!-- 图表内容 -->
+              <div class="chart-content">
+                <svg class="line-chart" viewBox="0 0 300 150">
+                  <!-- 网格线 -->
+                  <defs>
+                    <pattern id="grid" width="37.5" height="30" patternUnits="userSpaceOnUse">
+                      <path d="M 37.5 0 L 0 0 0 30" fill="none" stroke="#4cfcea33" stroke-width="1"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+                  
+                  <!-- 折线图 -->
+                  <polyline
+                    fill="none"
+                    stroke="#4cfcea"
+                    stroke-width="2"
+                    points="18,90 56,75 94,82 132,70 170,65 208,68 246,62 284,58"
+                  />
+                  
+                  <!-- 数据点 -->
+                  <circle cx="18" cy="90" r="3" fill="#4cfcea" />
+                  <circle cx="56" cy="75" r="3" fill="#4cfcea" />
+                  <circle cx="94" cy="82" r="3" fill="#4cfcea" />
+                  <circle cx="132" cy="70" r="3" fill="#4cfcea" />
+                  <circle cx="170" cy="65" r="3" fill="#4cfcea" />
+                  <circle cx="208" cy="68" r="3" fill="#4cfcea" />
+                  <circle cx="246" cy="62" r="3" fill="#4cfcea" />
+                  <circle cx="284" cy="58" r="3" fill="#4cfcea" />
+                </svg>
+                
+                <!-- X轴标签 -->
+                <div class="x-axis">
+                  <span class="axis-label">第08周</span>
+                  <span class="axis-label">第09周</span>
+                  <span class="axis-label">第10周</span>
+                  <span class="axis-label">第11周</span>
+                  <span class="axis-label">第12周</span>
+                  <span class="axis-label">第13周</span>
+                  <span class="axis-label">第14周</span>
+                  <span class="axis-label">第15周</span>
+                </div>
+              </div>
             </div>
-            <div class="thumbnail-row flex-row justify-between">
-              <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图2" />
-              <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图3" />
-            </div>
-            <div class="thumbnail-row flex-row">
-              <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图4" />
-              <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图5" />
-              <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图6" />
-            </div>
-            <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图7" />
-            <img class="chart-thumbnail" src="/images/health-chart-thumb-2.jpg" alt="缩略图8" />
           </div>
         </div>
 
-        <div class="week-labels-group flex-row">
-          <span class="week-text">第08周</span>
-          <span class="week-text">第09周</span>
-          <span class="week-text">第10周</span>
-          <span class="week-text">第11周</span>
-          <span class="week-text">第12周</span>
-          <span class="week-text">第13周</span>
-          <span class="week-text">第14周</span>
-          <span class="week-text">第15周</span>
+        <!-- 右侧：指标趋势表格 -->
+        <div class="table-section">
+          <div class="section-title">指标趋势表格示例</div>
+          
+          <!-- 表格容器 -->
+          <div class="trend-table-container">
+            <!-- 表头 -->
+            <div class="table-header-row">
+              <span class="table-cell">指标</span>
+              <span class="table-cell">T-2</span>
+              <span class="table-cell">T-1</span>
+              <span class="table-cell">T</span>
+              <span class="table-cell">趋势</span>
+            </div>
+
+            <!-- 健康指数行 -->
+            <div class="table-data-row">
+              <span class="data-cell">健康指数</span>
+              <span class="data-cell">86</span>
+              <span class="data-cell">83</span>
+              <span class="data-cell">80</span>
+              <div class="trend-indicator">
+                <span class="trend-status trend-down">下降</span>
+                <span class="trend-arrow">↓</span>
+              </div>
+            </div>
+
+            <!-- 通风率评分行 -->
+            <div class="table-data-row">
+              <span class="data-cell">通风率评分</span>
+              <span class="data-cell">良好</span>
+              <span class="data-cell">一般</span>
+              <span class="data-cell">一般</span>
+              <span class="data-cell">稳定</span>
+            </div>
+
+            <!-- 杂草覆盖率行 -->
+            <div class="table-data-row">
+              <span class="data-cell">杂草覆盖率</span>
+              <span class="data-cell">12%</span>
+              <span class="data-cell">18%</span>
+              <span class="data-cell">24%</span>
+              <div class="trend-indicator">
+                <span class="trend-status trend-up">上升</span>
+                <span class="trend-arrow">↑</span>
+              </div>
+            </div>
+
+            <!-- 病虫害评分行 -->
+            <div class="table-data-row">
+              <span class="data-cell">病虫害评分</span>
+              <span class="data-cell">优</span>
+              <span class="data-cell">良</span>
+              <span class="data-cell">良</span>
+              <span class="data-cell">微降</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div> -->
 
-    <!-- 指标趋势表格示例 -->
-    <span class="section-title">指标趋势表格示例</span>
-    <img class="trend-table-bg" src="/images/trend-table-bg.jpg" alt="趋势表格背景" />
+      <!-- 下半部分：巡飞图像对比 + 智能诊断 -->
+      <div class="bottom-section flex-row">
+        <!-- 左侧：巡飞图像对比 -->
+        <div class="image-section">
+          <div class="section-title">巡飞图像对比</div>
+          
+          <!-- 可拖动图像对比容器 -->
+          <div class="image-comparison-container" ref="comparisonContainer">
+            <!-- 旧图像 (底层) -->
+            <img class="comparison-image-old" src="/images/old.jpg" alt="旧图像" />
+            
+            <!-- 新图像 (顶层，带遮罩) -->
+            <div class="comparison-image-new-wrapper" :style="{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }">
+              <img class="comparison-image-new" src="/images/new.jpg" alt="新图像" />
+            </div>
+            
+            <!-- 拖动分割线 -->
+            <div 
+              class="comparison-slider" 
+              :style="{ left: `${sliderPosition}%` }"
+              @mousedown="startDrag"
+            >
+              <div class="slider-handle"></div>
+            </div>
+          </div>
 
-    <!-- 表格内容 -->
-    <div class="trend-table-container flex-col" :style="{ backgroundImage: `url(${images.tableBg})` }">
-      <!-- 表头 -->
-      <div class="table-header-row flex-row">
-        <span class="table-cell">指标</span>
-        <span class="table-cell">T-2</span>
-        <span class="table-cell">T-1</span>
-        <span class="table-cell">T</span>
-        <span class="table-cell">趋势</span>
-      </div>
+          <div class="date-labels">
+            <span class="date-text">2025年01月15日</span>
+            <span class="date-text">2025年06月15日</span>
+          </div>
+        </div>
 
-      <!-- 健康指数行 -->
-      <div class="table-data-row flex-row">
-        <span class="data-cell">健康指数</span>
-        <span class="data-cell">86</span>
-        <span class="data-cell">83</span>
-        <span class="data-cell">80</span>
-        <div class="trend-indicator flex-row justify-between">
-          <span class="trend-status">下降</span>
-          <img class="trend-icon" src="/images/trend-down-arrow.png" alt="下降" />
+        <!-- 右侧：智能诊断与建议 -->
+        <div class="diagnosis-section">
+          <div class="section-title">智能诊断与建议：</div>
+          
+          <div class="diagnosis-content">
+            <div class="diagnosis-text">
+              当前阶段基本正常，但评分略有下滑，建议关注以下问题：
+            </div>
+            <div class="diagnosis-list">
+              <div class="diagnosis-item">1. 杂草覆盖率升高，建议执行标准农事 G10(夏初除草)；</div>
+              <div class="diagnosis-item">2. 病斑数量上升，应密切监测是否扩散至林间中部区域；</div>
+              <div class="diagnosis-item">3. 当前周期剩余 28 天，请确保喷肥操作在8月12日前完成；</div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- 通风率评分行 -->
-      <div class="table-data-row flex-row">
-        <span class="data-cell">通风率评分</span>
-        <span class="data-cell">良好</span>
-        <span class="data-cell">一般</span>
-        <span class="data-cell">一般</span>
-        <span class="data-cell">稳定</span>
-      </div>
-
-      <!-- 杂草覆盖率行 -->
-      <div class="table-data-row flex-row">
-        <span class="data-cell">杂草覆盖率</span>
-        <span class="data-cell">12%</span>
-        <span class="data-cell">18%</span>
-        <span class="data-cell">24%</span>
-        <div class="trend-indicator flex-row justify-between">
-          <span class="trend-status">上升</span>
-          <img class="trend-icon" src="/images/trend-up-arrow.png" alt="上升" />
-        </div>
-      </div>
-
-      <!-- 病虫害评分行 -->
-      <div class="table-data-row flex-row">
-        <span class="data-cell">病虫害评分</span>
-        <span class="data-cell">优</span>
-        <span class="data-cell">良</span>
-        <span class="data-cell">良</span>
-        <span class="data-cell">微降</span>
-      </div>
-    </div>
-
-    <!-- 巡飞图像对比 -->
-    <span class="section-title">巡飞图像对比</span>
-    
-    <!-- 可拖动图像对比容器 -->
-    <div class="image-comparison-container" ref="comparisonContainer">
-      <!-- 旧图像 (底层) -->
-      <img class="comparison-image-old" src="/images/old.jpg" alt="旧图像" />
-      
-      <!-- 新图像 (顶层，带遮罩) -->
-      <div class="comparison-image-new-wrapper" :style="{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }">
-        <img class="comparison-image-new" src="/images/new.jpg" alt="新图像" />
-      </div>
-      
-      <!-- 拖动分割线 -->
-      <div 
-        class="comparison-slider" 
-        :style="{ left: `${sliderPosition}%` }"
-        @mousedown="startDrag"
-      >
-        <div class="slider-handle"></div>
-      </div>
-    </div>
-
-    <div class="date-labels flex-row justify-between">
-      <span class="date-text">2025年01月15日</span>
-      <span class="date-text">2025年06月15日</span>
-    </div>
-
-    <!-- 智能诊断与建议 -->
-    <div class="diagnosis-wrapper flex-col" :style="{ backgroundImage: `url(${images.adviceBg})` }">
-      <span class="diagnosis-title">智能诊断与建议：</span>
-      <span class="diagnosis-text">当前阶段基本正常,但评分略有下滑,建议关注以下问题：<br />1、杂草覆盖率升高,建议执行标准农事 G10(夏初除草)<br />2、病斑数量上升,应密切监测是否扩散至林间中部区域<br />3、当前周期剩余 28 天，请确保喷肥操作在8月12日前完成</span>
-    </div>
-
-    <!-- 关闭按钮 -->
-    <img class="close-button" src="/images/close-btn.png" @click="handleClose" alt="关闭" />
   </div>
 </template>
 
@@ -177,10 +205,6 @@ export default {
         handleClose() {
             this.$emit('update:visible', false);
             this.$emit('close');
-        },
-
-        handleOverlayClick() {
-            this.handleClose();
         },
 
         // 开始拖动
@@ -242,187 +266,159 @@ export default {
 /* 主面板样式 */
 .health-indicator-panel {
     position: relative;
-    overflow-y: auto;
     box-sizing: border-box;
-    width: 279px;
-    height: 733px;
-    padding: 16px;
+    width: 760px;
+    height: 520px;
+    padding: 20px;
     border: 2px solid #4cfcea4d;
-
     border-radius: 8px;
     background: linear-gradient(135deg, #102838f2 0%, #081c24f2 100%);
-    box-shadow: 0 10px 30px #00000080;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-/* 标题区域 */
-.header-section {
-    margin-bottom: 12px;
+/* 关闭按钮 */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    z-index: 10;
+    
+    &:hover {
+        opacity: 0.8;
+    }
 }
 
-.panel-title {
-    font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
-    font-weight: 500;
-    text-align: left;
-
-    color: #4cfcea;
-}
-
-.detail-button {
-    width: 24px;
-    height: 24px;
-}
-
-/* 图表背景 */
-.chart-background {
-    display: block;
-    width: 51px;
-    height: auto;
-    margin-bottom: 12px;
-}
-
-.chart-demo {
-
-}
-
-/* 图表区域 */
-.chart-area {
-    margin-bottom: 18px;
-}
-
-.scale-labels {
-    align-items: center;
-    justify-content: space-between;
-    width: 29px;
-    margin-right: 10px;
-}
-
-.scale-text {
-    font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
-    line-height: 10px;
-    text-align: center;
-
-    color: #5dd7ce;
-}
-
-.chart-content-area {
+/* 上半部分布局 */
+.top-section {
     flex: 1;
+    gap: 20px;
 }
 
-.thumbnail-box {
-    margin-bottom: 12px;
+/* 下半部分布局 */
+.bottom-section {
+    flex: 1;
+    gap: 20px;
 }
 
-.thumbnail-group {
-    gap: 8px;
+/* 左侧图表区域 */
+.chart-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.thumbnail-row {
-    justify-content: flex-start;
-    gap: 8px;
+/* 右侧表格区域 */
+.table-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.chart-thumbnail {
-    display: block;
-    width: 53px;
-    height: 44px;
-
-    border-radius: 2px;
-
-    object-fit: fill;
+/* 底部左侧图像区域 */
+.image-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.chart-thumbnail:nth-of-type(3) {
-    height: 40px;
-    margin-top: 3px;
+/* 底部右侧诊断区域 */
+.diagnosis-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.week-labels-group {
-    justify-content: space-between;
-    padding: 0 10px;
-}
-
-.week-text {
-    font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
-    font-weight: 500;
-    line-height: 10px;
-    text-align: center;
-
-    color: #5dd7ce;
-}
-
-/* 部分标题 */
+/* 通用标题样式 */
 .section-title {
-    margin: 17px 0 5px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    line-height: 15px;
-    text-align: left;
-
     color: #4cfcea;
+    margin-bottom: 15px;
 }
 
-/* 趋势表格背景 */
-.trend-table-bg {
-    width: 103px;
-    height: auto;
+/* 图表容器 */
+.chart-container {
+    display: flex;
+    gap: 10px;
+    height: 180px;
+}
+
+/* Y轴标签 */
+.y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 150px;
+    padding-top: 10px;
+}
+
+/* 图表内容区域 */
+.chart-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 折线图 */
+.line-chart {
+    width: 100%;
+    height: 150px;
     margin-bottom: 10px;
+}
+
+/* X轴标签 */
+.x-axis {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+/* 轴标签 */
+.axis-label {
+    font-family: SourceHanSansCN-Light;
+    font-size: 11px;
+    font-weight: 300;
+    color: #5dd7ce;
 }
 
 /* 表格容器 */
 .trend-table-container {
-    height: 111px;
-    margin-bottom: 7px;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #4cfcea33;
+    border-radius: 4px;
+    background: rgba(76, 252, 234, 0.05);
 }
 
 .table-header-row,
 .table-data-row {
+    display: flex;
     align-items: center;
-    padding: 5px 0;
+    padding: 8px 5px;
+    border-bottom: 1px solid #4cfcea22;
+}
+
+.table-header-row {
+    background: rgba(76, 252, 234, 0.1);
+    font-weight: 500;
 }
 
 .table-cell,
 .data-cell {
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 300;
-    line-height: 10px;
     text-align: center;
-
     color: #5dd7ce;
-}
-
-.table-cell:nth-child(1),
-.data-cell:nth-child(1) {
-    width: 60px;
-}
-
-.table-cell:nth-child(2),
-.data-cell:nth-child(2) {
-    width: 30px;
-}
-
-.table-cell:nth-child(3),
-.data-cell:nth-child(3) {
-    width: 30px;
-}
-
-.table-cell:nth-child(4),
-.data-cell:nth-child(4) {
-    width: 30px;
-}
-
-.table-cell:nth-child(5),
-.data-cell:nth-child(5) {
-    width: 50px;
+    flex: 1;
 }
 
 .data-cell {
@@ -432,32 +428,43 @@ export default {
 }
 
 .trend-indicator {
+    display: flex;
     align-items: center;
-    width: 50px;
-    padding: 0 5px;
+    justify-content: center;
+    gap: 5px;
+    flex: 1;
 }
 
 .trend-status {
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 300;
     color: #4cfcea;
 }
 
-.trend-icon {
-    width: 5px;
-    height: 9px;
+.trend-down {
+    color: #ff6b6b;
+}
+
+.trend-up {
+    color: #ffa500;
+}
+
+.trend-arrow {
+    font-size: 14px;
+    font-weight: bold;
 }
 
 /* 图像对比容器 */
 .image-comparison-container {
     position: relative;
-    width: 247px;
-    height: 120px;
-    margin: 4px 0 8px;
+    width: 100%;
+    height: 140px;
+    margin-bottom: 10px;
     overflow: hidden;
     border-radius: 4px;
     cursor: ew-resize;
+    border: 1px solid #4cfcea33;
 }
 
 /* 旧图像 (底层) */
@@ -506,8 +513,8 @@ export default {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     background: #4cfcea;
     border: 2px solid #ffffff;
     border-radius: 50%;
@@ -516,66 +523,47 @@ export default {
 }
 
 .date-labels {
-    margin-top: 5px;
-    margin-bottom: 12px;
-    padding: 0 2%;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
 }
 
 .date-text {
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 300;
     color: #4cfcea;
 }
 
-/* 诊断建议 */
-.diagnosis-wrapper {
-    position: relative;
-    width: 247px;
-    height: 128px;
-    margin-bottom: 15px;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 100% 100%;
-}
-
-.diagnosis-title {
-    margin: 17px 0 0 15px;
-    font-family: SourceHanSansCN-Medium;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 12px;
-    text-align: left;
-    white-space: nowrap;
-
-    color: #38fe83;
+/* 诊断建议区域 */
+.diagnosis-content {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #38fe8333;
+    border-radius: 4px;
+    background: rgba(56, 254, 131, 0.05);
 }
 
 .diagnosis-text {
-    width: 227px;
-    margin: 18px 0 22px 15px;
     font-family: SourceHanSansCN-Normal;
-    font-size: 9px;
-    line-height: 15px;
-    text-align: left;
-
+    font-size: 12px;
+    line-height: 18px;
     color: #bcf7ce;
+    margin-bottom: 10px;
 }
 
-/* 关闭按钮 */
-.close-button {
-    position: absolute;
-    z-index: 10;
-    top: 8px;
-    right: 8px;
-    width: 16px;
-    height: 16px;
+.diagnosis-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-    cursor: pointer;
-
-    &:hover {
-        opacity: .8;
-    }
+.diagnosis-item {
+    font-family: SourceHanSansCN-Light;
+    font-size: 11px;
+    line-height: 16px;
+    color: #bcf7ce;
+    padding-left: 10px;
+    position: relative;
 }
 </style>
