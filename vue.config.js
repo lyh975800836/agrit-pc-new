@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
     // 基础配置
-    publicPath: process.env.NODE_ENV === 'production' ? './' : '/',
+    publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
 
     // 构建输出配置
     outputDir: 'dist',
@@ -16,6 +16,14 @@ module.exports = {
             overlay: {
                 warnings: false,
                 errors: true
+            }
+        },
+        proxy: {
+            '/api/v1/wmts': {
+                target: 'http://43.136.169.150:8000',
+                changeOrigin: true,
+                secure: false,
+                logLevel: 'debug'
             }
         }
     },

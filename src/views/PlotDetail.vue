@@ -13,14 +13,11 @@
       @back="handleBackClick"
     >
     <template #center-map>
-      <!-- 地块详情真实卫星地图 -->
-      <RegionDetailMap
-        ref="regionDetailMap"
+      <!-- WMTS瓦片地图 -->
+      <WMTSTileMap
+        ref="wmtsTileMap"
         :region-name="regionName"
-        :show-plot-details="true"
-        :show-plot-markers="true"
         :plot-data="plotData"
-        :is-plot-detail-page="true"
       />
     </template>
 
@@ -83,7 +80,7 @@
           <div class="price-display">
             <span class="price-label">今日价格：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">{{ plotData.price || '6.08' }}</span>
+            <span class="price-value">{{ plotData.price || '4.10' }}</span>
             <span class="price-unit">&nbsp;&nbsp;元/斤</span>
           </div>
           <img class="price-decoration-bottom" src="/images/decoration-3.jpg" />
@@ -308,14 +305,14 @@
 
 <script>
 import DashboardLayout from '@/components/DashboardLayout.vue';
-import RegionDetailMap from '@/components/RegionDetailMap.vue';
+import WMTSTileMap from '@/components/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
 
 export default {
     name: 'PlotDetail',
     components: {
         DashboardLayout,
-        RegionDetailMap,
+        WMTSTileMap,
         HealthIndicatorModal
     },
     props: {
@@ -650,7 +647,7 @@ export default {
                 unitYield: output ? Math.floor(parseFloat(output) * 2000 / parseFloat(area)) : '1200',
                 farmerName: '隆启雷',
                 farmerAge: '54',
-                price: '6.08'
+                price: '4.10'
             };
 
             // 尝试加载地块坐标数据
@@ -723,7 +720,7 @@ export default {
                 unitYield: plot.output ? Math.floor(plot.output * 2000 / plot.area) : '1200',
                 farmerName: '隆启雷',
                 farmerAge: '54',
-                price: '6.08'
+                price: '4.10'
             };
         },
 
@@ -767,7 +764,7 @@ export default {
 
             // 可以调用RegionDetailMap组件的方法来改变地图内容
             // 例如：显示不同的覆盖层、标记或高亮区域
-            const mapComponent = this.$refs.regionDetailMap;
+            const mapComponent = this.$refs.wmtsTileMap;
             if (mapComponent && typeof mapComponent.updateForFarmingActivity === 'function') {
                 mapComponent.updateForFarmingActivity(farmingItem);
             }

@@ -44,7 +44,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: 'history',
+  mode: 'hash', // 临时改为hash模式解决部署问题
   base: process.env.BASE_URL,
   routes
 })
