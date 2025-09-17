@@ -196,7 +196,6 @@ export default {
                 { position: 'topright', collapsed: false }
             ).addTo(this.map);
 
-            console.log('已加载CartoDB清爽底图，支持图层切换（包含高德卫星地图）');
         },
 
         // 加载地图数据
@@ -252,17 +251,8 @@ export default {
                     const layer = L.geoJSON(region, {
                         style: this.getRegionStyle(hasProjects, isSelected, region),
                         onEachFeature: (feature, layer) => {
-                            // 修正西林县和隆林县的tooltip显示名称
-                            let tooltipName = feature.properties.name;
-                            if (feature.properties.name === '西林县') {
-                                tooltipName = '隆林各族自治县';
-                            }
-                            else if (feature.properties.name === '隆林各族自治县') {
-                                tooltipName = '西林县';
-                            }
-
                             // 添加区域名称提示
-                            layer.bindTooltip(tooltipName, {
+                            layer.bindTooltip(feature.properties.name, {
                                 permanent: false,
                                 direction: 'center',
                                 className: 'region-tooltip'
@@ -271,8 +261,7 @@ export default {
                             // 添加鼠标事件
                             layer.on({
                                 click: e => {
-                                    console.log(`点击区域: ${ feature.properties.name }`);
-                                    this.handleRegionClick(feature, e);
+                                                    this.handleRegionClick(feature, e);
                                 },
                                 mouseover: e => {
                                     // 高亮效果
@@ -395,8 +384,7 @@ export default {
 
                     // 添加点击事件
                     leafletMarker.on('click', () => {
-                        console.log(`点击项目标记: ${ marker.title }`);
-                        this.$emit('marker-click', marker);
+                            this.$emit('marker-click', marker);
                     });
 
                     // 添加详细信息弹窗
@@ -465,19 +453,10 @@ export default {
                     const hasProjects = this.hasProjects(region);
 
 
-                    // 修正西林县和隆林县的标签显示：交换它们的名称以匹配正确的地理位置
-                    let displayName = region.properties.name;
-                    if (region.properties.name === '西林县') {
-                        displayName = '隆林各族自治县';
-                    }
-                    else if (region.properties.name === '隆林各族自治县') {
-                        displayName = '西林县';
-                    }
-
                     const labelIcon = L.divIcon({
                         className: 'baise-auto-label',
                         html: `<div class="auto-label-content ${ hasProjects ? 'has-projects' : 'no-projects' }">
-              ${ displayName }
+              ${ region.properties.name }
             </div>`,
                         iconSize: [100, 20],
                         iconAnchor: [50, 10]
@@ -511,7 +490,6 @@ export default {
                         maxZoom: 10 // 限制最大缩放级别，保持合适的显示比例
                     });
 
-                    console.log('地图视图已调整到百色市边界');
                 }
                 else {
                     // fallback到百色市中心
@@ -580,7 +558,6 @@ export default {
 
         // 处理区域点击
         handleRegionClick(region, event) {
-            console.log('Leaflet地图区域点击:', region.properties.name);
             this.$emit('region-click', region, event.originalEvent);
         },
 
@@ -640,7 +617,6 @@ export default {
             try {
                 const response = await fetch('/demo/coordinates.json');
                 this.coordinateData = await response.json();
-                console.log('坐标数据加载成功:', Object.keys(this.coordinateData));
 
                 // 加载坐标数据后初始化地图
                 this.initMap();
@@ -682,8 +658,7 @@ export default {
 
                         // 添加点击事件
                         polygon.on('click', () => {
-                            console.log(`点击地块: ${ fieldData.name }`);
-                            this.$emit('field-click', fieldData);
+                                this.$emit('field-click', fieldData);
                             this.showFieldDetailPopup(fieldData);
                         });
 
@@ -693,7 +668,6 @@ export default {
                             data: fieldData
                         });
 
-                        console.log(`已添加${ fieldData.name }地块精确边界`);
                     }
                     catch (error) {
                         console.error(`添加${ fieldData.name }地块边界失败:`, error);
@@ -731,7 +705,6 @@ export default {
                 if (fieldData.leaflet_polygon && fieldData.leaflet_polygon.length > 0) {
                     const bounds = L.polygon(fieldData.leaflet_polygon).getBounds();
                     this.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 18 });
-                    console.log(`缩放到 ${ fieldName } 地块`);
                 }
             }
         },
@@ -746,7 +719,6 @@ export default {
                     fieldData,
                     location: 'field-detail'
                 });
-                console.log(`打开 ${ fieldName } 地块详情页面`);
             }
         },
 
@@ -788,7 +760,6 @@ export default {
 
                     // 添加点击事件
                     farmingMarker.on('click', () => {
-                        console.log(`点击农事项目: ${item.name}`);
                         this.$emit('farming-item-click', item);
                     });
 

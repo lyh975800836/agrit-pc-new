@@ -617,9 +617,6 @@ export default {
         }
     },
     mounted() {
-        console.log('=== PlotDetail 组件已挂载 ===');
-        console.log('路由参数:', this.$route.params);
-        console.log('路由查询:', this.$route.query);
         this.loadPlotData();
     },
     methods: {
@@ -630,7 +627,6 @@ export default {
             // 解码plotId参数（处理中文字符）
             const encodedPlotId = this.$route.params.plotId;
             const decodedPlotId = encodedPlotId ? decodeURIComponent(encodedPlotId) : null;
-            console.log('解码后的plotId:', decodedPlotId);
 
             // 从query参数获取地块数据
             const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
@@ -653,13 +649,11 @@ export default {
             // 尝试加载地块坐标数据
             await this.loadPlotCoordinates(decodedPlotId);
 
-            console.log('加载地块数据:', this.plotData);
         },
 
         // 加载地块坐标数据
         async loadPlotCoordinates(plotId) {
             try {
-                console.log('尝试加载地块坐标:', plotId);
                 const response = await fetch('/demo/coordinates.json');
                 const coordinateData = await response.json();
 
@@ -667,16 +661,13 @@ export default {
                 const plotCoordData = coordinateData[plotId];
 
                 if (plotCoordData && plotCoordData.coordinates) {
-                    console.log('找到地块坐标数据:', plotCoordData.coordinates.length, '个点');
 
                     // 添加坐标数据到plotData
                     this.plotData.coordinates = plotCoordData.coordinates;
                     this.plotData.center = plotCoordData.center || this.calculateCenter(plotCoordData.coordinates);
 
-                    console.log('地块坐标数据已加载');
                 }
                 else {
-                    console.log('未找到地块坐标数据，使用默认位置');
                     // 使用默认中心位置
                     this.plotData.center = [23.9, 106.6];
                 }
@@ -711,7 +702,6 @@ export default {
 
         handlePlotSelected(plot) {
             // 选中地块时更新详情信息
-            console.log('选中地块:', plot);
             this.plotData = {
                 name: plot.name,
                 district: this.regionName,
@@ -726,32 +716,28 @@ export default {
 
         handleTownshipClick(township) {
             // 点击下钻到乡镇轮廓地图
-            console.log('点击乡镇:', township);
             // 这里可以加载乡镇级别的轮廓地图
             // 暂时显示提示信息
             this.$message && this.$message.info(`正在加载${ township.name }乡镇轮廓地图...`);
         },
 
         // 处理农事项目点击
-        handleFarmingItemClick(item, index) {
-            console.log('点击农事项目:', item.text, '索引:', index);
-            console.log('农事项目详情:', item.details);
+        handleFarmingItemClick(item) {
 
             // 设置选中的农事项目ID
             this.selectedFarmingItemId = item.id;
 
             // 更新右侧预警农事区域显示选中项目的详细信息
-            this.updateWarningSection(item);
+            this.updateWarningSection();
 
             // 如果需要改变地图显示，可以调用地图组件的方法
             this.updateMapForFarmingItem(item);
         },
 
         // 更新预警农事区域显示
-        updateWarningSection(farmingItem) {
+        updateWarningSection() {
             // 通过更新selectedFarmingItemId来触发计算属性重新计算
             // selectedFarmingDetails计算属性会根据selectedFarmingItemId自动更新
-            console.log('更新预警农事区域，显示:', farmingItem.details.title);
 
             // 强制Vue重新渲染组件
             this.$forceUpdate();
@@ -760,7 +746,6 @@ export default {
         // 更新地图显示以反映选中的农事项目
         updateMapForFarmingItem(farmingItem) {
             // 根据不同的农事项目改变地图显示
-            console.log('更新地图显示农事项目:', farmingItem.id);
 
             // 可以调用RegionDetailMap组件的方法来改变地图内容
             // 例如：显示不同的覆盖层、标记或高亮区域

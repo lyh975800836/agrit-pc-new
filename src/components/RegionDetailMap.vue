@@ -87,9 +87,25 @@ export default {
                 靖西市: [23.1, 106.4],
                 田阳区: [23.7, 106.9],
                 田东县: [23.6, 107.1],
+                西林县: [24.49, 105.09], // 西林县坐标
+                隆林各族自治县: [24.77, 105.34], // 隆林各族自治县坐标
                 巴塘: [24.236, 106.205], // 添加巴塘坐标
                 大楞乡: [24.236, 106.205], // 大楞乡坐标
                 新村合作地块: [24.236, 106.205] // 地块坐标
+            },
+            
+            // 区域名称到adcode的映射
+            regionToAdcode: {
+                右江区: '451002',
+                田阳区: '451003', 
+                田东县: '451022',
+                德保县: '451024',
+                那坡县: '451026',
+                凌云县: '451027',
+                乐业县: '451028',
+                田林县: '451029',
+                西林县: '451030',
+                隆林各族自治县: '451031'
             }
         };
     },
@@ -150,9 +166,6 @@ export default {
                 if (!isLeiGeThirdLevel) {
                     // 加载区域数据（雷哥三级视图时跳过，避免覆盖PNG图片）
                     await this.loadRegionData();
-                }
-                else {
-                    console.log('雷哥三级视图：跳过区域数据加载，保持PNG图片显示');
                 }
 
 
@@ -218,19 +231,14 @@ export default {
                     this.map.zoomControl.setPosition('bottomright');
 
                     // 检查是否为雷哥地块的三级视图，如果是则使用本地PNG图片
-                    console.log('调试信息 - isPlotDetailPage:', this.isPlotDetailPage);
-                    console.log('调试信息 - plotData:', this.plotData);
-                    console.log('调试信息 - plotData.name:', this.plotData ? this.plotData.name : 'null');
 
                     const isLeiGeThirdLevel = this.isPlotDetailPage
                                             && this.plotData
                                             && this.plotData.name === '雷哥';
 
-                    console.log('调试信息 - isLeiGeThirdLevel:', isLeiGeThirdLevel);
 
                     if (isLeiGeThirdLevel) {
                         // 雷哥地块：使用本地PNG图片，不加载卫星底图
-                        console.log('雷哥三级地图：使用本地PNG图片替代卫星底图');
 
                         // 设置地图背景色
                         const mapContainer = document.getElementById('leaflet-map');
@@ -278,7 +286,6 @@ export default {
                     [24.0, 107.5] // 东北角 [纬度, 经度]
                 ];
 
-                console.log('雷哥地块PNG图片显示边界:', bounds);
 
                 // 创建图片覆盖层
                 const imageUrl = '/demo/坐标/雷哥/巴平雷哥.png';
@@ -302,7 +309,6 @@ export default {
                             maxZoom: 16
                         });
 
-                        console.log('雷哥地块PNG图片已添加到地图');
                         resolve();
                     };
 
@@ -402,7 +408,6 @@ export default {
             try {
                 const response = await fetch('/demo/coordinates.json');
                 this.coordinateData = await response.json();
-                console.log('坐标数据加载成功:', Object.keys(this.coordinateData));
                 return this.coordinateData;
             }
             catch (error) {
@@ -415,11 +420,9 @@ export default {
             try {
                 // 防重复加载同一个区域
                 if (this.currentLoadedRegion === this.regionName) {
-                    console.log('区域已加载，跳过:', this.regionName);
                     return;
                 }
 
-                console.log('开始加载新区域:', this.regionName);
                 this.loadingText = '正在加载区域轮廓...';
 
                 // 清除现有图层
@@ -436,10 +439,8 @@ export default {
                 const regionFeature = baiseData.features.find(feature =>
                     feature.properties.name === this.regionName);
 
-                console.log(`加载区域轮廓: ${ this.regionName }`);
 
                 if (regionFeature) {
-                    console.log('找到区域轮廓数据:', regionFeature.properties.name);
                     this.addRegionBoundary(regionFeature);
                 }
                 else {
@@ -448,7 +449,6 @@ export default {
 
                 // 添加地块标记（仅在二级地图页面显示）
                 if (!this.showPlotDetails) {
-                    console.log('开始添加地块标记...');
                     await this.addPlotMarkers();
                 }
 
@@ -490,7 +490,6 @@ export default {
                     });
                 }
 
-                console.log('区域轮廓已添加到地图');
 
                 // 只有当showPlotMarkers为true时才添加地块标注
                 if (this.showPlotMarkers) {
@@ -560,7 +559,6 @@ export default {
                 maskPolygon.addTo(this.map);
                 this.plotLayers.push(maskPolygon);
 
-                console.log('区域外遮罩层已添加');
 
             }
             catch (error) {
@@ -570,28 +568,18 @@ export default {
 
         // 添加地块标注
         async addPlotMarkers() {
-            console.log('=== 开始添加地块标注 ===');
 
             // 生成基于真实demo坐标的地块数据
             const plots = await this.generatePlotData();
-            console.log('准备添加的地块数量:', plots.length);
 
             if (plots.length === 0) {
                 console.warn('没有地块数据可添加！');
                 return;
             }
 
-            plots.forEach((plot, index) => {
-                console.log(`添加第${ index + 1 }个地块标记:`, {
-                    name: plot.name,
-                    lat: plot.lat,
-                    lng: plot.lng,
-                    coordinates: plot.coordinates ? `${ plot.coordinates.length }个坐标点` : '无坐标'
-                });
-
+            plots.forEach((plot) => {
                 // 创建自定义HTML标记
                 const markerHtml = this.createPlotMarkerHtml(plot);
-                console.log('生成的标记HTML:', markerHtml);
 
                 // 创建Leaflet自定义标记
                 const customIcon = L.divIcon({
@@ -603,25 +591,16 @@ export default {
 
                 // 添加标记到地图
                 const marker = L.marker([plot.lat, plot.lng], { icon: customIcon });
-                console.log(`标记已创建，位置: [${ plot.lat }, ${ plot.lng }]`);
 
                 // 添加点击事件，跳转到三级地块详情页
                 marker.on('click', () => {
-                    console.log('=== 地块标记被点击 ===');
-                    console.log('地块信息:', plot);
-                    console.log('showPlotDetails:', this.showPlotDetails);
                     this.navigateToPlotDetail(plot);
                 });
 
                 marker.addTo(this.map);
                 this.plotLayers.push(marker);
-                console.log(`第${ index + 1 }个地块标记已添加到地图`);
             });
 
-            console.log('=== 所有地块标注添加完成 ===');
-            console.log('当前地图中心:', this.map.getCenter());
-            console.log('当前地图缩放:', this.map.getZoom());
-            console.log('当前地图边界:', this.map.getBounds());
 
             // 调整地图视野以显示所有地块标记
             console.log('正在调整地图视野以显示地块标记...');
@@ -631,16 +610,13 @@ export default {
 
         // 基于真实坐标数据添加地块标记
         async addRealPlotMarkers() {
-            console.log('=== 添加真实坐标地块标记 ===');
 
             try {
                 const response = await fetch('/demo/coordinates.json');
                 const coordinateData = await response.json();
-                console.log('加载的坐标数据:', coordinateData);
 
                 // 如果是三级地图，只显示当前地块的标记
                 if (this.isPlotDetailPage && this.plotData && this.plotData.name) {
-                    console.log('三级地图：只显示当前地块标记:', this.plotData.name);
                     const currentPlotData = coordinateData[this.plotData.name];
                     if (currentPlotData && currentPlotData.center) {
                         this.addSinglePlotMarker(this.plotData.name, currentPlotData);
@@ -693,7 +669,6 @@ export default {
 
                         // 添加点击事件：三级页面显示预览弹窗，二级页面跳转到三级页面
                         plotMarker.on('click', () => {
-                            console.log(`点击了${ fieldData.name }地块`);
                             if (this.isPlotDetailPage) {
                                 // 三级地图页面：显示预览弹窗
                                 this.showPlotDetailPopup(fieldData.center, plotData);
@@ -707,11 +682,9 @@ export default {
                         // 将标记添加到图层数组，用于地图视野调整
                         this.plotLayers.push(plotMarker);
 
-                        console.log(`地块标记 ${ fieldData.name } 已添加到地图`);
                     }
                 });
 
-                console.log('所有真实坐标地块标记添加完成');
 
                 // 调整地图视野以显示所有地块标记
                 console.log('正在调整地图视野以显示地块标记...');
@@ -726,7 +699,6 @@ export default {
 
         // 添加备用标记
         addFallbackMarkers() {
-            console.log('添加备用地块标记');
             const plotLocations = [
                 { name: '示例地块1', lat: 23.75, lng: 106.28, color: '#4CFDEB' },
                 { name: '示例地块2', lat: 23.76, lng: 106.29, color: '#FFD700' },
@@ -750,19 +722,16 @@ export default {
                     </div>
                 `);
 
-                console.log(`备用地块标记 ${ plot.name } 已添加到地图`);
             });
         },
 
         // 添加单个地块标记（用于三级地图）
         addSinglePlotMarker(plotName, fieldData) {
-            console.log(`处理单个地块标记: ${ plotName }`, fieldData);
 
             if (fieldData.center) {
                 // 转换center坐标：WGS84 -> GCJ-02
                 const [lat, lng] = fieldData.center;
                 const [gcjLng, gcjLat] = this.wgs84ToGcj02(lng, lat);
-                console.log('标记坐标转换 - 原始:', fieldData.center, '转换后:', [gcjLat, gcjLng]);
 
                 // 创建地块数据对象
                 const plotData = {
@@ -795,7 +764,6 @@ export default {
                 // 将标记添加到图层数组
                 this.plotLayers.push(plotMarker);
 
-                console.log(`地块标记 ${ fieldData.name } 已添加到三级地图`);
             }
         },
 
@@ -803,7 +771,6 @@ export default {
         fitMapToPlotMarkers() {
             try {
                 if (this.plotLayers.length === 0) {
-                    console.log('没有地块标记需要调整视野');
                     return;
                 }
 
@@ -819,18 +786,14 @@ export default {
                 if (plotCoordinates.length > 0) {
                     // 创建边界并适配
                     const bounds = L.latLngBounds(plotCoordinates);
-                    console.log('计算的地块边界:', bounds);
 
                     this.map.fitBounds(bounds, {
                         padding: [50, 50],
                         maxZoom: 14
                     });
 
-                    console.log('地图视野已调整，新的中心点:', this.map.getCenter());
-                    console.log('地图视野已调整，新的缩放级别:', this.map.getZoom());
                 }
                 else {
-                    console.log('无法获取地块坐标，使用区域默认中心');
                     const center = this.regionCoordinates[this.regionName] || [23.9, 106.6];
                     this.map.setView(center, 13);
                 }
@@ -842,81 +805,54 @@ export default {
             }
         },
 
-        // 生成地块数据（基于真实demo坐标）
+        // 生成地块数据（保持原有的三个地块）
         async generatePlotData() {
+            // 直接使用原来的coordinates.json方式，保持原有的三个地块
+            return await this.generatePlotDataFromCoordinates();
+        },
+
+        // 回退方法：从coordinates.json加载地块数据
+        async generatePlotDataFromCoordinates() {
             try {
-                console.log('=== 开始生成地块数据 ===');
-                console.log('正在请求 /demo/coordinates.json...');
-
-                // 从coordinates.json加载真实demo地块数据
                 const response = await fetch('/demo/coordinates.json');
-                console.log('请求响应状态:', response.status, response.statusText);
-
                 const coordinateData = await response.json();
-                console.log('加载的坐标数据:', coordinateData);
-                console.log('坐标数据keys:', Object.keys(coordinateData));
-
                 const plots = [];
 
-                // 将demo地块数据转换为地图标注格式
                 Object.entries(coordinateData).forEach(([key, fieldData]) => {
                     console.log(`处理地块: ${ key }`, fieldData);
-                    console.log(`coordinates: ${ fieldData.coordinates ? `${ fieldData.coordinates.length }个坐标点` : '无' }`);
 
                     if (fieldData.coordinates && fieldData.coordinates.length > 0) {
-                        // 计算中心点（如果没有提供center的话）
                         let center;
                         if (fieldData.center) {
                             center = fieldData.center;
                         }
                         else {
-                            // 计算多边形的中心点
                             center = this.calculatePolygonCenter(fieldData.coordinates);
                         }
 
                         const plot = {
                             id: fieldData.name || key,
-                            name: fieldData.name || key, // 去掉"地块"后缀
-                            lat: center[1], // 注意：coordinates是[lng,lat]格式，中心点是[lat,lng]
+                            name: fieldData.name || key,
+                            lat: center[1],
                             lng: center[0],
                             area: fieldData.area || '未知',
-                            output: Math.floor(Math.random() * 20) + 5, // 模拟产量数据
-                            type: 'premium', // 设置为优质地块
+                            output: Math.floor(Math.random() * 20) + 5,
+                            type: 'premium',
                             coordinates: fieldData.coordinates
                         };
-                        console.log('创建的地块对象:', plot);
+
                         plots.push(plot);
                     }
-                    else {
-                        console.warn(`地块 ${ key } 缺少坐标数据:`, {
-                            hasCenter: !!fieldData.center,
-                            hasCoordinates: !!fieldData.coordinates
-                        });
-                    }
-                });
-
-                console.log('=== 生成地块数据完成 ===');
-                console.log('总计地块数量:', plots.length);
-                console.log('所有地块:', plots);
-
-                // 详细输出每个地块的信息
-                plots.forEach((plot, index) => {
-                    console.log(`地块 ${ index + 1 }: ${ plot.name }`, {
-                        lat: plot.lat,
-                        lng: plot.lng,
-                        coordinatesCount: plot.coordinates ? plot.coordinates.length : 0,
-                        hasCenter: !!plot.center
-                    });
                 });
 
                 return plots;
-
             }
             catch (error) {
                 console.error('加载demo坐标数据失败:', error);
                 return [];
             }
         },
+
 
         // 检查点是否在区域内部
         isPointInRegion(point, regionFeature) {
@@ -1302,23 +1238,18 @@ export default {
 
         // 导航到地块详情页或下钻到地块轮廓
         navigateToPlotDetail(plot) {
-            console.log('点击地块标记:', plot.name, '- showPlotDetails:', this.showPlotDetails);
-            console.log('地块数据:', plot);
 
             // 如果是在地块详情页面中，则触发下钻到乡镇事件
             if (this.showPlotDetails) {
-                console.log('触发乡镇下钻');
                 this.loadTownshipData(plot.name);
             }
             else {
                 // 特殊处理：雷哥地块使用本地PNG图片
                 if (plot.name === '雷哥') {
-                    console.log('雷哥地块：直接显示本地PNG图片');
                     this.showLeiGePngImage();
                 }
                 else {
                     // 在二级地图中，跳转到三级地图页面（PlotDetail）
-                    console.log('从二级地图跳转到三级地图页面:', plot.name);
                     const encodedPlotId = encodeURIComponent(plot.name);
                     this.$router.push(`/plot/${ encodedPlotId }`);
                 }
@@ -1328,7 +1259,6 @@ export default {
         // 显示带有本地图片的地块
         async showPlotWithLocalImage(plot) {
             try {
-                console.log('为雷哥地块显示本地png图片:', plot);
 
                 // 获取雷哥地块的边界信息
                 const plotData = this.coordinateData && this.coordinateData['雷哥'];
@@ -1341,13 +1271,11 @@ export default {
                 const polygon = plotData.leaflet_polygon[0]; // 第一个多边形
                 const bounds = L.polygon(polygon).getBounds();
 
-                console.log('雷哥地块边界:', bounds);
 
                 // 隐藏卫星底图层 - 遍历所有图层并移除tile层
                 this.map.eachLayer(layer => {
                     if (layer instanceof L.TileLayer) {
                         this.map.removeLayer(layer);
-                        console.log('已移除卫星底图层');
                     }
                 });
 
@@ -1375,7 +1303,6 @@ export default {
                     maxZoom: 16
                 });
 
-                console.log('雷哥地块图片已添加到地图，卫星底图已隐藏');
 
             }
             catch (error) {
@@ -1388,7 +1315,6 @@ export default {
 
         // 直接显示雷哥PNG图片
         showLeiGePngImage() {
-            console.log('开始显示雷哥PNG图片');
 
             // 清除现有图层
             this.map.eachLayer(layer => {
@@ -1422,13 +1348,11 @@ export default {
                 maxZoom: 16
             });
 
-            console.log('雷哥PNG图片已显示');
         },
 
         // 下钻到地块轮廓显示
         async drillDownToPlotOutline(plot) {
             try {
-                console.log('开始下钻到地块轮廓:', plot.name);
 
                 // 清除当前的地块标记
                 this.clearPlotLayers();

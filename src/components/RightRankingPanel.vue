@@ -427,7 +427,6 @@ export default {
         
         // 处理农事项目点击
         handleFarmingItemClick(item) {
-            console.log('点击标准农事项目:', item.name);
             // 向父组件发出事件，更新选中的农事项目
             this.$emit('farming-item-click', item);
         }

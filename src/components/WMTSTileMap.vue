@@ -138,7 +138,6 @@ export default {
       const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
       const url = `${baseUrl}/api/v1/wmts/request?service=WMTS&request=GetTile&version=1.0.0&layer=test_layer&style=default&tilematrixset=GoogleMapsCompatible&tilematrix=${level}&tilerow=${row}&tilecol=${col}&format=image/png`;
       
-      console.log(`正在请求瓦片: ${level}/${row}/${col}`);
       
       try {
         // 设置10秒超时
@@ -150,14 +149,12 @@ export default {
         });
         clearTimeout(timeoutId);
         
-        console.log(`瓦片响应状态 (${level}/${row}/${col}):`, response.status);
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log(`瓦片数据 (${level}/${row}/${col}):`, result ? '有数据' : '无数据');
         
         if (result && result.data) {
           return `data:${result.content_type};base64,${result.data}`;
@@ -171,13 +168,11 @@ export default {
     },
 
     async loadTileGrid() {
-      console.log(`开始加载第${this.currentLevel}层瓦片网格`);
       this.isLoading = true;
       this.loadingText = 'Loading...';
       
       // 计算当前层级的瓦片数量
       const tilesPerSide = Math.pow(2, this.currentLevel);
-      console.log(`需要加载 ${tilesPerSide}x${tilesPerSide} = ${tilesPerSide * tilesPerSide} 个瓦片`);
       
       // 生成瓦片数据结构
       this.tiles = [];
@@ -198,13 +193,8 @@ export default {
       }
       
       // 异步加载所有瓦片
-      console.log('开始异步加载瓦片...');
       const promises = this.tiles.map((tile) => this.loadTileAsync(tile));
-      const results = await Promise.allSettled(promises);
-      
-      const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-      const failCount = results.length - successCount;
-      console.log(`瓦片加载完成: 成功${successCount}个, 失败${failCount}个`);
+      await Promise.allSettled(promises);
       
       this.isLoading = false;
     },

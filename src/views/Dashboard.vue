@@ -156,8 +156,6 @@ export default {
                     throw new Error('无法读取百色市地图数据文件');
                 }
 
-                console.log(`加载百色市地图数据成功，包含 ${ baiseData.features.length } 个区县`);
-                console.log('数据来源:', baiseData.properties?.source);
 
                 // 直接使用高精度区县数据
                 this.mapData = baiseData;
@@ -212,7 +210,6 @@ export default {
         // 处理区域点击事件
         handleRegionClick(region) {
             const regionName = region.properties.name;
-            console.log('点击区县:', regionName);
 
             // 跳转到详情页面，显示该区县的乡镇级地图
             this.$router.push({
@@ -236,7 +233,6 @@ export default {
 
         // 处理农事项目点击事件
         handleFarmingItemClick(farmingItem) {
-            console.log('点击农事项目:', farmingItem.name);
             
             // 设置选中的农事项目
             this.selectedFarmingItem = farmingItem;
@@ -248,7 +244,6 @@ export default {
             }));
             
             // 这里可以更新右侧面板显示选中农事项目的详细信息
-            console.log('农事项目详情:', farmingItem);
         },
 
     }
