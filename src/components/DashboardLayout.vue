@@ -14,17 +14,19 @@
       <!-- 主体内容区域 group_4 -->
       <div class="group_4 flex-row">
         <!-- 左侧区域 - 根据插槽内容决定显示什么 -->
-        <template v-if="$slots['left-panel']">
-          <!-- 如果有left-panel插槽，使用插槽内容 -->
-          <slot name="left-panel"></slot>
-        </template>
-        <template v-else>
-          <!-- 默认显示数据展示区域 -->
-          <LeftDataPanel
-            :project-data="projectData"
-            :statistics-data="statisticsData"
-          />
-        </template>
+        <div class="left-panel-container">
+          <template v-if="$slots['left-panel']">
+            <!-- 如果有left-panel插槽，使用插槽内容 -->
+            <slot name="left-panel"></slot>
+          </template>
+          <template v-else>
+            <!-- 默认显示数据展示区域 -->
+            <LeftDataPanel
+              :project-data="projectData"
+              :statistics-data="statisticsData"
+            />
+          </template>
+        </div>
 
         <!-- 中间地图区域 group_5 - 通过插槽自定义 -->
         <div class="group_5 flex-grow">
@@ -66,20 +68,22 @@
         </div>
 
         <!-- 右侧区域 - 根据插槽内容决定显示什么 -->
-        <template v-if="$slots['right-panel']">
-          <!-- 如果有right-panel插槽，使用插槽内容 -->
-          <slot name="right-panel"></slot>
-        </template>
-        <template v-else>
-          <!-- 默认显示排名区域 -->
-          <RightRankingPanel
-            :region-name="regionName"
-            :ranking-data="rankingData"
-            :quality-data="qualityData"
-            :selected-farming-item="selectedFarmingItem"
-            @farming-item-click="$emit('farming-item-click', $event)"
-          />
-        </template>
+        <div class="right-panel-container">
+          <template v-if="$slots['right-panel']">
+            <!-- 如果有right-panel插槽，使用插槽内容 -->
+            <slot name="right-panel"></slot>
+          </template>
+          <template v-else>
+            <!-- 默认显示排名区域 -->
+            <RightRankingPanel
+              :region-name="regionName"
+              :ranking-data="rankingData"
+              :quality-data="qualityData"
+              :selected-farming-item="selectedFarmingItem"
+              @farming-item-click="$emit('farming-item-click', $event)"
+            />
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -235,11 +239,10 @@ export default {
     display: flex !important;
     flex: 1 !important;
     flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: auto !important;
-    min-width: 600px !important;
-    max-width: 1000px !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    width: calc(100% - 760px) !important;
+    max-width: calc(100vw - 760px - 40px) !important;
     height: calc(100vh - 180px) !important;
     min-height: 700px !important;
     padding: 5px !important;
@@ -249,20 +252,11 @@ export default {
     position: relative !important;
     display: flex !important;
     flex: 1 !important;
-    align-items: center !important;
-    justify-content: center !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
     width: 100% !important;
-
-    /* 调整尺寸匹配容器，为底部导航留空间 */
-    min-width: 700px !important;
-    max-width: 1000px !important;
     height: calc(100% - 60px) !important;
     min-height: 650px !important;
-
-    /* 移除max-width和max-height限制，确保地图完整显示 */
-    /* max-width: 1200px !important; */
-    /* max-height: 800px !important; */
-    margin: 0 auto !important;
 }
 
 .center-content {
@@ -276,6 +270,21 @@ export default {
 
 .flex-grow {
     flex-grow: 1;
+}
+
+/* 左右面板容器固定宽度 */
+.left-panel-container {
+    position: relative;
+    z-index: 10;
+    flex: none;
+    width: 375px;
+}
+
+.right-panel-container {
+    position: relative;
+    z-index: 10;
+    flex: none;
+    width: 375px;
 }
 
 /* 底部导航条样式 */

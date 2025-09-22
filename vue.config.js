@@ -19,11 +19,20 @@ module.exports = {
             }
         },
         proxy: {
-            '/api/v1/wmts': {
+            '/api/v1': {
                 target: 'http://43.136.169.150:8000',
                 changeOrigin: true,
                 secure: false,
-                logLevel: 'debug'
+                logLevel: 'debug',
+                onProxyReq: function(proxyReq, req, res) {
+                    console.log('Proxying request:', req.method, req.url, '-> ', proxyReq.path);
+                },
+                onProxyRes: function(proxyRes, req, res) {
+                    console.log('Proxy response:', proxyRes.statusCode, req.url);
+                },
+                onError: function(err, req, res) {
+                    console.log('Proxy error:', err, req.url);
+                }
             }
         }
     },
