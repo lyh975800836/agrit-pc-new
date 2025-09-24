@@ -292,11 +292,13 @@
       </div>
 
       <!-- 健康指标详情面板 - 在左侧面板旁边显示 -->
-      <div v-if="healthModalVisible" class="health-detail-panel">
-        <HealthIndicatorModal
-          :visible="true"
-          @close="healthModalVisible = false"
-        />
+      <div v-if="healthModalVisible" class="health-detail-overlay" @click.self="healthModalVisible = false">
+        <div class="health-detail-panel">
+          <HealthIndicatorModal
+            :visible="healthModalVisible"
+            @close="healthModalVisible = false"
+          />
+        </div>
       </div>
     </template>
     </DashboardLayout>
@@ -872,11 +874,21 @@ export default {
     height: 100%;
 }
 
-.health-detail-panel {
-    position: absolute;
-    z-index: 100;
+.health-detail-overlay {
+    position: fixed;
+    z-index: 1000;
     top: 0;
-    left: 402px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.health-detail-panel {
+    position: relative;
 }
 
 /* 左侧地块详情面板 */
