@@ -18,6 +18,7 @@
         ref="wmtsTileMap"
         :region-name="regionName"
         :plot-data="plotData"
+        @tile-metrics="handleTileMetrics"
       />
     </template>
 
@@ -41,7 +42,7 @@
         <div class="plot-statistics">
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">总面积(亩)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.area || '40' }}</span>
+            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
@@ -426,9 +427,19 @@ export default {
                 price: '',
                 photo: '/images/farm-field-1.jpg'
             },
+            tileMetrics: null
         };
     },
     computed: {
+        displayedPlotArea() {
+            if (this.tileMetrics && Number.isFinite(this.tileMetrics.totalAreaMu)) {
+                return this.formatNumber(this.tileMetrics.totalAreaMu, 2);
+            }
+            if (this.plotData && Number.isFinite(Number(this.plotData.area))) {
+                return this.formatNumber(Number(this.plotData.area), 2);
+            }
+            return '0.00';
+        },
         // 标准农事项目 - 使用集中管理的图片常量
         standardFarmingItems() {
             return [
@@ -682,6 +693,18 @@ export default {
             }
         },
 
+        handleTileMetrics(metrics) {
+            this.tileMetrics = metrics || null;
+        },
+
+        formatNumber(value, fractionDigits = 2) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) {
+                return '0.00';
+            }
+            return numeric.toFixed(fractionDigits);
+        },
+
         // 计算多边形中心点
         calculateCenter(coordinates) {
             if (!coordinates || coordinates.length === 0) {
@@ -879,12 +902,13 @@ export default {
     z-index: 1000;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 100%;
+
+    background: #00000080;
 }
 
 .health-detail-panel {

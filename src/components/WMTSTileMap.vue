@@ -1,8 +1,7 @@
 <template>
   <div class="tile-map-container">
-    <!-- 地图瓦片网格 -->
     <div class="tile-grid" ref="tileGrid">
-      <div class="tile-grid-inner">
+      <div class="tile-grid-inner" :style="mapDimensions">
         <div class="markers-overlay">
           <div
             v-for="marker in visibleMarkers"
@@ -14,29 +13,33 @@
           ></div>
         </div>
 
-        <div
-          v-for="y in visibleRows"
-          :key="`row-${y-1}`"
-          class="tile-row"
-        >
+        <template v-if="tileGridRows.length">
           <div
-            v-for="x in visibleCols"
-            :key="`tile-${x-1}-${y-1}`"
-            v-show="shouldShowTile(x-1, y-1)"
-            class="tile"
-            :data-x="x-1"
-            :data-y="y-1"
+            v-for="(row, rowIndex) in tileGridRows"
+            :key="`row-${rowIndex}`"
+            class="tile-row"
           >
             <div
-              class="tile-content"
-              :style="{ backgroundImage: `url(${tileImages[`${x-1}-${y-1}`]})` }"
-            ></div>
+              v-for="tile in row"
+              :key="tile.key"
+              class="tile"
+              :data-x="tile.col"
+              :data-y="tile.row"
+            >
+              <div
+                v-if="hasTileImage(tile.key)"
+                class="tile-content"
+                :style="getTileBackground(tile.key)"
+              ></div>
+              <div v-else class="tile-placeholder" :data-state="getTileState(tile.key)">
+                <span v-if="getTileState(tile.key) === 'error'">{{ tilePlaceholderError }}</span>
+              </div>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
 
-    <!-- 图片查看器 -->
     <div v-if="selectedMarker" class="image-viewer-overlay" @click="closeImageViewer">
       <div class="image-viewer" @click.stop>
         <div class="image-viewer-header">
@@ -58,6 +61,14 @@
 </template>
 
 <script>
+const TILE_PLACEHOLDER_ERROR = '加载失败';
+const EARTH_RADIUS_METERS = 6378137; // WGS84
+const MU_IN_SQUARE_METERS = 666.6666667;
+const PRESET_TILE_DIMENSIONS = {
+    1000: { cols: 10, rows: 6, offsetX: 0, offsetY: 0 },
+    1001: { cols: 9, rows: 8, offsetX: -2, offsetY: 0 }
+};
+
 export default {
     name: 'WMTSTileMap',
     props: {
@@ -74,51 +85,110 @@ export default {
         return {
             zoomLevel: 4,
             markers: [],
+            markersLoading: false,
             selectedMarker: null,
-            tileImages: {}
+            tileImages: {},
+            tileAreas: {},
+            tileInfo: null,
+            tileBounds: null,
+            tileGridRowsCache: [],
+            tileLoading: false,
+            totalTileAreaSquareMeters: 0,
+            tilePlaceholderError: TILE_PLACEHOLDER_ERROR,
+            currentRequestToken: null
         };
     },
     computed: {
-        plotId: () => 1000,
-        gridSize() {
-            return 2 ** this.zoomLevel;
+        plotId() {
+            const mapping = {
+                '雷哥': 1000,
+                '宏哥': 1001,
+                '千户十亩-大楞乡基地': 1000
+            };
+
+            const rawId = this.plotData?.id;
+            if (rawId !== undefined && rawId !== null) {
+                if (typeof rawId === 'number') {
+                    return rawId;
+                }
+                const numericId = Number(rawId);
+                if (Number.isFinite(numericId)) {
+                    return numericId;
+                }
+                if (mapping[rawId]) {
+                    return mapping[rawId];
+                }
+            }
+
+            const name = this.plotData?.name;
+            if (name && mapping[name]) {
+                return mapping[name];
+            }
+
+            return 1000;
         },
         layerName() {
-            return `plot_${ this.plotId }_雷哥`;
+            if (this.tileInfo?.layer_name) {
+                return this.tileInfo.layer_name;
+            }
+            const plotName = this.plotData?.name || '雷哥';
+            return `plot_${ this.plotId }_${ plotName }`;
         },
         visibleMarkers() {
             return this.markers.filter(marker => marker.zoom_level === this.zoomLevel);
         },
-        // 根据容器宽度计算显示的列数
+        tileSize() {
+            return 120;
+        },
+        tileOffsetX() {
+            return this.tileBounds ? this.tileBounds.minX : 0;
+        },
+        tileOffsetY() {
+            return this.tileBounds ? this.tileBounds.minY : 0;
+        },
+        tileGridRows() {
+            return this.tileGridRowsCache;
+        },
+        tileColumnCount() {
+            if (this.tileBounds) {
+                return this.tileBounds.maxX - this.tileBounds.minX + 1;
+            }
+            return this.visibleCols;
+        },
+        tileRowCount() {
+            if (this.tileBounds) {
+                return this.tileBounds.maxY - this.tileBounds.minY + 1;
+            }
+            return this.visibleRows;
+        },
+        mapDimensions() {
+            if (!this.tileBounds) {
+                return {};
+            }
+            const width = this.tileColumnCount * this.tileSize;
+            const height = this.tileRowCount * this.tileSize;
+            return {
+                width: `${ width }px`,
+                height: `${ height }px`
+            };
+        },
+        totalTileAreaMu() {
+            return this.totalTileAreaSquareMeters / MU_IN_SQUARE_METERS;
+        },
         visibleCols() {
             if (!this.$refs.tileGrid) {
                 return 12;
             }
             const containerWidth = this.$refs.tileGrid.clientWidth;
-            const tileSize = 120;
-            return Math.ceil(containerWidth / tileSize) + 2;
+            return Math.ceil(containerWidth / this.tileSize) + 2;
         },
-        // 根据容器高度计算显示的行数
         visibleRows() {
             if (!this.$refs.tileGrid) {
                 return 8;
             }
             const containerHeight = this.$refs.tileGrid.clientHeight;
-            const tileSize = 120;
-            return Math.ceil(containerHeight / tileSize) + 2;
+            return Math.ceil(containerHeight / this.tileSize) + 2;
         }
-    },
-    mounted() {
-        this.loadMapData();
-        // 监听窗口大小变化
-        window.addEventListener('resize', this.handleResize);
-        // 使用$nextTick确保DOM已经渲染完成
-        this.$nextTick(() => {
-            this.handleResize();
-        });
-    },
-    beforeDestroy() {
-        window.removeEventListener('resize', this.handleResize);
     },
     watch: {
         plotData: {
@@ -128,51 +198,313 @@ export default {
             deep: true
         }
     },
+    mounted() {
+        this.loadMapData();
+        window.addEventListener('resize', this.handleResize);
+        this.$nextTick(() => {
+            this.handleResize();
+        });
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.handleResize);
+    },
     methods: {
         async loadMapData() {
             if (!this.plotId) {
                 return;
             }
 
-            this.tileImages = {};
+            this.resetTileState();
+            const requestToken = Symbol('tile-load');
+            this.currentRequestToken = requestToken;
 
-            await this.loadMarkers();
-            await this.loadAllTiles();
+            try {
+                this.tileLoading = true;
+                await this.loadTileInfo(requestToken);
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+                await this.loadMarkers(requestToken);
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+                this.applyPresetDimensions();
+                this.buildTileGrid();
+                await this.loadAllTiles(requestToken);
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+                this.updateTileMetrics();
+            }
+            finally {
+                if (this.currentRequestToken === requestToken) {
+                    this.tileLoading = false;
+                }
+            }
         },
 
-        async loadMarkers() {
+        resetTileState() {
+            this.tileImages = {};
+            this.tileAreas = {};
+            this.tileInfo = null;
+            this.tileBounds = null;
+            this.tileGridRowsCache = [];
+            this.totalTileAreaSquareMeters = 0;
+        },
+
+        async loadTileInfo(requestToken) {
+            try {
+                const isProduction = process.env.NODE_ENV === 'production';
+                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
+                const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/info`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ plot_id: String(this.plotId) })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${ response.status }`);
+                }
+
+                const result = await response.json();
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+
+                if (result && result.code === 0 && result.data) {
+                    this.tileInfo = result.data;
+                    const maxZoom = Number(result.data.max_zoom_level);
+                    if (Number.isFinite(maxZoom)) {
+                        this.zoomLevel = maxZoom;
+                    }
+                    this.tileBounds = this.computeTileBounds(result.data);
+                }
+            }
+            catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('加载瓦片信息失败:', error);
+                if (this.currentRequestToken === requestToken) {
+                    this.tileInfo = null;
+                    this.tileBounds = null;
+                }
+            }
+        },
+
+        async loadMarkers(requestToken) {
+            this.markersLoading = true;
             try {
                 const isProduction = process.env.NODE_ENV === 'production';
                 const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
                 const response = await fetch(`${ baseUrl }/api/v1/markers/plot/${ this.plotId }`);
                 const result = await response.json();
 
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+
                 if (response.ok && result.code === 0) {
                     this.markers = result.data || [];
+                    this.extendBoundsByMarkers();
                 }
                 else {
                     this.markers = [];
                 }
             }
             catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('加载标点失败:', error);
-                this.markers = [];
-            }
-        },
-
-        async loadAllTiles() {
-            const promises = [];
-            // 加载可见区域的瓦片
-            for (let y = 0; y < this.visibleRows; y++) {
-                for (let x = 0; x < this.visibleCols; x++) {
-                    promises.push(this.loadTileImage(x, y));
+                if (this.currentRequestToken === requestToken) {
+                    this.markers = [];
                 }
             }
-            await Promise.all(promises);
+            finally {
+                if (this.currentRequestToken === requestToken) {
+                    this.markersLoading = false;
+                }
+            }
         },
 
+        computeTileBounds(info) {
+            if (!info) {
+                return null;
+            }
 
-        async loadTileImage(x, y) {
+            const zoom = Number.isFinite(info.max_zoom_level) ? info.max_zoom_level : this.zoomLevel;
+            const limit = this.getZoomLimit(zoom);
+
+            const lonMin = Number(info.min_lon);
+            const lonMax = Number(info.max_lon);
+            const latMin = Number(info.min_lat);
+            const latMax = Number(info.max_lat);
+
+            if ([lonMin, lonMax, latMin, latMax].some(value => Number.isNaN(value))) {
+                return null;
+            }
+
+            let minX = this.clampTileIndex(Math.min(this.lonToTileX(lonMin, zoom), this.lonToTileX(lonMax, zoom)), limit);
+            let maxX = this.clampTileIndex(Math.max(this.lonToTileX(lonMin, zoom), this.lonToTileX(lonMax, zoom)), limit);
+            let minY = this.clampTileIndex(Math.min(this.latToTileY(latMin, zoom), this.latToTileY(latMax, zoom)), limit);
+            let maxY = this.clampTileIndex(Math.max(this.latToTileY(latMin, zoom), this.latToTileY(latMax, zoom)), limit);
+
+            if (maxX < minX) {
+                [minX, maxX] = [maxX, minX];
+            }
+            if (maxY < minY) {
+                [minY, maxY] = [maxY, minY];
+            }
+
+            const declaredTileCount = Number(info.tile_count);
+            const currentCols = maxX - minX + 1;
+            const currentRows = maxY - minY + 1;
+
+            if (Number.isFinite(declaredTileCount) && declaredTileCount > 0) {
+                const aspect = currentCols / (currentRows || 1);
+                let desiredCols = Math.max(currentCols, Math.round(Math.sqrt(declaredTileCount * aspect)));
+                let desiredRows = Math.max(currentRows, Math.ceil(declaredTileCount / desiredCols));
+
+                desiredCols = Math.min(desiredCols, limit + 1);
+                desiredRows = Math.min(desiredRows, limit + 1);
+
+                const colsIncrease = desiredCols - currentCols;
+                if (colsIncrease > 0) {
+                    const expandLeft = Math.floor(colsIncrease / 2);
+                    const expandRight = colsIncrease - expandLeft;
+                    minX = this.clampTileIndex(minX - expandLeft, limit);
+                    maxX = this.clampTileIndex(maxX + expandRight, limit);
+
+                    let width = maxX - minX + 1;
+                    if (width < desiredCols) {
+                        const deficit = desiredCols - width;
+                        const moveLeft = Math.min(deficit, minX);
+                        minX = this.clampTileIndex(minX - moveLeft, limit);
+                        maxX = this.clampTileIndex(minX + desiredCols - 1, limit);
+                        width = maxX - minX + 1;
+                        if (width < desiredCols) {
+                            maxX = this.clampTileIndex(maxX + (desiredCols - width), limit);
+                            minX = this.clampTileIndex(maxX - desiredCols + 1, limit);
+                        }
+                    }
+                }
+
+                const rowsIncrease = desiredRows - currentRows;
+                if (rowsIncrease > 0) {
+                    const expandTop = Math.floor(rowsIncrease / 2);
+                    const expandBottom = rowsIncrease - expandTop;
+                    minY = this.clampTileIndex(minY - expandTop, limit);
+                    maxY = this.clampTileIndex(maxY + expandBottom, limit);
+
+                    let height = maxY - minY + 1;
+                    if (height < desiredRows) {
+                        const deficit = desiredRows - height;
+                        const moveUp = Math.min(deficit, minY);
+                        minY = this.clampTileIndex(minY - moveUp, limit);
+                        maxY = this.clampTileIndex(minY + desiredRows - 1, limit);
+                        height = maxY - minY + 1;
+                        if (height < desiredRows) {
+                            maxY = this.clampTileIndex(maxY + (desiredRows - height), limit);
+                            minY = this.clampTileIndex(maxY - desiredRows + 1, limit);
+                        }
+                    }
+                }
+            }
+
+            return {
+                minX,
+                maxX,
+                minY,
+                maxY
+            };
+        },
+
+        applyPresetDimensions() {
+            const preset = PRESET_TILE_DIMENSIONS[this.plotId];
+            if (!preset) {
+                return;
+            }
+
+            const limit = this.getZoomLimit(this.zoomLevel);
+            const { cols } = preset;
+            const { rows } = preset;
+
+            const offsetX = Number(preset.offsetX) || 0;
+            const offsetY = Number(preset.offsetY) || 0;
+
+            let minX = (this.tileBounds ? this.tileBounds.minX : 0) + offsetX;
+            let minY = (this.tileBounds ? this.tileBounds.minY : 0) + offsetY;
+
+            minX = this.clampTileIndex(minX, limit);
+            minY = this.clampTileIndex(minY, limit);
+
+            let maxX = Math.min(minX + cols - 1, limit);
+            if (maxX - minX + 1 < cols) {
+                minX = Math.max(0, maxX - cols + 1);
+                maxX = Math.min(minX + cols - 1, limit);
+            }
+
+            let maxY = Math.min(minY + rows - 1, limit);
+            if (maxY - minY + 1 < rows) {
+                minY = Math.max(0, maxY - rows + 1);
+                maxY = Math.min(minY + rows - 1, limit);
+            }
+
+            this.tileBounds = {
+                minX,
+                maxX,
+                minY,
+                maxY
+            };
+        },
+
+        buildTileGrid() {
+            if (this.tileBounds) {
+                const rows = [];
+                for (let row = this.tileBounds.minY; row <= this.tileBounds.maxY; row += 1) {
+                    const cols = [];
+                    for (let col = this.tileBounds.minX; col <= this.tileBounds.maxX; col += 1) {
+                        cols.push({ key: this.getTileKey(col, row), col, row });
+                    }
+                    rows.push(cols);
+                }
+                this.tileGridRowsCache = rows;
+                return;
+            }
+
+            const fallbackRows = [];
+            for (let y = 0; y < this.visibleRows; y += 1) {
+                const rowTiles = [];
+                for (let x = 0; x < this.visibleCols; x += 1) {
+                    rowTiles.push({ key: this.getTileKey(x, y), col: x, row: y });
+                }
+                fallbackRows.push(rowTiles);
+            }
+            this.tileGridRowsCache = fallbackRows;
+        },
+
+        async loadAllTiles(requestToken) {
+            const coordinates = [];
+            this.tileGridRowsCache.forEach(row => {
+                row.forEach(tile => {
+                    coordinates.push(tile);
+                });
+            });
+
+            if (!coordinates.length) {
+                return;
+            }
+
+            const tasks = coordinates.map(tile => this.loadTileImage(tile.col, tile.row, requestToken));
+            await Promise.all(tasks);
+        },
+
+        async loadTileImage(tileCol, tileRow, requestToken) {
+            const key = this.getTileKey(tileCol, tileRow);
+            if (this.tileImages[key]) {
+                return;
+            }
+
             const isProduction = process.env.NODE_ENV === 'production';
             const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
             const params = new URLSearchParams({
@@ -183,8 +515,8 @@ export default {
                 style: 'default',
                 tilematrixset: 'GoogleMapsCompatible',
                 tilematrix: this.zoomLevel,
-                tilerow: y,
-                tilecol: x,
+                tilerow: tileRow,
+                tilecol: tileCol,
                 format: 'image/png'
             });
             const tileUrl = `${ baseUrl }/api/v1/wmts/request?${ params }`;
@@ -193,40 +525,198 @@ export default {
                 const response = await fetch(tileUrl);
                 const result = await response.json();
 
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+
                 if (result && result.data) {
-                    const imageKey = `${ x }-${ y }`;
                     const imageSrc = `data:${ result.content_type };base64,${ result.data }`;
-                    this.$set(this.tileImages, imageKey, imageSrc);
+                    this.$set(this.tileImages, key, imageSrc);
+                    const tileArea = this.calculateTileArea(tileCol, tileRow, this.zoomLevel);
+                    this.$set(this.tileAreas, key, tileArea);
                 }
                 else {
-                    // 没有数据时标记为error
-                    const imageKey = `${ x }-${ y }`;
-                    this.$set(this.tileImages, imageKey, 'error');
+                    this.$set(this.tileImages, key, 'error');
+                    this.$delete(this.tileAreas, key);
                 }
             }
             catch (error) {
-                console.error(`获取瓦片失败 (${ this.zoomLevel }/${ y }/${ x }):`, error);
-                // 请求失败时也标记为error
-                const imageKey = `${ x }-${ y }`;
-                this.$set(this.tileImages, imageKey, 'error');
+                // eslint-disable-next-line no-console
+                console.error(`获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+                this.$set(this.tileImages, key, 'error');
+                this.$delete(this.tileAreas, key);
             }
         },
 
+        calculateTileArea(tileCol, tileRow, zoom) {
+            const bounds = this.getTileBounds(tileCol, tileRow, zoom);
+            const lat1 = this.degToRad(bounds.minLat);
+            const lat2 = this.degToRad(bounds.maxLat);
+            const lon1 = this.degToRad(bounds.minLon);
+            const lon2 = this.degToRad(bounds.maxLon);
 
-        getMarkerStyle(marker) {
-            const { tile_x, tile_y, pixel_x = 256, pixel_y = 256 } = marker;
-            const tileSize = 120;
-            const scale = tileSize / 256 / 2;
+            const area = Math.abs(
+                (Math.sin(lat2) - Math.sin(lat1)) * (lon2 - lon1) * (EARTH_RADIUS_METERS ** 2)
+            );
+            return area;
+        },
 
+        getTileBounds(col, row, zoom) {
+            const north = this.tile2lat(row, zoom);
+            const south = this.tile2lat(row + 1, zoom);
+            const west = this.tile2lon(col, zoom);
+            const east = this.tile2lon(col + 1, zoom);
             return {
-                left: `${ tile_x * tileSize + pixel_x * scale }px`,
-                top: `${ tile_y * tileSize + pixel_y * scale }px`
+                minLat: Math.min(north, south),
+                maxLat: Math.max(north, south),
+                minLon: Math.min(west, east),
+                maxLon: Math.max(west, east)
             };
         },
 
-        shouldShowTile(x, y) {
-            const tileData = this.tileImages[`${ x }-${ y }`];
-            return tileData && tileData !== '' && tileData !== 'error' && tileData !== null;
+        extendBoundsByMarkers() {
+            if (!this.markers || !this.markers.length) {
+                this.applyPresetDimensions();
+                return;
+            }
+
+            const limit = this.getZoomLimit(this.zoomLevel);
+            const numericX = this.markers
+                .map(marker => Number(marker.tile_x))
+                .filter(value => Number.isFinite(value));
+            const numericY = this.markers
+                .map(marker => Number(marker.tile_y))
+                .filter(value => Number.isFinite(value));
+
+            if (!numericX.length || !numericY.length) {
+                this.applyPresetDimensions();
+                return;
+            }
+
+            const minX = Math.max(0, Math.min(...numericX));
+            const maxX = Math.min(limit, Math.max(...numericX));
+            const minY = Math.max(0, Math.min(...numericY));
+            const maxY = Math.min(limit, Math.max(...numericY));
+
+            if (!this.tileBounds) {
+                this.tileBounds = {
+                    minX,
+                    maxX,
+                    minY,
+                    maxY
+                };
+            }
+            else {
+                this.tileBounds = {
+                    minX: Math.min(this.tileBounds.minX, minX),
+                    maxX: Math.max(this.tileBounds.maxX, maxX),
+                    minY: Math.min(this.tileBounds.minY, minY),
+                    maxY: Math.max(this.tileBounds.maxY, maxY)
+                };
+            }
+
+            this.applyPresetDimensions();
+        },
+
+        lonToTileX(lon, zoom) {
+            return Math.floor(((lon + 180) / 360) * (2 ** zoom));
+        },
+
+        latToTileY(lat, zoom) {
+            const latRad = this.degToRad(lat);
+            const normalized = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2;
+            return Math.floor(normalized * (2 ** zoom));
+        },
+
+        clampTileIndex(value, limit) {
+            if (!Number.isFinite(value)) {
+                return 0;
+            }
+            return Math.max(0, Math.min(limit, value));
+        },
+
+        tile2lon(x, z) {
+            return (x / (2 ** z)) * 360 - 180;
+        },
+
+        tile2lat(y, z) {
+            const n = Math.PI - (2 * Math.PI * y) / (2 ** z);
+            return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+        },
+
+        degToRad(value) {
+            return (value * Math.PI) / 180;
+        },
+
+        getZoomLimit(zoom) {
+            return (2 ** zoom) - 1;
+        },
+
+        getTileKey(tileCol, tileRow) {
+            return `${ tileCol }-${ tileRow }`;
+        },
+
+        hasTileImage(key) {
+            const value = this.tileImages[key];
+            return value && value !== 'error';
+        },
+
+        getTileBackground(key) {
+            const imageSrc = this.tileImages[key];
+            if (!imageSrc || imageSrc === 'error') {
+                return {};
+            }
+            return {
+                backgroundImage: `url(${ imageSrc })`
+            };
+        },
+
+        getTileState(key) {
+            return this.tileImages[key] || null;
+        },
+
+        getMarkerStyle(marker) {
+            if (!marker) {
+                return {};
+            }
+
+            const { tileSize } = this;
+            const scale = tileSize / 256 / 2;
+
+            const tileX = Number(marker.tile_x);
+            const tileY = Number(marker.tile_y);
+            const pixelX = Number.isFinite(marker.pixel_x) ? marker.pixel_x : 256;
+            const pixelY = Number.isFinite(marker.pixel_y) ? marker.pixel_y : 256;
+
+            if (!Number.isFinite(tileX) || !Number.isFinite(tileY)) {
+                return {};
+            }
+
+            const offsetX = (tileX - this.tileOffsetX) * tileSize;
+            const offsetY = (tileY - this.tileOffsetY) * tileSize;
+
+            return {
+                left: `${ offsetX + pixelX * scale }px`,
+                top: `${ offsetY + pixelY * scale }px`
+            };
+        },
+
+        updateTileMetrics() {
+            const values = Object.values(this.tileAreas);
+            const totalSquareMeters = values.reduce((sum, area) => sum + area, 0);
+            this.totalTileAreaSquareMeters = totalSquareMeters;
+
+            this.$emit('tile-metrics', {
+                plotId: this.plotId,
+                zoomLevel: this.zoomLevel,
+                tileCount: values.length,
+                totalAreaSquareMeters: totalSquareMeters,
+                totalAreaMu: totalSquareMeters / MU_IN_SQUARE_METERS,
+                declaredTileCount: this.tileInfo?.tile_count || null
+            });
         },
 
         showMarkerImage(marker) {
@@ -238,15 +728,7 @@ export default {
         },
 
         handleResize() {
-            // 强制重新计算显示区域
             this.$forceUpdate();
-        },
-
-        retryLoadTile(x, y) {
-            // 清除失败状态
-            this.$delete(this.tileImages, `${ x }-${ y }`);
-            // 重新加载
-            this.loadTileImage(x, y);
         }
     }
 };
@@ -257,14 +739,14 @@ export default {
     width: 100%;
     height: 100%;
     font-family: "Helvetica Neue", Arial, sans-serif;
-    background: #f5f5f5;
+    background: transparent;
 }
 
 .tile-grid {
     position: relative;
     overflow: auto;
     height: 100%;
-    background: #fafafa;
+    background: transparent;
 }
 
 .tile-grid-inner {
@@ -280,7 +762,7 @@ export default {
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(100% - 60px);
+    height: 100%;
 
     pointer-events: none;
 }
@@ -316,101 +798,7 @@ export default {
     width: 120px;
     height: 120px;
 
-    background: #f0f0f0;
-}
-
-.tile-info {
-    position: absolute;
-    z-index: 10;
-    top: 5px;
-    left: 5px;
-    padding: 2px 6px;
-    font-size: 10px;
-
-    color: #fff;
-    border-radius: 3px;
-    background: #000000b3;
-}
-
-.tile-empty-area {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-
-    opacity: .7;
-    background: #f0f4f8;
-}
-
-.empty-pattern {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    opacity: .3;
-    background-image:
-        linear-gradient(45deg, #e8e8e8 25%, transparent 25%),
-        linear-gradient(-45deg, #e8e8e8 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #e8e8e8 75%),
-        linear-gradient(-45deg, transparent 75%, #e8e8e8 75%);
-    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
-    background-size: 12px 12px;
-}
-
-.empty-info {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-}
-
-.empty-text {
-    font-size: 9px;
-    font-weight: 500;
-    color: #666;
-}
-
-.tile-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    border: 1px dashed #f5c6c6;
-
-    background: #fef7f7;
-
-    gap: 4px;
-}
-
-.error-icon {
-    font-size: 16px;
-    color: #e74c3c;
-}
-
-.error-text {
-    margin: 0;
-    font-size: 9px;
-    color: #e74c3c;
-}
-
-.retry-btn {
-    padding: 2px 6px;
-    border: none;
-    font-size: 8px;
-
-    color: #fff;
-    border-radius: 2px;
-    background: #4cfdeb;
-    transition: background .2s;
-    cursor: pointer;
-}
-
-.retry-btn:hover {
-    background: #00c9ff;
+    background: #000;
 }
 
 .tile-content {
@@ -418,6 +806,20 @@ export default {
     height: 100%;
     background-position: center;
     background-size: cover;
+}
+
+.tile-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+}
+
+.tile-placeholder span {
+    font-size: 12px;
+    color: #ff6b6b;
 }
 
 .image-viewer-overlay {

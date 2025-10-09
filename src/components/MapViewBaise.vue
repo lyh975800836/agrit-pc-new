@@ -163,38 +163,13 @@ export default {
         // 添加底图层
         addBaseLayer() {
             // 使用OpenStreetMap作为主要底图（稳定可靠）
-            const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 20,
-                attribution: '© OpenStreetMap contributors'
-            });
-
-            // CartoDB清爽底图
             const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 20,
                 subdomains: 'abcd',
                 attribution: '© CartoDB, © OpenStreetMap'
             });
 
-            // 腾讯卫星地图，支持更高缩放级别
-            const tencentSatellite = L.tileLayer('https://p{s}.map.gtimg.com/sateTiles/{z}/{x}/{y}.jpg', {
-                maxZoom: 20,
-                subdomains: ['0', '1', '2', '3'],
-                attribution: '© 腾讯地图'
-            });
-
-            // 默认使用清爽底图，适合叠加业务数据
             cartoLayer.addTo(this.map);
-
-            // 添加图层控制器
-            L.control.layers(
-                {
-                    清爽底图: cartoLayer,
-                    标准地图: osmLayer,
-                    卫星影像: tencentSatellite
-                },
-                {},
-                { position: 'topright', collapsed: false }
-            ).addTo(this.map);
 
         },
 
@@ -261,7 +236,7 @@ export default {
                             // 添加鼠标事件
                             layer.on({
                                 click: e => {
-                                                    this.handleRegionClick(feature, e);
+                                    this.handleRegionClick(feature, e);
                                 },
                                 mouseover: e => {
                                     // 高亮效果
@@ -384,7 +359,7 @@ export default {
 
                     // 添加点击事件
                     leafletMarker.on('click', () => {
-                            this.$emit('marker-click', marker);
+                        this.$emit('marker-click', marker);
                     });
 
                     // 添加详细信息弹窗
@@ -558,7 +533,31 @@ export default {
 
         // 处理区域点击
         handleRegionClick(region, event) {
-            this.$emit('region-click', region, event.originalEvent);
+            const rawName = region?.properties?.name;
+            const regionName = rawName ? rawName.trim() : '';
+
+            if (!regionName) {
+                // eslint-disable-next-line no-console
+                console.warn('区域名称缺失，点击事件已忽略');
+                return;
+            }
+
+            // 只允许百色市下辖的区/县/市进入详情
+            const allowedSuffix = /(区|县|市)$/;
+            if (!allowedSuffix.test(regionName)) {
+                return;
+            }
+
+            // 通过名称重新构造一个feature副本，避免父组件仍引用原对象
+            const sanitizedRegion = {
+                ...region,
+                properties: {
+                    ...region.properties,
+                    name: regionName
+                }
+            };
+
+            this.$emit('region-click', sanitizedRegion, event?.originalEvent || null);
         },
 
         // 处理区域悬停
@@ -658,7 +657,7 @@ export default {
 
                         // 添加点击事件
                         polygon.on('click', () => {
-                                this.$emit('field-click', fieldData);
+                            this.$emit('field-click', fieldData);
                             this.showFieldDetailPopup(fieldData);
                         });
 
@@ -736,8 +735,8 @@ export default {
                     const markerIcon = L.divIcon({
                         className: 'farming-marker',
                         html: `<div class="farming-marker-content">
-                            <div class="farming-icon" style="background: ${item.isActive ? '#FFD700' : '#4CFDEB'};">
-                                <span>${item.name}</span>
+                            <div class="farming-icon" style="background: ${ item.isActive ? '#FFD700' : '#4CFDEB' };">
+                                <span>${ item.name }</span>
                             </div>
                         </div>`,
                         iconSize: [60, 30],
@@ -766,7 +765,8 @@ export default {
                     farmingMarker.addTo(this.map);
                     this.markerLayers.push(farmingMarker);
 
-                } catch (error) {
+                }
+                catch (error) {
                     console.error('添加农事标记失败:', item, error);
                 }
             });
@@ -1254,20 +1254,20 @@ export default {
 
 .farming-icon {
     padding: 4px 8px;
-    border: 1px solid #4CFDEB;
+    border: 1px solid #4cfdeb;
     font-size: 10px;
     font-weight: bold;
     text-align: center;
     white-space: nowrap;
-    
+
     color: #000;
     border-radius: 4px;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
     cursor: pointer;
 }
 
 .farming-icon:hover {
+    box-shadow: 0 2px 8px #4cfdeb80;
     transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(76, 253, 235, 0.5);
 }
 </style>
