@@ -310,6 +310,7 @@
 import DashboardLayout from '@/components/DashboardLayout.vue';
 import WMTSTileMap from '@/components/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
+import { resolveManualPlotArea } from '@/utils/manualPlotAreas';
 
 export default {
     name: 'PlotDetail',
@@ -432,6 +433,12 @@ export default {
     },
     computed: {
         displayedPlotArea() {
+            const manualArea = resolveManualPlotArea(this.plotData?.name, this.plotData?.id);
+
+            if (Number.isFinite(manualArea)) {
+                return this.formatNumber(manualArea, 2);
+            }
+
             if (this.tileMetrics && Number.isFinite(this.tileMetrics.totalAreaMu)) {
                 return this.formatNumber(this.tileMetrics.totalAreaMu, 2);
             }
@@ -670,8 +677,31 @@ export default {
                 const response = await fetch('/demo/coordinates.json');
                 const coordinateData = await response.json();
 
-                // 查找匹配的地块坐标数据
-                const plotCoordData = coordinateData[plotId];
+                const normalizedId = typeof plotId === 'string' ? plotId.trim() : plotId;
+                const normalizedIdStr = normalizedId !== undefined && normalizedId !== null
+                    ? String(normalizedId)
+                    : '';
+                const normalizedName = typeof this.plotData?.name === 'string'
+                    ? this.plotData.name.trim()
+                    : this.plotData?.name;
+
+                let plotCoordData = coordinateData[normalizedIdStr] || coordinateData[normalizedId];
+
+                if (!plotCoordData && normalizedName && coordinateData[normalizedName]) {
+                    plotCoordData = coordinateData[normalizedName];
+                }
+
+                if (!plotCoordData && normalizedName) {
+                    plotCoordData = Object.values(coordinateData).find(item => item.name === normalizedName);
+                }
+
+                if (!plotCoordData && normalizedName && normalizedName.includes('巴塘')) {
+                    plotCoordData = coordinateData['巴塘2'] || coordinateData['巴塘'];
+                }
+
+                if (!plotCoordData && normalizedIdStr === '1002') {
+                    plotCoordData = coordinateData['巴塘2'] || coordinateData['巴塘'];
+                }
 
                 if (plotCoordData && plotCoordData.coordinates) {
 

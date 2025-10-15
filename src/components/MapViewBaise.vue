@@ -596,7 +596,9 @@ export default {
             const plotToRegion = {
                 宏哥: '右江区',
                 雷哥: '右江区',
-                巴塘2: '田林县'
+                巴塘2: '田林县',
+                巴塘: '田林县',
+                '1002': '田林县'
             };
 
             const regionPlots = {};

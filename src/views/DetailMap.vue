@@ -13,6 +13,7 @@
   >
     <template #center-map>
       <RegionDetailMap
+        :key="`detail-map-${regionName}`"
         :region-name="regionName"
         :show-plot-details="false"
         :show-plot-markers="true"
@@ -34,7 +35,7 @@ export default {
     },
     data() {
         return {
-            regionName: '',
+            regionName: this.$route.params.region || '右江区',
             // 复用Dashboard的所有数据
             weather: {
                 temperature: '26.8°C',
@@ -108,8 +109,6 @@ export default {
         }
     },
     mounted() {
-        this.regionName = this.$route.params.region || '右江区';
-
         // 启动定时器更新时间
         this.timeInterval = setInterval(() => {
             this.$forceUpdate();

@@ -830,9 +830,12 @@ export default {
                             center = this.calculatePolygonCenter(fieldData.coordinates);
                         }
 
+                        const plotName = fieldData.name || key;
+                        const plotId = plotName && plotName.includes('巴塘') ? '1002' : plotName;
+
                         const plot = {
-                            id: fieldData.name || key,
-                            name: fieldData.name || key,
+                            id: plotId,
+                            name: plotName,
                             lat: center[1],
                             lng: center[0],
                             area: fieldData.area || '未知',
@@ -1422,7 +1425,7 @@ export default {
                 this.optimizeCoordinateData(coordinateData);
 
                 // 查找匹配的地块数据
-                const plotData = coordinateData[plot.id] || coordinateData[plot.name];
+                const plotData = coordinateData[plot.name] || coordinateData[plot.id];
 
                 if (plotData && plotData.leaflet_polygon) {
                     console.log('找到demo地块数据，绘制轮廓');

@@ -66,7 +66,8 @@ const EARTH_RADIUS_METERS = 6378137; // WGS84
 const MU_IN_SQUARE_METERS = 666.6666667;
 const PRESET_TILE_DIMENSIONS = {
     1000: { cols: 10, rows: 6, offsetX: 0, offsetY: 0 },
-    1001: { cols: 9, rows: 8, offsetX: -2, offsetY: 0 }
+    1001: { cols: 9, rows: 8, offsetX: -2, offsetY: 0 },
+    1002: { cols: 8, rows: 4, offsetX: -2, offsetY: 0 }
 };
 
 export default {
@@ -103,26 +104,40 @@ export default {
             const mapping = {
                 '雷哥': 1000,
                 '宏哥': 1001,
-                '千户十亩-大楞乡基地': 1000
+                '千户十亩-大楞乡基地': 1000,
+                '巴塘2': 1002,
+                '巴塘': 1002,
+                '千户十亩-田林县那色村巴塘八角基地': 1002
             };
 
             const rawId = this.plotData?.id;
-            if (rawId !== undefined && rawId !== null) {
-                if (typeof rawId === 'number') {
-                    return rawId;
+            const normalizedId = typeof rawId === 'string' ? rawId.trim() : rawId;
+
+            if (normalizedId !== undefined && normalizedId !== null) {
+                if (typeof normalizedId === 'number') {
+                    return normalizedId;
                 }
-                const numericId = Number(rawId);
+                const numericId = Number(normalizedId);
                 if (Number.isFinite(numericId)) {
                     return numericId;
                 }
-                if (mapping[rawId]) {
-                    return mapping[rawId];
+                if (mapping[normalizedId]) {
+                    return mapping[normalizedId];
+                }
+                if (typeof normalizedId === 'string' && normalizedId.includes('巴塘')) {
+                    return 1002;
                 }
             }
 
-            const name = this.plotData?.name;
+            const name = typeof this.plotData?.name === 'string'
+                ? this.plotData.name.trim()
+                : this.plotData?.name;
+
             if (name && mapping[name]) {
                 return mapping[name];
+            }
+            if (name && name.includes && name.includes('巴塘')) {
+                return 1002;
             }
 
             return 1000;
