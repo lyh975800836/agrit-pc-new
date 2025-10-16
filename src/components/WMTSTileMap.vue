@@ -106,6 +106,20 @@
               <p><strong>描述:</strong> {{ currentPreviewImage.description || '暂无描述' }}</p>
             </div>
 
+            <!-- 农事建议 -->
+            <div class="farming-suggestion">
+              <div class="suggestion-header">
+                <span class="suggestion-icon">🌱</span>
+                <strong>智能农事建议</strong>
+              </div>
+              <div class="suggestion-content">
+                <p>✓ 该区域作物长势良好，叶色浓绿，整体健康状态优良</p>
+                <p>✓ 未发现明显病虫害迹象，无需进行病虫害防治</p>
+                <p>✓ 建议保持当前管理措施，继续观察作物生长动态</p>
+                <p>✓ 近期如遇连续阴雨天气，注意排水防涝工作</p>
+              </div>
+            </div>
+
             <div class="preview-actions">
               <button @click="closeImagePreview" class="btn btn-secondary">
                 ← 返回列表
@@ -834,11 +848,17 @@ export default {
                 z: this.zoomLevel
             };
             this.showTileImageModal = true;
-            this.showImagePreview = false;
             this.currentPreviewIndex = 0;
 
             // 加载该瓦片的图片列表
             await this.loadTileImages(x, y);
+
+            // 如果有图片，直接打开预览模式；否则显示网格视图
+            if (this.currentTileImages.length > 0) {
+                this.showImagePreview = true;
+            } else {
+                this.showImagePreview = false;
+            }
 
             // 添加键盘事件监听
             document.addEventListener('keydown', this.handleKeyboardNavigation);
@@ -1114,14 +1134,14 @@ export default {
 
 /* 瓦片图片管理弹窗样式 */
 .tile-image-modal {
-    width: 700px;
+    width: 800px;
     max-width: 90vw;
-    max-height: 80vh;
+    max-height: 90vh;
 }
 
 .tile-image-modal .modal-body {
     overflow-y: auto;
-    max-height: 60vh;
+    max-height: 75vh;
 }
 
 .tile-images-grid {
@@ -1257,8 +1277,14 @@ export default {
     flex: 1;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
-    max-height: 60vh;
+    min-height: 300px;
+    max-height: 50vh;
+}
+
+.preview-image-container img {
+    max-width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
 }
 
 .nav-btn {
@@ -1303,6 +1329,48 @@ export default {
 
 .btn-secondary:hover {
     background: #5a6268;
+}
+
+/* 农事建议样式 */
+.farming-suggestion {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+    border: 2px solid #4caf50;
+}
+
+.suggestion-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #2e7d32;
+
+    gap: 8px;
+}
+
+.suggestion-icon {
+    font-size: 20px;
+}
+
+.suggestion-content {
+    line-height: 1.8;
+}
+
+.suggestion-content p {
+    margin: 8px 0;
+    padding-left: 4px;
+    font-size: 14px;
+    color: #424242;
+}
+
+.suggestion-content p:first-child {
+    margin-top: 0;
+}
+
+.suggestion-content p:last-child {
+    margin-bottom: 0;
 }
 </style>
 
