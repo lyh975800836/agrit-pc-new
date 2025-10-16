@@ -66,8 +66,8 @@ const EARTH_RADIUS_METERS = 6378137; // WGS84
 const MU_IN_SQUARE_METERS = 666.6666667;
 const PRESET_TILE_DIMENSIONS = {
     1000: { cols: 10, rows: 6, offsetX: 0, offsetY: 0 },
-    1001: { cols: 9, rows: 8, offsetX: -2, offsetY: 0 },
-    1002: { cols: 8, rows: 4, offsetX: -2, offsetY: 0 }
+    1001: { cols: 9, rows: 10, offsetX: -2, offsetY: 0 },
+    1002: { cols: 12, rows: 6, offsetX: -2, offsetY: 0 }
 };
 
 export default {
