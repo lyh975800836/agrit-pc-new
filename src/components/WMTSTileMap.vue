@@ -2,17 +2,6 @@
   <div class="tile-map-container">
     <div class="tile-grid" ref="tileGrid">
       <div class="tile-grid-inner" :style="mapDimensions">
-        <div class="markers-overlay">
-          <div
-            v-for="marker in visibleMarkers"
-            :key="marker.id"
-            class="marker"
-            :style="getMarkerStyle(marker)"
-            @click="showMarkerImage(marker)"
-            :title="`${marker.title} (${marker.zoom_level}/${marker.tile_x}/${marker.tile_y})`"
-          ></div>
-        </div>
-
         <template v-if="tileGridRows.length">
           <div
             v-for="(row, rowIndex) in tileGridRows"
@@ -34,25 +23,94 @@
               <div v-else class="tile-placeholder" :data-state="getTileState(tile.key)">
                 <span v-if="getTileState(tile.key) === 'error'">{{ tilePlaceholderError }}</span>
               </div>
+
+              <!-- 瓦片图片数量徽章 -->
+              <div
+                v-if="getTileImageCount(tile.col, tile.row) > 0"
+                class="tile-image-count"
+                :id="`imageCount_${ tile.col }_${ tile.row }`"
+                @click="openTileImageManager(tile.col, tile.row)"
+                :title="`点击管理该瓦片的 ${ getTileImageCount(tile.col, tile.row) } 张图片`"
+              >
+                {{ getTileImageCount(tile.col, tile.row) }}
+              </div>
             </div>
           </div>
         </template>
       </div>
     </div>
 
-    <div v-if="selectedMarker" class="image-viewer-overlay" @click="closeImageViewer">
-      <div class="image-viewer" @click.stop>
-        <div class="image-viewer-header">
-          <div class="image-viewer-title">{{ selectedMarker.title || '标点图片' }}</div>
-          <button class="close-btn" @click="closeImageViewer">&times;</button>
+    <!-- 瓦片图片管理弹窗 -->
+    <div v-if="showTileImageModal" class="modal-overlay" @click="closeTileImageManager">
+      <div class="modal-content tile-image-modal" @click.stop>
+        <div class="modal-header">
+          <h3>
+            <span v-if="!showImagePreview">瓦片图片</span>
+            <span v-else>图片预览 ({{ currentPreviewIndex + 1 }}/{{ currentTileImages.length }})</span>
+            - {{ currentTilePosition.z }}/{{ currentTilePosition.x }}/{{ currentTilePosition.y }}
+          </h3>
+          <button class="close-btn" @click="closeTileImageManager">&times;</button>
         </div>
-        <div class="image-viewer-body">
-          <img :src="selectedMarker.image_url" :alt="selectedMarker.description" class="marker-image" />
-          <div class="marker-details">
-            <p><strong>坐标:</strong> {{ selectedMarker.latitude?.toFixed(6) }}, {{ selectedMarker.longitude?.toFixed(6) }}</p>
-            <p><strong>描述:</strong> {{ selectedMarker.description || '暂无描述' }}</p>
-            <p><strong>创建时间:</strong> {{ selectedMarker.created_at || '未知' }}</p>
-            <p><strong>瓦片位置:</strong> {{ selectedMarker.tile_id || '未知' }}</p>
+        <div class="modal-body">
+          <!-- 网格视图 -->
+          <div v-if="!showImagePreview">
+            <!-- 图片网格 -->
+            <div class="tile-images-grid">
+              <div
+                v-for="(image, index) in currentTileImages"
+                :key="image.id"
+                class="tile-image-item"
+                @click="openImagePreview(index)"
+              >
+                <img :src="image.image_url" :alt="`图片 ${image.id}`" />
+              </div>
+            </div>
+
+            <div v-if="currentTileImages.length === 0" class="empty-message">
+              该瓦片暂无图片
+            </div>
+          </div>
+
+          <!-- 预览视图 -->
+          <div v-else class="preview-view">
+            <div class="preview-navigation">
+              <button
+                class="nav-btn nav-prev"
+                @click.stop="previousImage"
+                :disabled="currentPreviewIndex === 0"
+                title="上一张 (←)"
+              >
+                ←
+              </button>
+
+              <div class="preview-image-container">
+                <img
+                  :src="currentPreviewImage.image_url"
+                  :alt="`图片 ${currentPreviewImage.id}`"
+                  class="marker-image"
+                />
+              </div>
+
+              <button
+                class="nav-btn nav-next"
+                @click.stop="nextImage"
+                :disabled="currentPreviewIndex === currentTileImages.length - 1"
+                title="下一张 (→)"
+              >
+                →
+              </button>
+            </div>
+
+            <div class="marker-details">
+              <p><strong>上传时间:</strong> {{ currentPreviewImage.created_at || '未知' }}</p>
+              <p><strong>描述:</strong> {{ currentPreviewImage.description || '暂无描述' }}</p>
+            </div>
+
+            <div class="preview-actions">
+              <button @click="closeImagePreview" class="btn btn-secondary">
+                ← 返回列表
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -96,7 +154,14 @@ export default {
             tileLoading: false,
             totalTileAreaSquareMeters: 0,
             tilePlaceholderError: TILE_PLACEHOLDER_ERROR,
-            currentRequestToken: null
+            currentRequestToken: null,
+            // 瓦片图片管理相关
+            showTileImageModal: false,
+            currentTilePosition: { x: 0, y: 0, z: 0 },
+            currentTileImages: [],
+            // 图片预览相关
+            showImagePreview: false,
+            currentPreviewIndex: 0
         };
     },
     computed: {
@@ -203,6 +268,12 @@ export default {
             }
             const containerHeight = this.$refs.tileGrid.clientHeight;
             return Math.ceil(containerHeight / this.tileSize) + 2;
+        },
+        currentPreviewImage() {
+            if (!this.currentTileImages.length || this.currentPreviewIndex < 0) {
+                return {};
+            }
+            return this.currentTileImages[this.currentPreviewIndex] || {};
         }
     },
     watch: {
@@ -744,6 +815,102 @@ export default {
 
         handleResize() {
             this.$forceUpdate();
+        },
+
+        // 瓦片图片管理相关方法
+        getTileImageCount(x, y) {
+            // 直接从 markers 数据中统计该瓦片位置的标点数量
+            const count = this.markers.filter(marker =>
+                marker.zoom_level === this.zoomLevel
+                && marker.tile_x === x
+                && marker.tile_y === y).length;
+            return count;
+        },
+
+        async openTileImageManager(x, y) {
+            this.currentTilePosition = {
+                x,
+                y,
+                z: this.zoomLevel
+            };
+            this.showTileImageModal = true;
+            this.showImagePreview = false;
+            this.currentPreviewIndex = 0;
+
+            // 加载该瓦片的图片列表
+            await this.loadTileImages(x, y);
+
+            // 添加键盘事件监听
+            document.addEventListener('keydown', this.handleKeyboardNavigation);
+        },
+
+        async loadTileImages(x, y) {
+            // 直接从 markers 数据中筛选该瓦片位置的所有标点
+            this.currentTileImages = this.markers.filter(marker =>
+                marker.zoom_level === this.zoomLevel
+                && marker.tile_x === x
+                && marker.tile_y === y);
+        },
+
+        closeTileImageManager() {
+            this.showTileImageModal = false;
+            this.showImagePreview = false;
+            this.currentTileImages = [];
+            this.currentPreviewIndex = 0;
+            // 移除键盘事件监听
+            document.removeEventListener('keydown', this.handleKeyboardNavigation);
+        },
+
+        // 图片预览相关方法
+        openImagePreview(index) {
+            this.currentPreviewIndex = index;
+            this.showImagePreview = true;
+        },
+
+        closeImagePreview() {
+            this.showImagePreview = false;
+            this.currentPreviewIndex = 0;
+        },
+
+        previousImage() {
+            if (this.currentPreviewIndex > 0) {
+                this.currentPreviewIndex -= 1;
+            }
+        },
+
+        nextImage() {
+            if (this.currentPreviewIndex < this.currentTileImages.length - 1) {
+                this.currentPreviewIndex += 1;
+            }
+        },
+
+        handleKeyboardNavigation(event) {
+            if (!this.showTileImageModal) {
+                return;
+            }
+
+            // 如果在预览模式
+            if (this.showImagePreview) {
+                switch (event.key) {
+                    case 'ArrowLeft':
+                        this.previousImage();
+                        break;
+                    case 'ArrowRight':
+                        this.nextImage();
+                        break;
+                    case 'Escape':
+                        this.closeImagePreview();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else {
+                // 如果在网格模式，Esc 关闭整个弹窗
+                if (event.key === 'Escape') {
+                    this.closeTileImageManager();
+                }
+            }
         }
     }
 };
@@ -829,6 +996,7 @@ export default {
     justify-content: center;
     width: 100%;
     height: 100%;
+
     background: #0a0a0a;
 }
 
@@ -915,4 +1083,226 @@ export default {
 .marker-details strong {
     color: #333;
 }
+
+/* 瓦片图片数量徽章样式 */
+.tile-image-count {
+    position: absolute;
+    z-index: 10;
+    right: 8px;
+    bottom: 8px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 24px;
+    text-align: center;
+
+    color: #fff;
+    border-radius: 12px;
+    background: #ff4757;
+    box-shadow: 0 2px 8px #ff475766;
+    transition: all .2s;
+    cursor: pointer;
+}
+
+.tile-image-count:hover {
+    background: #ff3838;
+    box-shadow: 0 4px 12px #ff475799;
+    transform: scale(1.1);
+}
+
+/* 瓦片图片管理弹窗样式 */
+.tile-image-modal {
+    width: 700px;
+    max-width: 90vw;
+    max-height: 80vh;
+}
+
+.tile-image-modal .modal-body {
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.tile-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.tile-image-item {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 100%;
+
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #0000001a;
+    transition: all .2s;
+    cursor: pointer;
+}
+
+.tile-image-item:hover {
+    box-shadow: 0 4px 16px #0003;
+    transform: translateY(-4px);
+}
+
+.tile-image-item img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.empty-message {
+    padding: 40px;
+    text-align: center;
+    color: #999;
+}
+
+/* 通用按钮样式 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    font-size: 14px;
+
+    border-radius: 4px;
+    transition: all .2s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    color: #fff;
+    background: #667eea;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+/* 模态框基础样式 */
+.modal-overlay {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+
+    background: #000000b3;
+}
+
+.modal-content {
+    position: relative;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 20px 60px #0000004d;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.close-btn {
+    padding: 5px 10px;
+    border: none;
+    font-size: 1.5em;
+
+    color: #666;
+    border-radius: 5px;
+    background: none;
+    transition: background .3s ease;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    background: #0000001a;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* 预览视图样式 */
+.preview-view {
+    padding: 10px 0;
+}
+
+.preview-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+
+    gap: 20px;
+}
+
+.preview-image-container {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    max-height: 60vh;
+}
+
+.nav-btn {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: none;
+
+    font-size: 24px;
+
+    color: #fff;
+    border-radius: 50%;
+    background: #667eeacc;
+    transition: all .2s;
+    cursor: pointer;
+}
+
+.nav-btn:disabled {
+    opacity: .3;
+    cursor: not-allowed;
+}
+
+.nav-btn:hover:not(:disabled) {
+    background: #667eea;
+    transform: scale(1.1);
+}
+
+.nav-btn:active:not(:disabled) {
+    transform: scale(.95);
+}
+
+.preview-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-secondary {
+    color: #fff;
+    background: #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
 </style>
+
