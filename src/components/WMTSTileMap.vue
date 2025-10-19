@@ -175,7 +175,10 @@ export default {
             currentTileImages: [],
             // 图片预览相关
             showImagePreview: false,
-            currentPreviewIndex: 0
+            currentPreviewIndex: 0,
+            // 响应式瓦片尺寸
+            tileSizePx: 120,
+            resizeObserver: null
         };
     },
     computed: {
@@ -232,7 +235,7 @@ export default {
             return this.markers.filter(marker => marker.zoom_level === this.zoomLevel);
         },
         tileSize() {
-            return 120;
+            return this.tileSizePx;
         },
         tileOffsetX() {
             return this.tileBounds ? this.tileBounds.minX : 0;
@@ -256,14 +259,13 @@ export default {
             return this.visibleRows;
         },
         mapDimensions() {
-            if (!this.tileBounds) {
-                return {};
-            }
+            const sizeValue = `${ this.tileSize }px`;
             const width = this.tileColumnCount * this.tileSize;
             const height = this.tileRowCount * this.tileSize;
             return {
-                width: `${ width }px`,
-                height: `${ height }px`
+                'width': `${ width }px`,
+                'height': `${ height }px`,
+                '--tile-size': sizeValue
             };
         },
         totalTileAreaMu() {
@@ -302,11 +304,16 @@ export default {
         this.loadMapData();
         window.addEventListener('resize', this.handleResize);
         this.$nextTick(() => {
-            this.handleResize();
+            this.observeTileGrid();
+            this.recalculateTileSize();
         });
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.handleResize);
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
     },
     methods: {
         async loadMapData() {
@@ -569,6 +576,7 @@ export default {
                     rows.push(cols);
                 }
                 this.tileGridRowsCache = rows;
+                this.recalculateTileSize();
                 return;
             }
 
@@ -581,6 +589,7 @@ export default {
                 fallbackRows.push(rowTiles);
             }
             this.tileGridRowsCache = fallbackRows;
+            this.recalculateTileSize();
         },
 
         async loadAllTiles(requestToken) {
@@ -828,7 +837,7 @@ export default {
         },
 
         handleResize() {
-            this.$forceUpdate();
+            this.recalculateTileSize();
         },
 
         // 瓦片图片管理相关方法
@@ -856,7 +865,8 @@ export default {
             // 如果有图片，直接打开预览模式；否则显示网格视图
             if (this.currentTileImages.length > 0) {
                 this.showImagePreview = true;
-            } else {
+            }
+            else {
                 this.showImagePreview = false;
             }
 
@@ -931,6 +941,38 @@ export default {
                     this.closeTileImageManager();
                 }
             }
+        },
+
+        observeTileGrid() {
+            const container = this.$refs.tileGrid;
+            if (!container || typeof ResizeObserver === 'undefined') {
+                return;
+            }
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+            }
+            this.resizeObserver = new ResizeObserver(() => {
+                this.recalculateTileSize();
+            });
+            this.resizeObserver.observe(container);
+        },
+
+        recalculateTileSize() {
+            this.$nextTick(() => {
+                const container = this.$refs.tileGrid;
+                const columns = (this.tileGridRows && this.tileGridRows[0]?.length) || this.tileColumnCount || 0;
+                if (!container || !columns) {
+                    return;
+                }
+                const availableWidth = container.clientWidth;
+                if (!availableWidth) {
+                    return;
+                }
+                const newSize = Math.max(80, availableWidth / columns);
+                if (Math.abs(newSize - this.tileSizePx) > 0.5) {
+                    this.tileSizePx = newSize;
+                }
+            });
         }
     }
 };
@@ -997,8 +1039,8 @@ export default {
 .tile {
     position: relative;
     flex-shrink: 0;
-    width: 120px;
-    height: 120px;
+    width: var(--tile-size, 120px);
+    height: var(--tile-size, 120px);
 
     background: #000;
 }
@@ -1335,9 +1377,10 @@ export default {
 .farming-suggestion {
     margin-top: 20px;
     padding: 15px;
+    border: 2px solid #4caf50;
+
     border-radius: 8px;
     background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
-    border: 2px solid #4caf50;
 }
 
 .suggestion-header {
@@ -1345,6 +1388,7 @@ export default {
     align-items: center;
     margin-bottom: 12px;
     font-size: 16px;
+
     color: #2e7d32;
 
     gap: 8px;
@@ -1373,4 +1417,3 @@ export default {
     margin-bottom: 0;
 }
 </style>
-

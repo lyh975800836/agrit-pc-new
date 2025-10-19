@@ -10,6 +10,7 @@
       :region-name="regionName"
       :show-back-button="true"
       :page-title="plotData.name || '地块详情'"
+      :full-screen-map="true"
       @back="handleBackClick"
     >
     <template #center-map>
@@ -989,7 +990,7 @@ export default {
     width: 160px;
     height: 3px;
     margin: 6px 0 0;
-    object-fit: contain;
+    // object-fit: contain;
 }
 
 /* 地块标题区域 */
@@ -1003,7 +1004,7 @@ export default {
     flex: 1;
     margin: 0;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 500;
 
     color: #4cfcea;
@@ -1247,7 +1248,6 @@ export default {
 .link-text {
     font-family: SourceHanSansCN-Light;
     font-size: 9px;
-    font-weight: 300;
     color: #4cfcea;
 }
 
@@ -1425,7 +1425,7 @@ export default {
 .farming-dynamics__title {
     margin: 14px 0 0;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 500;
     line-height: 16px;
 
@@ -1482,7 +1482,7 @@ export default {
 .farming-dynamics__section-title {
     margin: 12px 0 0;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
     line-height: 15px;
 
@@ -1506,7 +1506,7 @@ export default {
 .farming-dynamics__item {
     display: flex;
     align-items: center;
-    margin: 8px 0 8px 23px;
+    margin: 8px 0 8px 10px;
     padding: 4px 8px;
 
     border-radius: 4px;
@@ -1543,9 +1543,8 @@ export default {
 .farming-dynamics__item-text {
     flex: 1;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    font-weight: 300;
-    line-height: 16px;
+    font-size: 14px;
+    line-height: 17px;
 
     color: #4cfcea;
 }
@@ -1558,7 +1557,6 @@ export default {
 .farming-dynamics__status-indicators {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
     padding: 8px 16px;
 
     gap: 28px;
@@ -1573,7 +1571,7 @@ export default {
 
 .farming-dynamics__status-text {
     font-family: SourceHanSansCN-Normal;
-    font-size: 10px;
+    font-size: 12px;
     line-height: 10px;
     color: #4cfcea;
 }
@@ -1617,7 +1615,6 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 10px;
 }
 
 .farming-dynamics__warning-icon {
@@ -1630,9 +1627,8 @@ export default {
 .farming-dynamics__warning-title {
     margin: 12px 0 8px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
-    line-height: 15px;
 
     color: #4cfcea;
 }
@@ -1672,8 +1668,7 @@ export default {
 .farming-dynamics__warning-label {
     margin-right: 4px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
 
     color: #4cfcea;
@@ -1683,8 +1678,7 @@ export default {
     flex: 1;
     max-width: 120px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
     word-break: break-all;
 
@@ -1693,10 +1687,8 @@ export default {
 
 .farming-dynamics__warning-time-value {
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
-
     color: #4cfcea;
 }
 
@@ -1704,8 +1696,7 @@ export default {
     flex: 1;
     max-width: 140px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
     word-break: break-all;
 
@@ -1715,8 +1706,7 @@ export default {
 .farming-dynamics__warning-level-label {
     margin-right: 4px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
 
     color: #4cfcea;
@@ -1724,7 +1714,7 @@ export default {
 
 .farming-dynamics__warning-level-value {
     font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 14px;
 
@@ -1734,8 +1724,7 @@ export default {
 .farming-dynamics__warning-cycle-info {
     margin-top: 8px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
 
     color: #4cfcea;
@@ -1744,8 +1733,7 @@ export default {
 .farming-dynamics__warning-description {
     margin-bottom: 15px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
 
     color: #4cfcea;
@@ -1761,9 +1749,7 @@ export default {
 .farming-dynamics__trigger-time {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    font-weight: 300;
     line-height: 14px;
-
     color: #4cfcea;
 }
 
@@ -1776,9 +1762,7 @@ export default {
 .farming-dynamics__level-label {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    font-weight: 300;
     line-height: 14px;
-
     color: #4cfcea;
 }
 
@@ -1879,18 +1863,14 @@ export default {
 .farming-dynamics__treatment {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    font-weight: 300;
     line-height: 14px;
-
     color: #4cfcea;
 }
 
 .farming-dynamics__cycle {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    font-weight: 300;
     line-height: 14px;
-
     color: #4cfcea;
 }
 
@@ -1924,7 +1904,7 @@ export default {
     max-width: 100px;
     margin-right: 8px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 12px;
     white-space: nowrap;
@@ -1936,7 +1916,7 @@ export default {
 .farming-dynamics__current-label {
     padding: 2px 6px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 10px;
 
@@ -1950,7 +1930,7 @@ export default {
 
 .farming-dynamics__time-item {
     font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 10px;
 
@@ -1959,7 +1939,6 @@ export default {
 
 .farming-dynamics__time-item:last-child {
     font-family: SourceHanSansCN-Light;
-    font-weight: 300;
     line-height: 14px;
 }
 
@@ -1969,15 +1948,13 @@ export default {
 
 .farming-dynamics__time-value {
     font-family: SourceHanSansCN-Light;
-    font-weight: 300;
     color: #4cfcea;
 }
 
 .farming-dynamics__prescription {
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
 
     color: #4cfcea;
@@ -1987,8 +1964,7 @@ export default {
     width: 149px;
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
+    font-size: 12px;
     line-height: 14px;
 
     color: #4cfcea;
@@ -2006,16 +1982,14 @@ export default {
 
 .farming-dynamics__details-text {
     font-family: SourceHanSansCN-Light;
-    font-size: 9px;
-    font-weight: 300;
+    font-size: 10px;
     line-height: 13px;
-
     color: #4cfcea;
 }
 
 .farming-dynamics__details-arrow {
     font-family: FZCKJW--GB1-0;
-    font-size: 9px;
+    font-size: 10px;
     line-height: 13px;
     color: #4cfcea;
 }
@@ -2043,7 +2017,7 @@ export default {
     max-width: 100px;
     margin-right: 8px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 12px;
     white-space: nowrap;
@@ -2103,7 +2077,7 @@ export default {
     justify-content: space-between;
     box-sizing: border-box;
     width: 100%;
-    padding: 0 20px 20px;
+    padding: 0 10px 20px;
 
     gap: 10px;
 }
@@ -2125,18 +2099,17 @@ export default {
 .farming-dynamics__service-label {
     margin-bottom: 8px;
     font-family: SourceHanSansCN-Light;
-    font-size: 10px;
-    font-weight: 300;
-    line-height: 10px;
+    font-size: 12px;
+    line-height: 12px;
 
     color: #5dd7ce;
 }
 
 .farming-dynamics__service-provider {
     font-family: SourceHanSansCN-Medium;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
-    line-height: 10px;
+    line-height: 12px;
 
     color: #5dd7ce;
 }

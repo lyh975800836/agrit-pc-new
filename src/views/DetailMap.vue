@@ -9,6 +9,7 @@
     :region-name="regionName"
     :show-back-button="true"
     :page-title="regionName + '详情'"
+    :full-screen-map="true"
     @back="goBack"
   >
     <template #center-map>

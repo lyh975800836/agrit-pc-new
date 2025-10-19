@@ -10,6 +10,7 @@
     :show-back-button="false"
     :page-title="'数据驾驶舱'"
     :selected-farming-item="selectedFarmingItem"
+    :full-screen-map="true"
     @farming-item-click="handleFarmingItemClick"
   >
     <template #center-map>
