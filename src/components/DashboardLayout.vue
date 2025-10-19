@@ -202,7 +202,8 @@ export default {
     computed: {
         layoutClasses() {
             return {
-                'dashboard-layout--full-map': this.fullScreenMap
+                'dashboard-layout--full-map': this.fullScreenMap,
+                'dashboard-layout--with-bottom-nav': this.shouldShowBottomNav
             };
         },
         leftPanelShellClasses() {
@@ -335,6 +336,8 @@ export default {
 <style lang="less" scoped>
 @import "@/styles/abstracts/index.less";
 
+@bottom-nav-height: 50px;
+
 .page {
     position: relative;
     display: flex;
@@ -433,7 +436,7 @@ export default {
     position: absolute;
     z-index: 20;
     top: 0;
-    bottom: 70px;
+    bottom: (@bottom-nav-height + 20px);
     flex: 0 0 auto;
     width: min(375px, calc(50% - 40px), calc(100% - 80px));
 
@@ -581,6 +584,10 @@ export default {
     max-width: none;
 }
 
+.dashboard-layout--with-bottom-nav .group_5 {
+    padding-bottom: (@bottom-nav-height + 5px) !important;
+}
+
 /* 底部导航条样式 */
 .bottom-navigation {
     position: absolute;
@@ -588,7 +595,7 @@ export default {
     right: 0;
     bottom: 0;
     left: 0;
-    height: 50px;
+    height: @bottom-nav-height;
     border-top: 1px solid #4ccfea4d;
 
     opacity: .8;
