@@ -160,7 +160,7 @@
               </div>
 
               <div class="view-details">
-                <span class="details-link">查看详情 &gt;&gt;</span>
+                <span class="details-link" @click="handleViewDetails">查看详情 &gt;&gt;</span>
               </div>
             </div>
 
@@ -171,7 +171,7 @@
                 <span class="name-text">秋季保花施肥</span>
                 <span class="current-badge">（当前）</span>
               </div>
-              
+
               <div class="default-farming-time">
                 <div class="time-item">
                   <span class="time-label">开始时间：</span>
@@ -194,17 +194,26 @@
               </div>
 
               <div class="view-details">
-                <span class="details-link">查看详情 &gt;&gt;</span>
+                <span class="details-link" @click="handleViewDetails">查看详情 &gt;&gt;</span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 农情详情弹窗 -->
+    <FarmingDetailDialog
+      :visible="showDetailDialog"
+      :farming-item="currentFarmingItem"
+      @close="handleCloseDialog"
+    />
   </div>
 </template>
 
 <script>
+import FarmingDetailDialog from './FarmingDetailDialog.vue';
+
 // 直接使用公共路径的图片
 const images = {
     rankingPanelBg: '/images/ranking-panel-bg.png',
@@ -232,6 +241,9 @@ const images = {
 
 export default {
     name: 'RightRankingPanel',
+    components: {
+        FarmingDetailDialog
+    },
     props: {
         regionName: {
             type: String,
@@ -252,7 +264,9 @@ export default {
     },
     data() {
         return {
-            images
+            images,
+            showDetailDialog: false,
+            currentFarmingItem: null
         };
     },
     computed: {
@@ -429,6 +443,29 @@ export default {
         handleFarmingItemClick(item) {
             // 向父组件发出事件，更新选中的农事项目
             this.$emit('farming-item-click', item);
+        },
+
+        // 处理查看详情点击
+        handleViewDetails() {
+            this.currentFarmingItem = this.selectedFarmingItem || this.getDefaultFarmingItem();
+            this.showDetailDialog = true;
+        },
+
+        // 关闭详情弹窗
+        handleCloseDialog() {
+            this.showDetailDialog = false;
+        },
+
+        // 获取默认农事项目（未选中时的默认项）
+        getDefaultFarmingItem() {
+            return {
+                name: '秋季保花施肥',
+                startDate: '8月01日',
+                endDate: '8月30日',
+                description: '复合肥',
+                requirement: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。',
+                status: 'current'
+            };
         }
     }
 };

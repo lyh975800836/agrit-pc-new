@@ -110,29 +110,16 @@ module.exports = {
         const imagesRule = config.module.rule('images');
         imagesRule.uses.clear();
         imagesRule
-            .use('url-loader')
-            .loader('url-loader')
-            .options({
-                limit: 8192,
-                name: 'images/[name].[hash:8].[ext]',
-                fallback: {
-                    loader: 'file-loader',
-                    options: {
-                        name: 'images/[name].[hash:8].[ext]'
-                    }
-                }
-            });
+            .type('asset')
+            .set('parser', { dataUrlCondition: { maxSize: 8192 } })
+            .set('generator', { filename: 'images/[name].[hash:8][ext]' });
 
         // 字体文件处理
         const fontsRule = config.module.rule('fonts');
         fontsRule.uses.clear();
         fontsRule
-            .use('url-loader')
-            .loader('url-loader')
-            .options({
-                limit: 8192,
-                name: 'fonts/[name].[hash:8].[ext]'
-            });
+            .type('asset/resource')
+            .set('generator', { filename: 'fonts/[name].[hash:8][ext]' });
     },
 
     // CSS相关配置

@@ -235,7 +235,7 @@
 
               <div class="farming-dynamics__standards">{{ selectedFarmingDetails ? selectedFarmingDetails.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
 
-              <div class="farming-dynamics__view-details">
+              <div class="farming-dynamics__view-details" @click="openFarmingDetail('current')">
                 <span class="farming-dynamics__details-text">查看详情</span>
                 <span class="farming-dynamics__details-arrow">>></span>
               </div>
@@ -261,7 +261,7 @@
 
               <div class="farming-dynamics__standards">{{ nextFarmingItem ? nextFarmingItem.details.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
 
-              <div class="farming-dynamics__view-details">
+              <div class="farming-dynamics__view-details" @click="openFarmingDetail('next')">
                 <span class="farming-dynamics__details-text">查看详情</span>
                 <span class="farming-dynamics__details-arrow">>></span>
               </div>
@@ -304,6 +304,13 @@
       </div>
     </template>
     </DashboardLayout>
+
+    <!-- 耕作详情弹窗 -->
+    <FarmingDetailDialog
+      :visible="farmingDetailDialogVisible"
+      :farming-item="farmingDetailDialogContent"
+      @close="closeFarmingDetailDialog"
+    />
   </div>
 </template>
 
@@ -311,6 +318,7 @@
 import DashboardLayout from '@/components/DashboardLayout.vue';
 import WMTSTileMap from '@/components/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
+import FarmingDetailDialog from '@/components/FarmingDetailDialog.vue';
 import { resolveManualPlotArea } from '@/utils/manualPlotAreas';
 
 export default {
@@ -318,7 +326,8 @@ export default {
     components: {
         DashboardLayout,
         WMTSTileMap,
-        HealthIndicatorModal
+        HealthIndicatorModal,
+        FarmingDetailDialog
     },
     props: {
         plotId: {
@@ -429,7 +438,10 @@ export default {
                 price: '',
                 photo: '/images/farm-field-1.jpg'
             },
-            tileMetrics: null
+            tileMetrics: null,
+            // 农情详情弹窗控制
+            farmingDetailDialogVisible: false,
+            farmingDetailDialogContent: null
         };
     },
     computed: {
@@ -809,6 +821,41 @@ export default {
             if (mapComponent && typeof mapComponent.updateForFarmingActivity === 'function') {
                 mapComponent.updateForFarmingActivity(farmingItem);
             }
+        },
+
+        openFarmingDetail(section) {
+            let details = null;
+
+            if (section === 'current') {
+                details = this.selectedFarmingDetails || this.getDefaultCurrentFarmingDetails();
+            }
+
+            if (section === 'next') {
+                details = this.nextFarmingItem && this.nextFarmingItem.details ? this.nextFarmingItem.details : null;
+            }
+
+            if (!details) {
+                return;
+            }
+
+            this.farmingDetailDialogContent = { ...details };
+            this.farmingDetailDialogVisible = true;
+        },
+
+        getDefaultCurrentFarmingDetails() {
+            return {
+                title: '秋季保花施肥',
+                startDate: '8月01日',
+                endDate: '8月30日',
+                description: '处方：复合肥',
+                requirement: '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。',
+                status: 'current'
+            };
+        },
+
+        closeFarmingDetailDialog() {
+            this.farmingDetailDialogVisible = false;
+            this.farmingDetailDialogContent = null;
         },
 
         // 获取状态文本
