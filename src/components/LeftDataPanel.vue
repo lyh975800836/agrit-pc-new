@@ -1,6 +1,15 @@
 <template>
   <div class="left-data-panel" :style="getLeftPanelImageStyle('BACKGROUND')">
-    <div class="left-slide" :style="getLeftPanelImageStyle('LEFT_SLIDE')"></div>
+    <div
+      class="left-slide"
+      :style="getLeftPanelImageStyle('LEFT_SLIDE')"
+      role="button"
+      tabindex="0"
+      :aria-label="isCollapsed ? '展开左侧面板' : '收起左侧面板'"
+      @click="handleTogglePanel"
+      @keydown.enter="handleTogglePanel"
+      @keydown.space="handleTogglePanel"
+    ></div>
 
     <!-- 标题区域 -->
     <div class="panel-header">
@@ -124,11 +133,10 @@
 </template>
 
 <script>
-import imageMixin from '@/mixins/imageMixin';
+import { getCategoryImages } from '@/utils/imageManager';
 
 export default {
     name: 'LeftDataPanel',
-    mixins: [imageMixin],
 
     props: {
         projectData: {
@@ -138,6 +146,30 @@ export default {
         statisticsData: {
             type: Object,
             required: true
+        },
+        isCollapsed: {
+            type: Boolean,
+            default: false
+        }
+    },
+
+    computed: {
+        images() {
+            return getCategoryImages('LEFT_PANEL');
+        }
+    },
+
+    methods: {
+        getLeftPanelImageStyle(imageName) {
+            // Convert CONSTANT_CASE to camelCase (e.g., 'BACKGROUND' -> 'background')
+            const camelCaseKey = imageName.toLowerCase().replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+            const imageUrl = this.images[camelCaseKey];
+            return {
+                backgroundImage: `url(${imageUrl})`
+            };
+        },
+        handleTogglePanel() {
+            this.$emit('toggle-panel');
         }
     }
 };
@@ -469,6 +501,17 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+
+    &:hover {
+        opacity: 0.8;
+        transform: scaleX(1.2);
+    }
+
+    &:active {
+        transform: scaleX(0.95);
+    }
 }
 
 .data-row {

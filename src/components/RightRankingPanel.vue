@@ -23,7 +23,16 @@
 
     <!-- 排名列表 -->
     <div class="ranking-list">
-      <div class="ranking-decoration" :style="{ backgroundImage: `url(${images.rankingDecoration})` }"></div>
+      <div
+        class="ranking-decoration"
+        :style="{ backgroundImage: `url(${images.rankingDecoration})` }"
+        role="button"
+        tabindex="0"
+        :aria-label="isCollapsed ? '展开右侧面板' : '收起右侧面板'"
+        @click="handleTogglePanel"
+        @keydown.enter="handleTogglePanel"
+        @keydown.space="handleTogglePanel"
+      ></div>
       <div class="ranking-items">
         <!-- 排名项目 -->
         <div
@@ -213,31 +222,7 @@
 
 <script>
 import FarmingDetailDialog from './FarmingDetailDialog.vue';
-
-// 直接使用公共路径的图片
-const images = {
-    rankingPanelBg: '/images/ranking-panel-bg.png',
-    productionRankingHeader: '/images/production-ranking-header.png',
-    teamRankingHeader: '/images/team-ranking-header.png',
-    productionUnderline: '/images/production-underline.png',
-    teamUnderline: '/images/team-underline.png',
-    sectionDivider: '/images/section-divider.png',
-    rankingDecoration: '/images/ranking-decoration.png',
-    firstPlaceBg: '/images/first-place-bg.png',
-    secondPlaceBg: '/images/second-place-bg.png',
-    thirdPlaceBg: '/images/third-place-bg.png',
-    firstPlaceIcon: '/images/first-place-icon.png',
-    secondPlaceIcon: '/images/second-place-icon.png',
-    thirdPlaceIcon: '/images/third-place-icon.png',
-    firstManagerBg: '/images/first-manager-bg.png',
-    secondManagerBg: '/images/second-manager-bg.png',
-    thirdManagerBg: '/images/third-manager-bg.png',
-    qualityIcon: '/images/quality-icon.png',
-    qualityDivider: '/images/quality-divider.png',
-    qualityGood: '/images/quality-good.png',
-    qualityAverage: '/images/quality-average.png',
-    qualityPoor: '/images/quality-poor.png'
-};
+import { getCategoryImages } from '@/utils/imageManager';
 
 export default {
     name: 'RightRankingPanel',
@@ -260,16 +245,22 @@ export default {
         selectedFarmingItem: {
             type: Object,
             default: null
+        },
+        isCollapsed: {
+            type: Boolean,
+            default: false
         }
     },
     data() {
         return {
-            images,
             showDetailDialog: false,
             currentFarmingItem: null
         };
     },
     computed: {
+        images() {
+            return getCategoryImages('RIGHT_PANEL');
+        },
         titlePrefix() {
             return this.regionName === '百色市' ? '八角基地' : this.regionName;
         },
@@ -466,6 +457,11 @@ export default {
                 requirement: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。',
                 status: 'current'
             };
+        },
+
+        // 处理折叠/展开
+        handleTogglePanel() {
+            this.$emit('toggle-panel');
         }
     }
 };
@@ -591,6 +587,17 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+
+    &:hover {
+        opacity: 0.8;
+        transform: scaleX(1.2);
+    }
+
+    &:active {
+        transform: scaleX(0.95);
+    }
 }
 
 .ranking-items {

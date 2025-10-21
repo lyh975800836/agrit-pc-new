@@ -1,7 +1,7 @@
 <template>
   <div class="page flex-col" :class="layoutClasses">
-    <!-- 主内容层 group_2 -->
-    <div class="group_2 flex-col">
+    <!-- 主内容层 dashboard-layout__main -->
+    <div class="dashboard-layout__main flex-col">
       <!-- 头部区域 -->
       <DashboardHeader
         :weather="weather"
@@ -11,16 +11,29 @@
         @back="$emit('back')"
       />
 
-      <!-- 主体内容区域 group_4 -->
-      <div class="group_4 flex-row">
+      <!-- 主体内容区域 dashboard-layout__content -->
+      <div class="dashboard-layout__content flex-row">
         <!-- 左侧区域 - 根据插槽内容决定显示什么 -->
-        <div
+        <aside
           v-if="shouldRenderLeftPanel"
-          :class="leftPanelShellClasses"
+          :class="leftSidebarClasses"
         >
+          <!-- 左侧展开/收缩触发器 - 使用装饰图片旋转180度 -->
+          <div
+            v-if="isLeftCollapsed"
+            class="sidebar-expand-trigger sidebar-expand-trigger--left"
+            :style="{ backgroundImage: `url(${leftSlideImage})` }"
+            role="button"
+            tabindex="0"
+            :aria-label="'展开左侧面板'"
+            @click="toggleLeftPanel"
+            @keydown.enter="toggleLeftPanel"
+            @keydown.space="toggleLeftPanel"
+          ></div>
+
           <div
             v-show="!isLeftCollapsed"
-            :class="leftPanelContainerClasses"
+            class="sidebar-panel__content left-panel-container"
           >
             <template v-if="$slots['left-panel']">
               <!-- 如果有left-panel插槽，使用插槽内容 -->
@@ -31,76 +44,76 @@
               <LeftDataPanel
                 :project-data="projectData"
                 :statistics-data="statisticsData"
+                :is-collapsed="isLeftCollapsed"
+                @toggle-panel="toggleLeftPanel"
               />
             </template>
           </div>
-          <button
-            class="panel-toggle panel-toggle--left"
-            type="button"
-            :aria-expanded="(!isLeftCollapsed).toString()"
-            :aria-label="isLeftCollapsed ? '展开左侧面板' : '收起左侧面板'"
-            @click="toggleLeftPanel"
-          >
-            <span class="panel-toggle__icon">{{ isLeftCollapsed ? '›' : '‹' }}</span>
-          </button>
-        </div>
+        </aside>
 
-        <!-- 中间地图区域 group_5 - 通过插槽自定义 -->
-        <div class="group_5 flex-grow">
-          <div class="section_1 center-content">
+        <!-- 中间地图区域 dashboard-layout__map-area - 通过插槽自定义 -->
+        <div class="dashboard-layout__map-area flex-grow">
+          <div class="map-container">
             <slot name="center-map"></slot>
           </div>
 
           <!-- 底部导航条 - 只在非首页且有多级导航时显示 -->
-          <div v-if="shouldShowBottomNav" class="bottom-navigation">
-            <div class="nav-container">
-              <div class="nav-left">
-                <button class="back-btn" @click="handleBackClick">
-                  <span class="back-arrow">‹</span>
-                  <span class="back-text">返回上级</span>
+          <nav v-if="shouldShowBottomNav" class="breadcrumb-navigation" aria-label="位置导航">
+            <div class="breadcrumb-navigation__container">
+              <div class="breadcrumb-navigation__left">
+                <button class="breadcrumb-navigation__back-btn" @click="handleBackClick" type="button">
+                  <span class="breadcrumb-navigation__back-arrow">‹</span>
+                  <span class="breadcrumb-navigation__back-text">返回上级</span>
                 </button>
               </div>
 
-              <div class="nav-breadcrumb">
+              <ol class="breadcrumb-list">
                 <template v-for="(item, index) in breadcrumbs">
-                  <span
-                    :key="'item-' + index"
-                    class="breadcrumb-item"
-                    :class="{ current: item.current }"
-                    @click="handleBreadcrumbClick(item)"
-                  >
-                    {{ item.name }}
-                  </span>
-                  <span
-                    v-if="index < breadcrumbs.length - 1"
-                    :key="'sep-' + index"
-                    class="breadcrumb-separator"
-                  >
+                  <li :key="'item-' + index" class="breadcrumb-list__item">
+                    <a
+                      class="breadcrumb-list__link"
+                      :class="{ 'breadcrumb-list__link--current': item.current }"
+                      :aria-current="item.current ? 'page' : undefined"
+                      @click="handleBreadcrumbClick(item)"
                     >
-                  </span>
+                      {{ item.name }}
+                    </a>
+                    <span
+                      v-if="index < breadcrumbs.length - 1"
+                      :key="'sep-' + index"
+                      class="breadcrumb-list__separator"
+                      aria-hidden="true"
+                    >
+                      >
+                    </span>
+                  </li>
                 </template>
-              </div>
+              </ol>
             </div>
-          </div>
+          </nav>
         </div>
 
         <!-- 右侧区域 - 根据插槽内容决定显示什么 -->
-        <div
+        <aside
           v-if="shouldRenderRightPanel"
-          :class="rightPanelShellClasses"
+          :class="rightSidebarClasses"
         >
-          <button
-            class="panel-toggle panel-toggle--right"
-            type="button"
-            :aria-expanded="(!isRightCollapsed).toString()"
-            :aria-label="isRightCollapsed ? '展开右侧面板' : '收起右侧面板'"
+          <!-- 右侧展开/收缩触发器 - 使用装饰图片旋转180度 -->
+          <div
+            v-if="isRightCollapsed"
+            class="sidebar-expand-trigger sidebar-expand-trigger--right"
+            :style="{ backgroundImage: `url(${rankingDecorationImage})` }"
+            role="button"
+            tabindex="0"
+            :aria-label="'展开右侧面板'"
             @click="toggleRightPanel"
-          >
-            <span class="panel-toggle__icon">{{ isRightCollapsed ? '‹' : '›' }}</span>
-          </button>
+            @keydown.enter="toggleRightPanel"
+            @keydown.space="toggleRightPanel"
+          ></div>
+
           <div
             v-show="!isRightCollapsed"
-            :class="rightPanelContainerClasses"
+            class="sidebar-panel__content right-panel-container"
           >
             <template v-if="$slots['right-panel']">
               <!-- 如果有right-panel插槽，使用插槽内容 -->
@@ -113,11 +126,13 @@
                 :ranking-data="rankingData"
                 :quality-data="qualityData"
                 :selected-farming-item="selectedFarmingItem"
+                :is-collapsed="isRightCollapsed"
                 @farming-item-click="$emit('farming-item-click', $event)"
+                @toggle-panel="toggleRightPanel"
               />
             </template>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   </div>
@@ -127,6 +142,7 @@
 import DashboardHeader from './DashboardHeader.vue';
 import LeftDataPanel from './LeftDataPanel.vue';
 import RightRankingPanel from './RightRankingPanel.vue';
+import { getCategoryImages } from '@/utils/imageManager';
 
 export default {
     name: 'DashboardLayout',
@@ -200,44 +216,41 @@ export default {
         };
     },
     computed: {
+        // 获取展开触发器的装饰图片
+        leftSlideImage() {
+            const images = getCategoryImages('LEFT_PANEL');
+            return images.leftSlide;
+        },
+        rankingDecorationImage() {
+            const images = getCategoryImages('RIGHT_PANEL');
+            return images.rankingDecoration;
+        },
         layoutClasses() {
             return {
                 'dashboard-layout--full-map': this.fullScreenMap,
                 'dashboard-layout--with-bottom-nav': this.shouldShowBottomNav
             };
         },
-        leftPanelShellClasses() {
+        leftSidebarClasses() {
             return [
-                'panel-shell',
-                'panel-shell--left',
+                'sidebar-panel',
+                'sidebar-panel--left',
                 {
-                    'panel-shell--overlay': this.fullScreenMap,
-                    'panel-shell--overlay-left': this.fullScreenMap,
-                    'panel-shell--collapsed': this.isLeftCollapsed
+                    'sidebar-panel--overlay': this.fullScreenMap,
+                    'sidebar-panel--overlay-left': this.fullScreenMap,
+                    'sidebar-panel--collapsed': this.isLeftCollapsed
                 }
             ];
         },
-        rightPanelShellClasses() {
+        rightSidebarClasses() {
             return [
-                'panel-shell',
-                'panel-shell--right',
+                'sidebar-panel',
+                'sidebar-panel--right',
                 {
-                    'panel-shell--overlay': this.fullScreenMap,
-                    'panel-shell--overlay-right': this.fullScreenMap,
-                    'panel-shell--collapsed': this.isRightCollapsed
+                    'sidebar-panel--overlay': this.fullScreenMap,
+                    'sidebar-panel--overlay-right': this.fullScreenMap,
+                    'sidebar-panel--collapsed': this.isRightCollapsed
                 }
-            ];
-        },
-        leftPanelContainerClasses() {
-            return [
-                'panel-content',
-                'left-panel-container'
-            ];
-        },
-        rightPanelContainerClasses() {
-            return [
-                'panel-content',
-                'right-panel-container'
             ];
         },
         shouldRenderLeftPanel() {
@@ -346,55 +359,50 @@ export default {
     height: 100%;
 }
 
-.group_2 {
+.dashboard-layout__main {
     display: flex;
     flex: 1;
     flex-direction: column;
     min-height: 0;
 }
 
-// 自定义布局样式
-.group_4 {
-    position: relative !important;
-    display: flex !important;
-    flex: 1 !important;
-    flex-direction: row !important;
-    align-items: flex-start !important;
-    width: 100% !important;
+// 主体内容区域
+.dashboard-layout__content {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
     min-height: 0;
     padding: 0 10px;
-
     gap: 10px;
 }
 
-.group_5 {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    display: flex !important;
-    flex: 1 !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: stretch !important;
-    width: auto !important;
-    max-width: none !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    padding: 5px !important;
+// 地图区域
+.dashboard-layout__map-area {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    min-height: 0;
+    padding: 5px;
 }
 
-.section_1 {
-    position: relative !important;
-    display: flex !important;
-    flex: 1 !important;
-    align-items: stretch !important;
-    justify-content: stretch !important;
-    width: 100% !important;
-    min-height: 0 !important;
-}
-
-.center-content {
-    text-align: center !important;
+// 地图容器
+.map-container {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+    justify-content: stretch;
+    width: 100%;
+    min-height: 0;
 }
 
 .flex-row {
@@ -406,7 +414,8 @@ export default {
     flex-grow: 1;
 }
 
-.panel-shell {
+// 侧边栏面板
+.sidebar-panel {
     position: relative;
     z-index: 10;
     display: flex;
@@ -414,49 +423,47 @@ export default {
     flex: 0 0 375px;
     align-items: stretch;
     min-width: 0;
-
     transition: flex-basis .3s ease, width .3s ease;
 }
 
-.panel-shell--left {
+.sidebar-panel--left {
     flex-direction: row;
 }
 
-.panel-shell--right {
+.sidebar-panel--right {
     flex-direction: row;
     justify-content: flex-end;
 }
 
-.panel-shell--collapsed {
+.sidebar-panel--collapsed {
     flex: 0 0 42px;
     width: auto;
 }
 
-.panel-shell--overlay {
+.sidebar-panel--overlay {
     position: absolute;
     z-index: 20;
     top: 0;
     bottom: (@bottom-nav-height + 20px);
     flex: 0 0 auto;
     width: min(375px, calc(50% - 40px), calc(100% - 80px));
-
     pointer-events: auto;
 }
 
-.panel-shell--overlay-left {
+.sidebar-panel--overlay-left {
     left: 20px;
 }
 
-.panel-shell--overlay-right {
+.sidebar-panel--overlay-right {
     right: 20px;
 }
 
-.panel-shell--overlay.panel-shell--collapsed {
+.sidebar-panel--overlay.sidebar-panel--collapsed {
     flex: 0 0 42px;
     width: auto;
 }
 
-.panel-content {
+.sidebar-panel__content {
     position: relative;
     flex: none;
     width: 375px;
@@ -468,128 +475,104 @@ export default {
     width: 100%;
 }
 
-.panel-shell--overlay .panel-content {
+.sidebar-panel--overlay .sidebar-panel__content {
     overflow-y: auto;
     height: 100%;
 }
 
-.panel-shell--collapsed .panel-content {
+.sidebar-panel--collapsed .sidebar-panel__content {
     overflow: hidden;
 }
 
-.panel-toggle {
+// 侧边栏展开触发器 - 使用装饰图片旋转180度
+.sidebar-expand-trigger {
     position: absolute;
-    z-index: 25;
+    z-index: 15;
     top: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 72px;
-    margin: 0;
-    border: 1px solid #4ccfea73;
-
-    color: #4cfcea;
-    border-radius: 999px;
-    background: #102838e6;
-    box-shadow: 0 6px 18px #00000059;
-    transition: transform .2s ease, border-color .2s ease, background .2s ease;
-    transform: translateY(-50%);
+    width: 14px;
+    height: 279px;
     cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+    transform: translateY(-50%);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    &:hover {
+        opacity: 0.8;
+        transform: translateY(-50%) scaleX(1.2);
+    }
+
+    &:active {
+        transform: translateY(-50%) scaleX(0.95);
+    }
 }
 
-.panel-toggle:hover {
-    border-color: #4ccfeaa6;
-    background: #1c485af2;
+.sidebar-expand-trigger--left {
+    left: 0;
+    // 左侧展开用图片旋转180度
+    transform: translateY(-50%) rotateY(180deg);
+
+    &:hover {
+        transform: translateY(-50%) rotateY(180deg) scaleX(1.2);
+    }
+
+    &:active {
+        transform: translateY(-50%) rotateY(180deg) scaleX(0.95);
+    }
 }
 
-.panel-toggle:active {
-    transform: translateY(-50%) scale(.96);
+.sidebar-expand-trigger--right {
+    right: 0;
+    // 右侧展开用图片旋转180度
+    transform: translateY(-50%) rotateY(180deg);
+
+    &:hover {
+        transform: translateY(-50%) rotateY(180deg) scaleX(1.2);
+    }
+
+    &:active {
+        transform: translateY(-50%) rotateY(180deg) scaleX(0.95);
+    }
 }
 
-.panel-toggle--left {
-    right: -16px;
-}
-
-.panel-toggle--right {
-    left: -16px;
-}
-
-.panel-toggle--left:active {
-    transform: translateY(-50%) translateX(1px) scale(.96);
-}
-
-.panel-toggle--right:active {
-    transform: translateY(-50%) translateX(-1px) scale(.96);
-}
-
-.panel-shell--collapsed .panel-toggle--left {
-    right: -20px;
-}
-
-.panel-shell--collapsed .panel-toggle--right {
-    left: -20px;
-}
-
-.panel-shell--overlay .panel-toggle--left {
-    right: -14px;
-}
-
-.panel-shell--overlay .panel-toggle--right {
-    left: -14px;
-}
-
-.panel-toggle--left:hover {
-    transform: translateY(-50%) translateX(1px);
-}
-
-.panel-toggle--right:hover {
-    transform: translateY(-50%) translateX(-1px);
-}
-
-.panel-toggle__icon {
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 1;
-}
-
-.dashboard-layout--full-map .group_4 {
-    align-items: stretch !important;
-    justify-content: center !important;
+.dashboard-layout--full-map .dashboard-layout__content {
+    align-items: stretch;
+    justify-content: center;
     padding: 0 20px 20px;
     gap: 0;
 }
 
-.dashboard-layout--full-map .group_5 {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 !important;
+.dashboard-layout--full-map .dashboard-layout__map-area {
+    width: 100%;
+    max-width: none;
+    padding: 0;
 }
 
-.dashboard-layout--full-map .section_1 {
+.dashboard-layout--full-map .map-container {
     border-radius: 0;
 }
 
-.dashboard-layout--full-map .panel-shell--overlay {
+.dashboard-layout--full-map .sidebar-panel--overlay {
     max-height: calc(100% - 90px);
     pointer-events: auto;
 }
 
-.dashboard-layout--full-map .bottom-navigation {
+.dashboard-layout--full-map .breadcrumb-navigation {
     right: 20px;
     left: 20px;
 }
 
-.dashboard-layout--full-map .nav-container {
+.dashboard-layout--full-map .breadcrumb-navigation__container {
     max-width: none;
 }
 
-.dashboard-layout--with-bottom-nav .group_5 {
-    padding-bottom: (@bottom-nav-height + 5px) !important;
+.dashboard-layout--with-bottom-nav .dashboard-layout__map-area {
+    padding-bottom: (@bottom-nav-height + 5px);
 }
 
-/* 底部导航条样式 */
-.bottom-navigation {
+// 底部导航条（面包屑导航）
+.breadcrumb-navigation {
     position: absolute;
     z-index: 10;
     right: 0;
@@ -597,13 +580,11 @@ export default {
     left: 0;
     height: @bottom-nav-height;
     border-top: 1px solid #4ccfea4d;
-
-    opacity: .8;
-
+    opacity: 0.8;
     backdrop-filter: blur(10px);
 }
 
-.nav-container {
+.breadcrumb-navigation__container {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -613,25 +594,23 @@ export default {
     padding: 0 30px;
 }
 
-.nav-left {
+.breadcrumb-navigation__left {
     display: flex;
     align-items: center;
 }
 
-.back-btn {
+.breadcrumb-navigation__back-btn {
     display: flex;
     align-items: center;
     padding: 8px 16px;
     border: 1px solid #4ccfea4d;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-
     color: #4cfcea;
     border-radius: 6px;
     background: #4ccfea1a;
-    transition: all .3s ease;
+    transition: all 0.3s ease;
     cursor: pointer;
-
     gap: 8px;
 
     &:hover {
@@ -645,43 +624,52 @@ export default {
     }
 }
 
-.back-arrow {
+.breadcrumb-navigation__back-arrow {
     font-size: 18px;
     font-weight: bold;
     line-height: 1;
 }
 
-.back-text {
+.breadcrumb-navigation__back-text {
     font-size: 14px;
     font-weight: 500;
 }
 
-.nav-breadcrumb {
+// 面包屑列表
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.breadcrumb-list__item {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.breadcrumb-item {
+.breadcrumb-list__link {
     font-family: SourceHanSansCN-Regular;
     font-size: 14px;
-
     color: #5dd7ce;
-    transition: color .3s ease;
+    transition: color 0.3s ease;
     cursor: pointer;
 
-    &:not(.current):hover {
+    &:not(.breadcrumb-list__link--current):hover {
         color: #4cfcea;
     }
 
-    &.current {
+    &.breadcrumb-list__link--current {
         font-weight: 500;
         color: #4cfcea;
         cursor: default;
     }
 }
 
-.breadcrumb-separator {
+.breadcrumb-list__separator {
     font-size: 14px;
     color: #5dd7ce99;
     user-select: none;

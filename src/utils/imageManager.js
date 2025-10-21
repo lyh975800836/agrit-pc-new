@@ -110,9 +110,18 @@ export function getImagePath(category, name) {
 }
 
 /**
+ * 将 CONSTANT_CASE 转换为 camelCase
+ * @param {string} str CONSTANT_CASE 字符串
+ * @returns {string} camelCase 字符串
+ */
+function toCamelCase(str) {
+  return str.toLowerCase().replace(/_([a-z])/g, (match, letter) => letter.toUpperCase())
+}
+
+/**
  * 批量获取某个类别的所有图片
  * @param {string} category 图片类别
- * @returns {Object} 该类别的所有图片路径对象
+ * @returns {Object} 该类别的所有图片路径对象，键名转换为 camelCase
  */
 export function getCategoryImages(category) {
   const categoryImages = IMAGES[category]
@@ -120,8 +129,15 @@ export function getCategoryImages(category) {
     console.warn(`图片类别 '${category}' 不存在`)
     return {}
   }
-  
-  return { ...categoryImages }
+
+  // 将 CONSTANT_CASE 键转换为 camelCase
+  const result = {}
+  Object.keys(categoryImages).forEach(key => {
+    const camelKey = toCamelCase(key)
+    result[camelKey] = categoryImages[key]
+  })
+
+  return result
 }
 
 /**
