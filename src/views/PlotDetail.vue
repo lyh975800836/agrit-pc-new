@@ -25,8 +25,7 @@
 
     <template #left-panel>
       <!-- 左侧地块详情面板 -->
-      <div class="plot-details-panel" :style="{ backgroundImage: `url(${images.leftPanelBg})` }">
-        <div class="left-slide" :style="{ backgroundImage: `url(${images.leftSlide})` }"></div>
+      <div class="plot-details-panel">
         <!-- 装饰线 -->
         <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
 
@@ -140,7 +139,6 @@
       <div class="farming-dynamics-panel" :style="{ backgroundImage: `url(${images.rankingPanelBg})` }">
         <!-- 面板标题区域 -->
         <div class="farming-dynamics__header">
-          <img class="farming-dynamics__header-decoration" src="/images/farming-dynamic-icon.jpg" />
           <h3 class="farming-dynamics__title">农情动态</h3>
           <img class="farming-dynamics__title-divider" src="/images/divider.png" />
         </div>
@@ -152,9 +150,7 @@
             <div class="farming-dynamics__standard-section">
               <!-- 标准农事标题 -->
               <div class="farming-dynamics__section-header">
-                <img class="farming-dynamics__section-decoration" src="/images/standard-farming-icon.jpg" />
                 <h4 class="farming-dynamics__section-title">标准农事</h4>
-                <img class="farming-dynamics__section-divider" src="/images/decoration-2.jpg" />
               </div>
 
               <!-- 农事项目列表 -->
@@ -187,7 +183,6 @@
               <!-- 预警农事头部 -->
               <div class="farming-dynamics__warning-header" :style="{ backgroundImage: `url(${images.warningHeaderBg})` }">
                 <div class="farming-dynamics__warning-title-row">
-                  <img class="farming-dynamics__warning-icon" src="/images/warning-farming-icon.jpg" />
                   <h4 class="farming-dynamics__warning-title">预警农事</h4>
                   <div class="farming-dynamics__warning-alert-icon">⚠</div>
                 </div>
@@ -268,7 +263,6 @@
 
               <!-- 三农服务 -->
               <div class="farming-dynamics__services" :style="{ backgroundImage: `url(${images.threeNong})` }">
-                <img class="farming-dynamics__services-icon" src="/images/service-icon-main.jpg" />
                 <h4 class="farming-dynamics__services-title">三农服务</h4>
                 <div class="farming-dynamics__services-content">
                   <div class="farming-dynamics__service-item">
@@ -343,8 +337,6 @@ export default {
             selectedFarmingItemId: 'autumn-harvest',
             // 图片资源引用
             images: {
-                leftPanelBg: '/images/left-panel-bg.png',
-                leftSlide: '/images/left-slide.png',
                 statItem: '/images/stat-item.png',
                 farmerProfile: '/images/farmer-profile.png',
                 farmerRight: '/images/farmer-right.png',
@@ -1012,19 +1004,6 @@ export default {
     background-size: 100% 100%;
 }
 
-/* 左侧滑块装饰 */
-.left-slide {
-    position: absolute;
-    z-index: 1;
-    top: 230px;
-    right: 0;
-    width: 14px;
-    height: 279px;
-
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-}
-
 /* 装饰元素 */
 .panel-decoration-top {
     width: 100%;
@@ -1605,7 +1584,6 @@ export default {
     display: flex;
     justify-content: center;
     padding: 8px 16px;
-
     gap: 28px;
 }
 

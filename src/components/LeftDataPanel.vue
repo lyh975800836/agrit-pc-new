@@ -1,15 +1,5 @@
 <template>
-  <div class="left-data-panel" :style="getLeftPanelImageStyle('BACKGROUND')">
-    <div
-      class="left-slide"
-      :style="getLeftPanelImageStyle('LEFT_SLIDE')"
-      role="button"
-      tabindex="0"
-      :aria-label="isCollapsed ? '展开左侧面板' : '收起左侧面板'"
-      @click="handleTogglePanel"
-      @keydown.enter="handleTogglePanel"
-      @keydown.space="handleTogglePanel"
-    ></div>
+  <div class="left-data-panel">
 
     <!-- 标题区域 -->
     <div class="panel-header">
@@ -165,11 +155,8 @@ export default {
             const camelCaseKey = imageName.toLowerCase().replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
             const imageUrl = this.images[camelCaseKey];
             return {
-                backgroundImage: `url(${imageUrl})`
+                backgroundImage: `url(${ imageUrl })`
             };
-        },
-        handleTogglePanel() {
-            this.$emit('toggle-panel');
         }
     }
 };
@@ -488,30 +475,6 @@ export default {
     position: relative;
     width: 310px;
     margin: 5px 0 0 10px;
-}
-
-.left-slide {
-    position: absolute;
-    z-index: 1;
-    top: 230px;
-    right: 0;
-    width: 14px;
-    height: 279px;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    cursor: pointer;
-    transition: opacity 0.3s ease, transform 0.2s ease;
-
-    &:hover {
-        opacity: 0.8;
-        transform: scaleX(1.2);
-    }
-
-    &:active {
-        transform: scaleX(0.95);
-    }
 }
 
 .data-row {

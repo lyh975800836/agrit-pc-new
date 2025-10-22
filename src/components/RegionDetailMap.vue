@@ -8,6 +8,44 @@
       </div>
     </div>
 
+    <!-- 二级地图过滤器 -->
+    <div v-if="!isPlotDetailPage" class="plot-filter-container">
+      <div v-if="showPlotFilterBar" class="plot-filter-bar" aria-label="地块筛选">
+        <div class="plot-filter-bar__header">
+          <button
+            class="plot-filter-close"
+            type="button"
+            aria-label="关闭筛选"
+            @click="closePlotFilterBar"
+          >
+            ×
+          </button>
+        </div>
+        <div class="plot-filter-list">
+          <button
+            v-for="option in plotFilterOptions"
+            :key="option.value"
+            class="plot-filter-button"
+            :class="{ 'is-active': selectedPlotFilter === option.value }"
+            :aria-pressed="selectedPlotFilter === option.value"
+            type="button"
+            @click="changePlotFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
+      <button
+        v-else
+        class="plot-filter-toggle"
+        type="button"
+        aria-label="打开筛选"
+        @click="openPlotFilterBar"
+      >
+        筛选
+      </button>
+    </div>
+
     <!-- Leaflet地图容器 -->
     <div id="leaflet-map" class="leaflet-container" :class="{ 'map-hidden': isLoading }"></div>
 
@@ -41,6 +79,34 @@
 // 使用CDN引入的Leaflet (在index.html中已引入)
 const { L } = window;
 
+const DEFAULT_PLOT_TYPE = 'star-anise';
+const MOCK_PLOT_CONFIG = [
+    {
+        key: 'mock-tea-oil-1',
+        baseKey: '宏哥',
+        displayName: '油茶示范基地',
+        routeName: '宏哥',
+        type: 'tea-oil',
+        offset: { lat: 0.015, lng: 0.018 }
+    },
+    {
+        key: 'mock-drying-1',
+        baseKey: '雷哥',
+        displayName: '烘干示范工厂',
+        routeName: '雷哥',
+        type: 'drying-facility',
+        offset: { lat: -0.012, lng: 0.02 }
+    },
+    {
+        key: 'mock-tea-oil-2',
+        baseKey: '巴塘',
+        displayName: '油茶精品园',
+        routeName: '巴塘',
+        type: 'tea-oil',
+        offset: { lat: 0.02, lng: -0.015 }
+    }
+];
+
 export default {
     name: 'RegionDetailMap',
     props: {
@@ -70,6 +136,7 @@ export default {
             map: null,
             regionPlots: [],
             plotLayers: [],
+            plotMarkerLayers: [],
             selectedPlot: null,
             isLoading: true,
             loadingText: '正在初始化地图...',
@@ -78,6 +145,14 @@ export default {
             popupPosition: { top: 0, left: 0 }, // 弹窗位置
             popupData: null, // 弹窗数据
             connectorLine: null, // 连接线图层
+            plotFilterOptions: [
+                { label: '全部', value: 'all' },
+                { label: '八角基地', value: 'star-anise' },
+                { label: '油茶基地', value: 'tea-oil' },
+                { label: '烘干工厂', value: 'drying-facility' }
+            ],
+            selectedPlotFilter: 'all',
+            showPlotFilterBar: true,
             // 区域中心坐标
             regionCoordinates: {
                 百色市: [23.9, 106.6],
@@ -93,11 +168,11 @@ export default {
                 大楞乡: [24.236, 106.205], // 大楞乡坐标
                 新村合作地块: [24.236, 106.205] // 地块坐标
             },
-            
+
             // 区域名称到adcode的映射
             regionToAdcode: {
                 右江区: '451002',
-                田阳区: '451003', 
+                田阳区: '451003',
                 田东县: '451022',
                 德保县: '451024',
                 那坡县: '451026',
@@ -190,10 +265,13 @@ export default {
         resetComponentState() {
             this.regionPlots = [];
             this.plotLayers = [];
+            this.plotMarkerLayers = [];
             this.selectedPlot = null;
             this.currentLoadedRegion = null;
             this.showDetailPopup = false;
             this.popupData = null;
+            this.selectedPlotFilter = 'all';
+            this.showPlotFilterBar = true;
 
             if (this.connectorLine && this.map) {
                 this.map.removeLayer(this.connectorLine);
@@ -274,6 +352,218 @@ export default {
                     reject(error);
                 }
             });
+        },
+
+        extendCoordinateEntries(coordinateData) {
+            const baseEntries = Object.entries(coordinateData);
+            const mockEntries = this.createMockPlotEntries(coordinateData);
+            return [...baseEntries, ...mockEntries];
+        },
+
+        createMockPlotEntries(coordinateData) {
+            const entries = [];
+
+            MOCK_PLOT_CONFIG.forEach(config => {
+                const basePlot = coordinateData[config.baseKey];
+                if (!basePlot || !Array.isArray(basePlot.center)) {
+                    return;
+                }
+
+                const mockPlot = this.buildMockPlot(basePlot, config);
+                if (mockPlot) {
+                    entries.push([config.key, mockPlot]);
+                }
+            });
+
+            return entries;
+        },
+
+        buildMockPlot(basePlot, config) {
+            const [baseLat, baseLng] = basePlot.center;
+            if (typeof baseLat !== 'number' || typeof baseLng !== 'number') {
+                return null;
+            }
+
+            const offsetLat = config.offset?.lat || 0;
+            const offsetLng = config.offset?.lng || 0;
+
+            const mockCenter = [baseLat + offsetLat, baseLng + offsetLng];
+            const mockPolygon = Array.isArray(basePlot.leaflet_polygon)
+                ? basePlot.leaflet_polygon.map(ring =>
+                    ring.map(([lat, lng]) => [lat + offsetLat, lng + offsetLng]))
+                : basePlot.leaflet_polygon;
+
+            const baseClone = JSON.parse(JSON.stringify(basePlot));
+
+            return {
+                ...baseClone,
+                name: config.displayName,
+                displayName: config.displayName,
+                routeName: config.routeName || basePlot.name,
+                type: config.type,
+                center: mockCenter,
+                leaflet_polygon: mockPolygon
+            };
+        },
+
+        resolvePlotType(fieldData) {
+            if (fieldData && fieldData.type) {
+                return this.normalizePlotType(fieldData.type);
+            }
+            return DEFAULT_PLOT_TYPE;
+        },
+
+        normalizePlotType(plotType) {
+            switch (plotType) {
+                case 'star-anise':
+                case 'premium':
+                    return 'star-anise';
+                case 'tea-oil':
+                case 'normal':
+                    return 'tea-oil';
+                case 'drying-facility':
+                case 'average':
+                    return 'drying-facility';
+                default:
+                    return DEFAULT_PLOT_TYPE;
+            }
+        },
+
+        getPlotMarkerVisualConfig(plotType) {
+            const normalizedType = this.normalizePlotType(plotType);
+            const baseConfig = {
+                backgroundImage: '/images/star-anise.png',
+                typeClass: 'plot-type-star-anise',
+                width: 200,
+                height: 82,
+                anchorYOffset: 8,
+                positionOffset: { lat: 0, lng: 0 }
+            };
+
+            switch (normalizedType) {
+                case 'tea-oil':
+                case 'normal':
+                    return {
+                        ...baseConfig,
+                        backgroundImage: '/images/tea-oil.png',
+                        typeClass: 'plot-type-tea-oil',
+                        positionOffset: { lat: 0.05, lng: 0.08 }
+                    };
+                case 'drying-facility':
+                case 'average':
+                    return {
+                        backgroundImage: '/images/drying-facility.png',
+                        typeClass: 'plot-type-drying',
+                        width: 174,
+                        height: 82,
+                        anchorYOffset: 8,
+                        positionOffset: { lat: -0.05, lng: -0.08 }
+                    };
+                case 'star-anise':
+                case 'premium':
+                default:
+                    return { ...baseConfig };
+            }
+        },
+
+        changePlotFilter(filterValue) {
+            if (this.selectedPlotFilter === filterValue) {
+                return;
+            }
+            this.selectedPlotFilter = filterValue;
+            this.applyPlotFilter();
+        },
+
+        closePlotFilterBar() {
+            this.showPlotFilterBar = false;
+        },
+
+        openPlotFilterBar() {
+            this.showPlotFilterBar = true;
+            this.$nextTick(() => this.applyPlotFilter());
+        },
+
+        registerPlotMarker(layer, plotType) {
+            if (!layer) {
+                return;
+            }
+
+            const entry = {
+                layer,
+                type: this.normalizePlotType(plotType),
+                visible: true
+            };
+
+            this.plotMarkerLayers.push(entry);
+
+            if (layer.on) {
+                layer.on('add', () => {
+                    this.updateMarkerVisibility(entry);
+                });
+            }
+
+            this.updateMarkerVisibility(entry);
+        },
+
+        applyPlotFilter() {
+            if (!this.plotMarkerLayers.length) {
+                return;
+            }
+
+            this.plotMarkerLayers.forEach(entry => {
+                this.updateMarkerVisibility(entry);
+            });
+        },
+
+        updateMarkerVisibility(entry) {
+            if (!entry || !entry.layer) {
+                return;
+            }
+
+            const targetType = entry.type || DEFAULT_PLOT_TYPE;
+            const shouldShow = this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter;
+
+            if (!this.map) {
+                entry.visible = shouldShow;
+                return;
+            }
+
+            const { layer } = entry;
+            const element = layer.getElement ? layer.getElement() : null;
+
+            if (shouldShow) {
+                if (!this.map.hasLayer(layer)) {
+                    layer.addTo(this.map);
+                }
+
+                if (element) {
+                    element.style.display = '';
+                    element.style.pointerEvents = '';
+                    element.style.opacity = '1';
+                }
+
+                if (layer.setOpacity) {
+                    layer.setOpacity(1);
+                }
+
+                entry.visible = true;
+            }
+            else {
+                if (element) {
+                    element.style.display = 'none';
+                    element.style.pointerEvents = 'none';
+                }
+
+                if (layer.setOpacity) {
+                    layer.setOpacity(0);
+                }
+
+                if (this.map.hasLayer(layer)) {
+                    this.map.removeLayer(layer);
+                }
+
+                entry.visible = false;
+            }
         },
 
         // 添加雷哥地块的PNG图片覆盖层
@@ -577,20 +867,26 @@ export default {
                 return;
             }
 
-            plots.forEach((plot) => {
-                // 创建自定义HTML标记
-                const markerHtml = this.createPlotMarkerHtml(plot);
+            plots.forEach(plot => {
+                const visualConfig = this.getPlotMarkerVisualConfig(plot.type);
+                const { width, height, anchorYOffset, positionOffset } = visualConfig;
+                const markerHtml = this.createPlotMarkerHtml(plot, visualConfig);
 
-                // 创建Leaflet自定义标记
+                const anchorY = Math.max(height - (anchorYOffset || 0), 0);
+                const offsetLat = positionOffset?.lat || 0;
+                const offsetLng = positionOffset?.lng || 0;
+                const markerLat = plot.lat + offsetLat;
+                const markerLng = plot.lng + offsetLng;
+
                 const customIcon = L.divIcon({
-                    className: 'leaflet-marker-icon preview-mark-container',
+                    className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
                     html: markerHtml,
-                    iconSize: [105, 60],
-                    iconAnchor: [52.5, 30]
+                    iconSize: [width, height],
+                    iconAnchor: [width / 2, anchorY]
                 });
 
                 // 添加标记到地图
-                const marker = L.marker([plot.lat, plot.lng], { icon: customIcon });
+                const marker = L.marker([markerLat, markerLng], { icon: customIcon });
 
                 // 添加点击事件，跳转到三级地块详情页
                 marker.on('click', () => {
@@ -599,6 +895,10 @@ export default {
 
                 marker.addTo(this.map);
                 this.plotLayers.push(marker);
+
+                if (!this.isPlotDetailPage) {
+                    this.registerPlotMarker(marker, plot.type);
+                }
             });
 
 
@@ -627,43 +927,65 @@ export default {
                     return;
                 }
 
-                Object.entries(coordinateData).forEach(([key, fieldData]) => {
-                    console.log(`处理地块: ${ key }`, fieldData);
+                const allEntries = this.extendCoordinateEntries(coordinateData);
+
+                allEntries.forEach(([key, fieldData]) => {
+                    const plotName = fieldData.displayName || fieldData.name || key;
+                    console.log(`处理地块: ${ plotName }`, fieldData);
 
                     if (fieldData.center && fieldData.leaflet_polygon) {
-                        // 创建地块数据对象
+                        const assignedType = this.resolvePlotType(fieldData);
+                        const routeTarget = fieldData.routeName || fieldData.name;
+                        const displayName = plotName;
+
                         const plotData = {
-                            name: fieldData.name,
+                            name: displayName,
+                            displayName,
+                            routeTarget,
                             area: fieldData.area || '30',
                             output: '1970', // 产量
-                            type: ['premium', 'normal', 'average'][0], // 固定使用premium类型
+                            type: assignedType,
                             lat: fieldData.center[0],
                             lng: fieldData.center[1]
                         };
 
                         // 根据页面类型选择不同的标记样式
                         let customIcon;
+                        let markerLat = fieldData.center[0];
+                        let markerLng = fieldData.center[1];
                         if (this.isPlotDetailPage) {
                             // 三级地图：使用简单的图片标记
                             customIcon = L.divIcon({
                                 className: 'preview-mark-container',
-                                html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${ fieldData.name }" />`,
+                                html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${ displayName }" />`,
                                 iconSize: [40, 50],
                                 iconAnchor: [20, 50]
                             });
                         }
                         else {
                             // 二级地图：使用HTML地块标记
-                            const markerHtml = this.createPlotMarkerHtml(plotData);
+                            const visualConfig = this.getPlotMarkerVisualConfig(plotData.type);
+                            const { width, height, anchorYOffset, positionOffset } = visualConfig;
+                            const markerHtml = this.createPlotMarkerHtml(plotData, visualConfig);
+
+                            const anchorY = Math.max(height - (anchorYOffset || 0), 0);
+                            const offsetLat = positionOffset?.lat || 0;
+                            const offsetLng = positionOffset?.lng || 0;
+                            markerLat += offsetLat;
+                            markerLng += offsetLng;
+
                             customIcon = L.divIcon({
-                                className: 'leaflet-marker-icon preview-mark-container',
+                                className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
                                 html: markerHtml,
-                                iconSize: [105, 60],
-                                iconAnchor: [52.5, 30]
+                                iconSize: [width, height],
+                                iconAnchor: [width / 2, anchorY]
                             });
                         }
 
-                        const plotMarker = L.marker([fieldData.center[0], fieldData.center[1]], {
+                        const plotMarker = L.marker([
+                            markerLat,
+                            markerLng
+                        ], {
                             icon: customIcon
                         }).addTo(this.map);
 
@@ -675,12 +997,17 @@ export default {
                             }
                             else {
                                 // 二级地图页面：跳转到三级地图页面
-                                this.$router.push(`/plot/${ encodeURIComponent(fieldData.name) }`);
+                                const targetName = routeTarget || plotData.name;
+                                this.$router.push(`/plot/${ encodeURIComponent(targetName) }`);
                             }
                         });
 
                         // 将标记添加到图层数组，用于地图视野调整
                         this.plotLayers.push(plotMarker);
+
+                        if (!this.isPlotDetailPage) {
+                            this.registerPlotMarker(plotMarker, assignedType);
+                        }
 
                     }
                 });
@@ -722,6 +1049,12 @@ export default {
                     </div>
                 `);
 
+                this.plotLayers.push(plotMarker);
+
+                if (!this.isPlotDetailPage) {
+                    this.registerPlotMarker(plotMarker, DEFAULT_PLOT_TYPE);
+                }
+
             });
         },
 
@@ -732,13 +1065,17 @@ export default {
                 // 转换center坐标：WGS84 -> GCJ-02
                 const [lat, lng] = fieldData.center;
                 const [gcjLng, gcjLat] = this.wgs84ToGcj02(lng, lat);
+                const resolvedName = fieldData.displayName || fieldData.name || plotName;
+                const routeTarget = fieldData.routeName || plotName;
 
                 // 创建地块数据对象
                 const plotData = {
-                    name: fieldData.name,
+                    name: resolvedName,
+                    displayName: resolvedName,
+                    routeTarget,
                     area: fieldData.area || '30',
                     output: '1970',
-                    type: 'premium',
+                    type: this.resolvePlotType(fieldData),
                     lat: gcjLat,
                     lng: gcjLng
                 };
@@ -746,7 +1083,7 @@ export default {
                 // 三级地图：使用简单的图片标记
                 const customIcon = L.divIcon({
                     className: 'preview-mark-container',
-                    html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${ fieldData.name }" />`,
+                    html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${ resolvedName }" />`,
                     iconSize: [40, 50],
                     iconAnchor: [20, 50]
                 });
@@ -757,7 +1094,7 @@ export default {
 
                 // 添加点击事件显示预览弹窗
                 plotMarker.on('click', () => {
-                    console.log(`点击了${ fieldData.name }地块`);
+                    console.log(`点击了${ resolvedName }地块`);
                     this.showPlotDetailPopup([gcjLat, gcjLng], plotData);
                 });
 
@@ -818,7 +1155,9 @@ export default {
                 const coordinateData = await response.json();
                 const plots = [];
 
-                Object.entries(coordinateData).forEach(([key, fieldData]) => {
+                const allEntries = this.extendCoordinateEntries(coordinateData);
+
+                allEntries.forEach(([key, fieldData]) => {
                     console.log(`处理地块: ${ key }`, fieldData);
 
                     if (fieldData.coordinates && fieldData.coordinates.length > 0) {
@@ -830,7 +1169,7 @@ export default {
                             center = this.calculatePolygonCenter(fieldData.coordinates);
                         }
 
-                        const plotName = fieldData.name || key;
+                        const plotName = fieldData.displayName || fieldData.name || key;
                         const plotId = plotName && plotName.includes('巴塘') ? '1002' : plotName;
 
                         const plot = {
@@ -840,7 +1179,7 @@ export default {
                             lng: center[0],
                             area: fieldData.area || '未知',
                             output: Math.floor(Math.random() * 20) + 5,
-                            type: 'premium',
+                            type: this.resolvePlotType(fieldData),
                             coordinates: fieldData.coordinates
                         };
 
@@ -903,28 +1242,30 @@ export default {
         },
 
         // 创建地块标记HTML
-        createPlotMarkerHtml(plot) {
-            let backgroundImage;
-            switch (plot.type) {
-                case 'premium':
-                    backgroundImage = '/images/premium-plot-bg.png'; // 黄色背景
-                    break;
-                case 'normal':
-                    backgroundImage = '/images/normal-plot-bg.png'; // 蓝色背景
-                    break;
-                case 'average':
-                    backgroundImage = '/images/alternative-plot-bg.png'; // 红色背景
-                    break;
-                default:
-                    backgroundImage = '/images/premium-plot-bg.png';
+        createPlotMarkerHtml(plot, visualConfig = null) {
+            const { backgroundImage, typeClass } = visualConfig || this.getPlotMarkerVisualConfig(plot.type);
+            const displayName = plot.displayName || plot.name;
+            const showArea = plot.type !== 'drying-facility' && plot.type !== 'average';
+
+            const infoParts = [];
+            if (showArea) {
+                infoParts.push('<span class="info-label">面积</span>');
+                infoParts.push(`<span class="info-value">${ plot.area }</span>`);
+                infoParts.push('<span class="info-unit">亩</span>');
             }
 
-            return `<div class="plot-marker" style="background-image: url('${ backgroundImage }')">
+            infoParts.push('<span class="info-label">产量</span>');
+            infoParts.push(`<span class="info-value">${ plot.output }</span>`);
+            infoParts.push('<span class="info-unit">吨</span>');
+
+            if (showArea) {
+                infoParts.splice(3, 0, '<span class="info-separator">|</span>');
+            }
+
+            return `<div class="plot-marker ${ typeClass }" style="background-image: url('${ backgroundImage }')">
               <div class="plot-content">
-                <div class="plot-name">${ plot.name }</div>
-                <div class="plot-info">
-                  <span class="area-label">面积：</span><span class="area-value">${ plot.area }</span><span class="area-unit">亩 | 产量：</span><span class="output-value">${ plot.output }</span><span class="output-unit">吨</span>
-                </div>
+                <div class="plot-name">${ displayName }</div>
+                <div class="plot-info">${ infoParts.join('') }</div>
               </div>
             </div>`;
         },
@@ -935,6 +1276,7 @@ export default {
                 this.map.removeLayer(layer);
             });
             this.plotLayers = [];
+            this.plotMarkerLayers = [];
         },
 
         // 分批添加地块到地图
@@ -2152,7 +2494,8 @@ export default {
         goToPlotDetail() {
             if (this.popupData && this.popupData.name) {
                 this.closePlotDetailPopup();
-                this.$router.push(`/plot/${ encodeURIComponent(this.popupData.name) }`);
+                const targetName = this.popupData.routeTarget || this.popupData.name;
+                this.$router.push(`/plot/${ encodeURIComponent(targetName) }`);
             }
         },
 
@@ -2355,6 +2698,135 @@ export default {
     z-index: 1;
     width: 100%;
     height: 100%;
+}
+
+.plot-filter-container {
+    position: absolute;
+    z-index: 1200;
+    top: 0;
+    right: 375px;
+}
+
+.plot-filter-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 12px 48px 39px;
+
+    opacity: .9;
+    border-radius: 4px;
+    background: #00282a;
+
+    gap: 38px;
+}
+
+.plot-filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    color: #b7fef7;
+}
+
+.plot-filter-close {
+    position: absolute;
+    right: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 23px;
+    height: 23px;
+    border: 1px solid #4cfdeb59;
+    font-size: 18px;
+    line-height: 1;
+
+    color: #b7fef7;
+    border-radius: 50%;
+    background: transparent;
+    transition: all .2s ease;
+    cursor: pointer;
+}
+
+.plot-filter-close:hover,
+.plot-filter-close:focus {
+    border-color: #4cfdeb;
+
+    color: #051921;
+    outline: none;
+    background: #4cfdeb4d;
+    box-shadow: 0 0 10px #4cfdeb73;
+}
+
+.plot-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 38px;
+}
+
+.plot-filter-button {
+    width: 129px;
+    min-width: 0;
+    height: 37px;
+    border: 1px solid #4cfdeb59;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 37px;
+    letter-spacing: .5px;
+
+    color: #b7fef7;
+    border-radius: 4px;
+    background: #0c283ca6;
+    transition: all .2s ease;
+    cursor: pointer;
+}
+
+.plot-filter-button:hover,
+.plot-filter-button:focus {
+    border-color: #4cfdeb;
+
+    color: #fff;
+    outline: none;
+    background: #4cfdeb4d;
+    box-shadow: 0 0 10px #4cfdeb80;
+}
+
+.plot-filter-button.is-active {
+    border-color: #4cfdeb;
+    color: #051921;
+    background: linear-gradient(135deg, #4cfdeb 0%, #1c9fff 100%);
+    box-shadow: 0 10px 24px #4cfdeb66;
+}
+
+.plot-filter-button.is-active:hover,
+.plot-filter-button.is-active:focus {
+    color: #051921;
+}
+
+.plot-filter-toggle {
+    padding: 8px 18px;
+    border: 1px solid #4cfdeb73;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .5px;
+
+    color: #b7fef7;
+    border-radius: 999px;
+    background: #050f1ad1;
+    box-shadow: 0 10px 24px #0000004d;
+    transition: all .2s ease;
+    cursor: pointer;
+
+    backdrop-filter: blur(12px);
+}
+
+.plot-filter-toggle:hover,
+.plot-filter-toggle:focus {
+    border-color: #4cfdeb;
+
+    color: #051921;
+    outline: none;
+    background: linear-gradient(135deg, #4cfdeb 0%, #1c9fff 100%);
+    box-shadow: 0 10px 24px #4cfdeb66;
 }
 
 
@@ -2623,6 +3095,58 @@ export default {
         padding: 2px 6px !important;
         font-size: 9px !important;
     }
+
+    .plot-filter-container {
+        top: 12px;
+    }
+
+    .plot-filter-bar {
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .plot-filter-list {
+        gap: 8px;
+    }
+
+    .plot-filter-button {
+        padding: 6px 10px;
+        font-size: 12px !important;
+    }
+
+    .plot-marker {
+        width: 150px !important;
+        height: 68px !important;
+    }
+
+    .plot-marker.plot-type-star-anise,
+    .plot-marker.plot-type-tea-oil {
+        width: 160px !important;
+    }
+
+    .plot-marker.plot-type-drying {
+        width: 140px !important;
+    }
+
+    .plot-marker.plot-type-star-anise .plot-content,
+    .plot-marker.plot-type-tea-oil .plot-content {
+        padding-right: 12px !important;
+        padding-left: 68px !important;
+    }
+
+    .plot-marker.plot-type-drying .plot-content {
+        padding-right: 68px !important;
+        padding-left: 12px !important;
+    }
+
+    .plot-name {
+        font-size: 11px !important;
+        line-height: 16px !important;
+    }
+
+    .plot-info .info-value {
+        font-size: 11px !important;
+    }
 }
 
 .custom-plot-marker {
@@ -2633,60 +3157,96 @@ export default {
 
 .plot-marker {
     position: relative;
-    width: 120px !important;
-    height: 60px !important;
+    display: flex !important;
+    align-items: center !important;
 
-    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    width: 184px !important;
+    height: 82px !important;
+
+    border-radius: 12px !important;
+    background-repeat: no-repeat !important;
     background-size: 100% 100% !important;
     cursor: pointer;
 
     filter: drop-shadow(0 2px 8px #0000004d);
 }
 
+.plot-marker.plot-type-star-anise,
+.plot-marker.plot-type-tea-oil {
+    width: 200px !important;
+}
+
+.plot-marker.plot-type-drying {
+    width: 174px !important;
+}
+
 .plot-content {
-    height: 48px !important;
-    padding: 5px 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 4px 16px !important;
+
+    gap: 4px !important;
+}
+
+.plot-marker.plot-type-star-anise .plot-content,
+.plot-marker.plot-type-tea-oil .plot-content {
+    padding-right: 18px !important;
+    padding-left: 62px !important;
+}
+
+.plot-marker.plot-type-drying .plot-content {
+    padding-top: 8px !important;
+    padding-left: 12px !important;
 }
 
 .plot-name {
     overflow: hidden;
-    max-width: 100px !important;
-    margin-bottom: 2px !important;
-    font-size: 9px !important;
+    max-width: 100% !important;
+    font-size: 12px !important;
     font-weight: bold !important;
-    line-height: 14px !important;
+    line-height: 18px !important;
     white-space: nowrap;
     text-overflow: ellipsis;
 
     color: #fff !important;
+    text-shadow: 0 1px 4px #00000059 !important;
 }
 
 .plot-info {
-    display: block !important;
-    overflow: hidden !important;
-    width: 100% !important;
-    font-size: 8px !important;
-    line-height: 11px !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: baseline !important;
 
     color: #fff !important;
+
+    gap: 2px !important;
 }
 
-.area-label,
-.area-unit,
-.output-label,
-.output-unit {
-    font-size: 9px !important;
+.plot-info .info-label {
+    font-size: 10px !important;
     color: #ffffffe6 !important;
 }
 
-.area-value,
-.output-value {
-    margin: 0 1px !important;
-    font-size: 9px !important;
+.plot-info .info-value {
+    font-size: 12px !important;
     font-weight: bold !important;
     color: #fff !important;
+}
+
+.plot-info .info-unit {
+    font-size: 10px !important;
+    color: #ffffffe6 !important;
+}
+
+.plot-info .info-separator {
+    padding: 0 2px !important;
+    font-size: 10px !important;
+    color: #ffffffe6 !important;
 }
 
 /* 悬停效果 */

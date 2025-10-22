@@ -23,16 +23,6 @@
 
     <!-- 排名列表 -->
     <div class="ranking-list">
-      <div
-        class="ranking-decoration"
-        :style="{ backgroundImage: `url(${images.rankingDecoration})` }"
-        role="button"
-        tabindex="0"
-        :aria-label="isCollapsed ? '展开右侧面板' : '收起右侧面板'"
-        @click="handleTogglePanel"
-        @keydown.enter="handleTogglePanel"
-        @keydown.space="handleTogglePanel"
-      ></div>
       <div class="ranking-items">
         <!-- 排名项目 -->
         <div
@@ -245,10 +235,6 @@ export default {
         selectedFarmingItem: {
             type: Object,
             default: null
-        },
-        isCollapsed: {
-            type: Boolean,
-            default: false
         }
     },
     data() {
@@ -457,11 +443,6 @@ export default {
                 requirement: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。',
                 status: 'current'
             };
-        },
-
-        // 处理折叠/展开
-        handleTogglePanel() {
-            this.$emit('toggle-panel');
         }
     }
 };
@@ -573,37 +554,12 @@ export default {
 .ranking-list {
     position: relative;
     width: 340px;
-    margin: 13px 0 0 -29px;
-}
-
-.ranking-decoration {
-    position: absolute;
-    z-index: 1;
-    top: 114px;
-    left: 0;
-    width: 14px;
-    height: 279px;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    cursor: pointer;
-    transition: opacity 0.3s ease, transform 0.2s ease;
-
-    &:hover {
-        opacity: 0.8;
-        transform: scaleX(1.2);
-    }
-
-    &:active {
-        transform: scaleX(0.95);
-    }
+    margin: 13px 0 0 0;
 }
 
 .ranking-items {
     display: flex;
     flex-direction: column;
-    margin-left: 20px;
     gap: 18px;
 }
 

@@ -18,7 +18,7 @@
           v-if="shouldRenderLeftPanel"
           :class="leftSidebarClasses"
         >
-          <!-- 左侧展开/收缩触发器 - 使用装饰图片旋转180度 -->
+          <!-- 左侧展开/收缩触发器 - 统一装饰把手 -->
           <div
             v-if="isLeftCollapsed"
             class="sidebar-expand-trigger sidebar-expand-trigger--left"
@@ -32,12 +32,28 @@
           ></div>
 
           <div
+            v-if="!isLeftCollapsed"
+            class="sidebar-collapse-trigger sidebar-collapse-trigger--left"
+            :style="{ backgroundImage: `url(${leftSlideImage})` }"
+            role="button"
+            tabindex="0"
+            :aria-label="'收起左侧面板'"
+            @click="toggleLeftPanel"
+            @keydown.enter="toggleLeftPanel"
+            @keydown.space="toggleLeftPanel"
+          ></div>
+
+          <div
             v-show="!isLeftCollapsed"
             class="sidebar-panel__content left-panel-container"
           >
-            <template v-if="$slots['left-panel']">
+            <template v-if="hasCustomLeftPanel">
               <!-- 如果有left-panel插槽，使用插槽内容 -->
-              <slot name="left-panel"></slot>
+              <slot
+                name="left-panel"
+                :toggle-left-panel="toggleLeftPanel"
+                :is-left-collapsed="isLeftCollapsed"
+              ></slot>
             </template>
             <template v-else>
               <!-- 默认显示数据展示区域 -->
@@ -45,7 +61,6 @@
                 :project-data="projectData"
                 :statistics-data="statisticsData"
                 :is-collapsed="isLeftCollapsed"
-                @toggle-panel="toggleLeftPanel"
               />
             </template>
           </div>
@@ -98,7 +113,7 @@
           v-if="shouldRenderRightPanel"
           :class="rightSidebarClasses"
         >
-          <!-- 右侧展开/收缩触发器 - 使用装饰图片旋转180度 -->
+          <!-- 右侧展开/收缩触发器 - 统一装饰把手 -->
           <div
             v-if="isRightCollapsed"
             class="sidebar-expand-trigger sidebar-expand-trigger--right"
@@ -112,12 +127,28 @@
           ></div>
 
           <div
+            v-if="!isRightCollapsed"
+            class="sidebar-collapse-trigger sidebar-collapse-trigger--right"
+            :style="{ backgroundImage: `url(${rankingDecorationImage})` }"
+            role="button"
+            tabindex="0"
+            :aria-label="'收起右侧面板'"
+            @click="toggleRightPanel"
+            @keydown.enter="toggleRightPanel"
+            @keydown.space="toggleRightPanel"
+          ></div>
+
+          <div
             v-show="!isRightCollapsed"
             class="sidebar-panel__content right-panel-container"
           >
-            <template v-if="$slots['right-panel']">
+            <template v-if="hasCustomRightPanel">
               <!-- 如果有right-panel插槽，使用插槽内容 -->
-              <slot name="right-panel"></slot>
+              <slot
+                name="right-panel"
+                :toggle-right-panel="toggleRightPanel"
+                :is-right-collapsed="isRightCollapsed"
+              ></slot>
             </template>
             <template v-else>
               <!-- 默认显示排名区域 -->
@@ -126,9 +157,7 @@
                 :ranking-data="rankingData"
                 :quality-data="qualityData"
                 :selected-farming-item="selectedFarmingItem"
-                :is-collapsed="isRightCollapsed"
                 @farming-item-click="$emit('farming-item-click', $event)"
-                @toggle-panel="toggleRightPanel"
               />
             </template>
           </div>
@@ -139,10 +168,10 @@
 </template>
 
 <script>
+import { getCategoryImages } from '@/utils/imageManager';
 import DashboardHeader from './DashboardHeader.vue';
 import LeftDataPanel from './LeftDataPanel.vue';
 import RightRankingPanel from './RightRankingPanel.vue';
-import { getCategoryImages } from '@/utils/imageManager';
 
 export default {
     name: 'DashboardLayout',
@@ -253,6 +282,12 @@ export default {
                 }
             ];
         },
+        hasCustomLeftPanel() {
+            return Boolean(this.$slots['left-panel'] || this.$scopedSlots['left-panel']);
+        },
+        hasCustomRightPanel() {
+            return Boolean(this.$slots['right-panel'] || this.$scopedSlots['right-panel']);
+        },
         shouldRenderLeftPanel() {
             return !this.hideLeftPanel;
         },
@@ -347,9 +382,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import "@/styles/abstracts/index.less";
-
-@bottom-nav-height: 50px;
+@bottom-nav-height: 50px;@import "@/styles/abstracts/index.less";
 
 .page {
     position: relative;
@@ -376,6 +409,7 @@ export default {
     width: 100%;
     min-height: 0;
     padding: 0 10px;
+
     gap: 10px;
 }
 
@@ -423,6 +457,9 @@ export default {
     flex: 0 0 375px;
     align-items: stretch;
     min-width: 0;
+
+    opacity: .9;
+    background: #00282a;
     transition: flex-basis .3s ease, width .3s ease;
 }
 
@@ -447,6 +484,7 @@ export default {
     bottom: (@bottom-nav-height + 20px);
     flex: 0 0 auto;
     width: min(375px, calc(50% - 40px), calc(100% - 80px));
+
     pointer-events: auto;
 }
 
@@ -465,6 +503,7 @@ export default {
 
 .sidebar-panel__content {
     position: relative;
+    overflow-y: auto;
     flex: none;
     width: 375px;
     max-width: 100%;
@@ -475,13 +514,27 @@ export default {
     width: 100%;
 }
 
+.left-panel-container {
+    padding-right: 18px;
+}
+
 .sidebar-panel--overlay .sidebar-panel__content {
-    overflow-y: auto;
     height: 100%;
 }
 
 .sidebar-panel--collapsed .sidebar-panel__content {
     overflow: hidden;
+}
+
+/* 隐藏默认滚动条，仅保留滚动功能 */
+.sidebar-panel__content::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.sidebar-panel__content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 // 侧边栏展开触发器 - 使用装饰图片旋转180度
@@ -491,48 +544,125 @@ export default {
     top: 50%;
     width: 14px;
     height: 279px;
-    cursor: pointer;
-    transition: opacity 0.3s ease, transform 0.2s ease;
-    transform: translateY(-50%);
+
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
+    transition: opacity .3s ease, transform .2s ease;
+    transform: translateY(-50%);
+    cursor: pointer;
 
     &:hover {
-        opacity: 0.8;
+        opacity: .8;
         transform: translateY(-50%) scaleX(1.2);
     }
 
     &:active {
-        transform: translateY(-50%) scaleX(0.95);
+        transform: translateY(-50%) scaleX(.95);
+    }
+}
+
+.sidebar-collapse-trigger {
+    position: absolute;
+    z-index: 15;
+    top: 50%;
+    width: 14px;
+    height: 279px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    transition: opacity .3s ease, transform .2s ease;
+    transform: translateY(-50%);
+    cursor: pointer;
+
+    &:hover {
+        opacity: .8;
+        transform: translateY(-50%) scaleX(1.1);
+    }
+
+    &:active {
+        transform: translateY(-50%) scaleX(.95);
+    }
+}
+
+.sidebar-collapse-trigger {
+    position: absolute;
+    z-index: 15;
+    top: 50%;
+    width: 14px;
+    height: 279px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    transition: opacity .3s ease, transform .2s ease;
+    transform: translateY(-50%);
+    cursor: pointer;
+
+    &:hover {
+        opacity: .8;
+        transform: translateY(-50%) scaleX(1.1);
+    }
+
+    &:active {
+        transform: translateY(-50%) scaleX(.95);
     }
 }
 
 .sidebar-expand-trigger--left {
-    left: 0;
-    // 左侧展开用图片旋转180度
-    transform: translateY(-50%) rotateY(180deg);
+    right: 0;
+    left: auto;
+    transform: translateY(-50%);
 
     &:hover {
-        transform: translateY(-50%) rotateY(180deg) scaleX(1.2);
+        transform: translateY(-50%) scaleX(1.2);
     }
 
     &:active {
-        transform: translateY(-50%) rotateY(180deg) scaleX(0.95);
+        transform: translateY(-50%) scaleX(.95);
+    }
+}
+
+.sidebar-collapse-trigger--left {
+    right: 0;
+    left: auto;
+    transform: translateY(-50%);
+
+    &:hover {
+        transform: translateY(-50%) scaleX(1.1);
+    }
+
+    &:active {
+        transform: translateY(-50%) scaleX(.95);
     }
 }
 
 .sidebar-expand-trigger--right {
-    right: 0;
-    // 右侧展开用图片旋转180度
-    transform: translateY(-50%) rotateY(180deg);
+    right: auto;
+    left: 0;
+    transform: translateY(-50%);
 
     &:hover {
-        transform: translateY(-50%) rotateY(180deg) scaleX(1.2);
+        transform: translateY(-50%) scaleX(1.2);
     }
 
     &:active {
-        transform: translateY(-50%) rotateY(180deg) scaleX(0.95);
+        transform: translateY(-50%) scaleX(.95);
+    }
+}
+
+.sidebar-collapse-trigger--right {
+    right: auto;
+    left: 0;
+    transform: translateY(-50%);
+
+    &:hover {
+        transform: translateY(-50%) scaleX(1.1);
+    }
+
+    &:active {
+        transform: translateY(-50%) scaleX(.95);
     }
 }
 
@@ -580,7 +710,9 @@ export default {
     left: 0;
     height: @bottom-nav-height;
     border-top: 1px solid #4ccfea4d;
-    opacity: 0.8;
+
+    opacity: .8;
+
     backdrop-filter: blur(10px);
 }
 
@@ -606,11 +738,13 @@ export default {
     border: 1px solid #4ccfea4d;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
+
     color: #4cfcea;
     border-radius: 6px;
     background: #4ccfea1a;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
     cursor: pointer;
+
     gap: 8px;
 
     &:hover {
@@ -639,10 +773,12 @@ export default {
 .breadcrumb-list {
     display: flex;
     align-items: center;
-    gap: 8px;
-    list-style: none;
     margin: 0;
     padding: 0;
+
+    list-style: none;
+
+    gap: 8px;
 }
 
 .breadcrumb-list__item {
@@ -654,8 +790,9 @@ export default {
 .breadcrumb-list__link {
     font-family: SourceHanSansCN-Regular;
     font-size: 14px;
+
     color: #5dd7ce;
-    transition: color 0.3s ease;
+    transition: color .3s ease;
     cursor: pointer;
 
     &:not(.breadcrumb-list__link--current):hover {
