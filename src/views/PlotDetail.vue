@@ -314,6 +314,7 @@ import WMTSTileMap from '@/components/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
 import FarmingDetailDialog from '@/components/FarmingDetailDialog.vue';
 import { resolveManualPlotArea } from '@/utils/manualPlotAreas';
+import { getAllPlotNames } from '@/utils/plotConfig';
 
 export default {
     name: 'PlotDetail',
@@ -686,43 +687,39 @@ export default {
                 const normalizedIdStr = normalizedId !== undefined && normalizedId !== null
                     ? String(normalizedId)
                     : '';
-                const normalizedName = typeof this.plotData?.name === 'string'
-                    ? this.plotData.name.trim()
-                    : this.plotData?.name;
 
                 let plotCoordData = coordinateData[normalizedIdStr] || coordinateData[normalizedId];
 
-                if (!plotCoordData && normalizedName && coordinateData[normalizedName]) {
-                    plotCoordData = coordinateData[normalizedName];
+                // 使用统一的别名查找逻辑
+                if (!plotCoordData && this.plotData?.name) {
+                    const allNames = getAllPlotNames(plotId);
+                    for (const name of allNames) {
+                        if (coordinateData[name]) {
+                            plotCoordData = coordinateData[name];
+                            break;
+                        }
+                    }
                 }
 
-                if (!plotCoordData && normalizedName) {
+                // 备用方案：通过name属性查找
+                if (!plotCoordData && this.plotData?.name) {
+                    const normalizedName = typeof this.plotData.name === 'string'
+                        ? this.plotData.name.trim()
+                        : this.plotData.name;
                     plotCoordData = Object.values(coordinateData).find(item => item.name === normalizedName);
                 }
 
-                if (!plotCoordData && normalizedName && normalizedName.includes('巴塘')) {
-                    plotCoordData = coordinateData['巴塘2'] || coordinateData['巴塘'];
-                }
-
-                if (!plotCoordData && normalizedIdStr === '1002') {
-                    plotCoordData = coordinateData['巴塘2'] || coordinateData['巴塘'];
-                }
-
                 if (plotCoordData && plotCoordData.coordinates) {
-
                     // 添加坐标数据到plotData
                     this.plotData.coordinates = plotCoordData.coordinates;
                     this.plotData.center = plotCoordData.center || this.calculateCenter(plotCoordData.coordinates);
-
                 }
                 else {
                     // 使用默认中心位置
                     this.plotData.center = [23.9, 106.6];
                 }
-
             }
             catch (error) {
-                console.error('加载地块坐标数据失败:', error);
                 // 使用默认中心位置
                 this.plotData.center = [23.9, 106.6];
             }

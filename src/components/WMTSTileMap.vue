@@ -133,14 +133,11 @@
 </template>
 
 <script>
+import { generatePlotIdMapping, getTilePreset, getDefaultZoomLevel, findPlotNameById, findPlotConfig } from '@/utils/plotConfig';
+
 const TILE_PLACEHOLDER_ERROR = '加载失败';
 const EARTH_RADIUS_METERS = 6378137; // WGS84
 const MU_IN_SQUARE_METERS = 666.6666667;
-const PRESET_TILE_DIMENSIONS = {
-    1000: { cols: 10, rows: 6, offsetX: 0, offsetY: 0 },
-    1001: { cols: 9, rows: 10, offsetX: -2, offsetY: 0 },
-    1002: { cols: 12, rows: 6, offsetX: -2, offsetY: 0 }
-};
 
 export default {
     name: 'WMTSTileMap',
@@ -157,6 +154,7 @@ export default {
     data() {
         return {
             zoomLevel: 4,
+            lockedZoomLevel: null, // 用于保存必须使用的 zoom level，防止被 API 覆盖
             markers: [],
             markersLoading: false,
             selectedMarker: null,
@@ -182,19 +180,14 @@ export default {
         };
     },
     computed: {
+        plotIdMapping() {
+            return generatePlotIdMapping();
+        },
         plotId() {
-            const mapping = {
-                '雷哥': 1000,
-                '宏哥': 1001,
-                '千户十亩-大楞乡基地': 1000,
-                '巴塘2': 1002,
-                '巴塘': 1002,
-                '千户十亩-田林县那色村巴塘八角基地': 1002
-            };
-
             const rawId = this.plotData?.id;
             const normalizedId = typeof rawId === 'string' ? rawId.trim() : rawId;
 
+            // 1. 如果已经是数字ID，直接返回
             if (normalizedId !== undefined && normalizedId !== null) {
                 if (typeof normalizedId === 'number') {
                     return normalizedId;
@@ -203,33 +196,39 @@ export default {
                 if (Number.isFinite(numericId)) {
                     return numericId;
                 }
-                if (mapping[normalizedId]) {
-                    return mapping[normalizedId];
-                }
-                if (typeof normalizedId === 'string' && normalizedId.includes('巴塘')) {
-                    return 1002;
+                // 2. 通过mapping查找
+                if (this.plotIdMapping[normalizedId]) {
+                    return this.plotIdMapping[normalizedId];
                 }
             }
 
+            // 3. 尝试通过名称查找
             const name = typeof this.plotData?.name === 'string'
                 ? this.plotData.name.trim()
                 : this.plotData?.name;
 
-            if (name && mapping[name]) {
-                return mapping[name];
-            }
-            if (name && name.includes && name.includes('巴塘')) {
-                return 1002;
+            if (name && this.plotIdMapping[name]) {
+                return this.plotIdMapping[name];
             }
 
+            // 4. 默认返回1000（雷哥）
             return 1000;
         },
         layerName() {
+            const canonicalName = findPlotNameById(this.plotId) || '雷哥';
+            const plotConfig = findPlotConfig(canonicalName);
+
+            if (plotConfig?.tileLayerName) {
+                return plotConfig.tileLayerName;
+            }
+
             if (this.tileInfo?.layer_name) {
                 return this.tileInfo.layer_name;
             }
-            const plotName = this.plotData?.name || '雷哥';
-            return `plot_${ this.plotId }_${ plotName }`;
+
+            // 使用来自PLOT_REGISTRY的规范化地块名称，而不是mutable的plotData.name
+            // 这确保无论本地或服务器，layer参数都保持一致
+            return `plot_${ this.plotId }_${ canonicalName }`;
         },
         visibleMarkers() {
             return this.markers.filter(marker => marker.zoom_level === this.zoomLevel);
@@ -325,6 +324,15 @@ export default {
             const requestToken = Symbol('tile-load');
             this.currentRequestToken = requestToken;
 
+            // 应用该块的默认 zoomLevel（如果有配置）并锁定，防止 API 覆盖
+            const defaultZoom = getDefaultZoomLevel(this.plotId);
+            if (Number.isFinite(defaultZoom)) {
+                this.zoomLevel = defaultZoom;
+                this.lockedZoomLevel = defaultZoom; // 锁定此 zoomLevel，不被 API 覆盖
+                // eslint-disable-next-line no-console
+                console.log(`Applied and locked defaultZoomLevel for plotId ${ this.plotId }: zoomLevel=${ defaultZoom }`);
+            }
+
             try {
                 this.tileLoading = true;
                 await this.loadTileInfo(requestToken);
@@ -363,6 +371,8 @@ export default {
             try {
                 const isProduction = process.env.NODE_ENV === 'production';
                 const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
+                // eslint-disable-next-line no-console
+                console.log(`loadTileInfo: requesting tile info for plotId=${ this.plotId }`);
                 const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/info`, {
                     method: 'POST',
                     headers: {
@@ -381,13 +391,24 @@ export default {
                     return;
                 }
 
+                // eslint-disable-next-line no-console
+                console.log(`loadTileInfo response code=${ result?.code }, has data=${ !!result?.data }`);
                 if (result && result.code === 0 && result.data) {
                     this.tileInfo = result.data;
-                    const maxZoom = Number(result.data.max_zoom_level);
-                    if (Number.isFinite(maxZoom)) {
-                        this.zoomLevel = maxZoom;
+                    // 只在没有锁定 zoomLevel 时才使用 API 返回的 max_zoom_level
+                    if (!this.lockedZoomLevel) {
+                        const maxZoom = Number(result.data.max_zoom_level);
+                        if (Number.isFinite(maxZoom)) {
+                            this.zoomLevel = maxZoom;
+                        }
                     }
                     this.tileBounds = this.computeTileBounds(result.data);
+                    // eslint-disable-next-line no-console
+                    console.log(`loadTileInfo: computed tileBounds=${ JSON.stringify(this.tileBounds) }, lockedZoomLevel=${ this.lockedZoomLevel }`);
+                }
+                else {
+                    // eslint-disable-next-line no-console
+                    console.warn(`loadTileInfo: No data in response for plotId=${ this.plotId }, tileBounds will be set by applyPresetDimensions`);
                 }
             }
             catch (error) {
@@ -527,8 +548,10 @@ export default {
         },
 
         applyPresetDimensions() {
-            const preset = PRESET_TILE_DIMENSIONS[this.plotId];
+            const preset = getTilePreset(this.plotId);
             if (!preset) {
+                // eslint-disable-next-line no-console
+                console.warn(`No preset found for plotId: ${ this.plotId }, using API bounds or fallback`);
                 return;
             }
 
@@ -539,6 +562,8 @@ export default {
             const offsetX = Number(preset.offsetX) || 0;
             const offsetY = Number(preset.offsetY) || 0;
 
+            // Start from preset dimensions if no tileBounds from API
+            // This ensures oil tea blocks (ID 1039) always have a valid grid
             let minX = (this.tileBounds ? this.tileBounds.minX : 0) + offsetX;
             let minY = (this.tileBounds ? this.tileBounds.minY : 0) + offsetY;
 
@@ -556,6 +581,9 @@ export default {
                 minY = Math.max(0, maxY - rows + 1);
                 maxY = Math.min(minY + rows - 1, limit);
             }
+
+            // eslint-disable-next-line no-console
+            console.log(`applyPresetDimensions for plotId ${ this.plotId }: cols=${ cols }, rows=${ rows }, bounds=${ JSON.stringify({ minX, maxX, minY, maxY }) }`);
 
             this.tileBounds = {
                 minX,
@@ -576,10 +604,14 @@ export default {
                     rows.push(cols);
                 }
                 this.tileGridRowsCache = rows;
+                // eslint-disable-next-line no-console
+                console.log(`buildTileGrid created ${ rows.length } rows x ${ rows[0]?.length || 0 } cols from tileBounds for plotId ${ this.plotId }`);
                 this.recalculateTileSize();
                 return;
             }
 
+            // eslint-disable-next-line no-console
+            console.warn(`buildTileGrid: tileBounds is null for plotId ${ this.plotId }, using fallback grid`);
             const fallbackRows = [];
             for (let y = 0; y < this.visibleRows; y += 1) {
                 const rowTiles = [];

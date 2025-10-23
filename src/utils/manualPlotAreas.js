@@ -3,9 +3,13 @@ const MANUAL_PLOT_AREAS = {
     宏哥: 272.07,
     巴塘: 30.88,
     巴塘2: 30.88,
+    油茶示范基地: 213,
+    油茶精品园: 213,
+    田林县: 213,
     1000: 25.4,
     1001: 272.07,
-    1002: 30.88
+    1002: 30.88,
+    1039: 213
 };
 
 function normalizeManualPlotKey(value) {
@@ -33,6 +37,10 @@ function normalizeManualPlotKey(value) {
 
     if (stringValue.includes('巴塘')) {
         return '巴塘';
+    }
+
+    if (stringValue.includes('油茶')) {
+        return '油茶示范基地';
     }
 
     return stringValue;

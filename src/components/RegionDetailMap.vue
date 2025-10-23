@@ -76,36 +76,12 @@
 </template>
 
 <script>
+import { generateMockPlotConfig } from '@/utils/plotConfig';
+
 // 使用CDN引入的Leaflet (在index.html中已引入)
 const { L } = window;
 
 const DEFAULT_PLOT_TYPE = 'star-anise';
-const MOCK_PLOT_CONFIG = [
-    {
-        key: 'mock-tea-oil-1',
-        baseKey: '宏哥',
-        displayName: '油茶示范基地',
-        routeName: '宏哥',
-        type: 'tea-oil',
-        offset: { lat: 0.015, lng: 0.018 }
-    },
-    {
-        key: 'mock-drying-1',
-        baseKey: '雷哥',
-        displayName: '烘干示范工厂',
-        routeName: '雷哥',
-        type: 'drying-facility',
-        offset: { lat: -0.012, lng: 0.02 }
-    },
-    {
-        key: 'mock-tea-oil-2',
-        baseKey: '巴塘',
-        displayName: '油茶精品园',
-        routeName: '巴塘',
-        type: 'tea-oil',
-        offset: { lat: 0.02, lng: -0.015 }
-    }
-];
 
 export default {
     name: 'RegionDetailMap',
@@ -362,8 +338,9 @@ export default {
 
         createMockPlotEntries(coordinateData) {
             const entries = [];
+            const mockConfigs = generateMockPlotConfig();
 
-            MOCK_PLOT_CONFIG.forEach(config => {
+            mockConfigs.forEach(config => {
                 const basePlot = coordinateData[config.baseKey];
                 if (!basePlot || !Array.isArray(basePlot.center)) {
                     return;
