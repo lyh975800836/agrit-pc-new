@@ -18,26 +18,14 @@
           v-if="shouldRenderLeftPanel"
           :class="leftSidebarClasses"
         >
-          <!-- 左侧展开/收缩触发器 - 统一装饰把手 -->
+          <!-- 左侧展开/收缩触发器 - 单节点控制旋转 -->
           <div
-            v-if="isLeftCollapsed"
-            class="sidebar-expand-trigger sidebar-expand-trigger--left"
+            class="sidebar-toggle-trigger sidebar-toggle-trigger--left"
+            :class="{ 'sidebar-toggle-trigger--collapsed': isLeftCollapsed }"
             :style="{ backgroundImage: `url(${leftSlideImage})` }"
             role="button"
             tabindex="0"
-            :aria-label="'展开左侧面板'"
-            @click="toggleLeftPanel"
-            @keydown.enter="toggleLeftPanel"
-            @keydown.space="toggleLeftPanel"
-          ></div>
-
-          <div
-            v-if="!isLeftCollapsed"
-            class="sidebar-collapse-trigger sidebar-collapse-trigger--left"
-            :style="{ backgroundImage: `url(${leftSlideImage})` }"
-            role="button"
-            tabindex="0"
-            :aria-label="'收起左侧面板'"
+            :aria-label="isLeftCollapsed ? '展开左侧面板' : '收起左侧面板'"
             @click="toggleLeftPanel"
             @keydown.enter="toggleLeftPanel"
             @keydown.space="toggleLeftPanel"
@@ -113,26 +101,14 @@
           v-if="shouldRenderRightPanel"
           :class="rightSidebarClasses"
         >
-          <!-- 右侧展开/收缩触发器 - 统一装饰把手 -->
+          <!-- 右侧展开/收缩触发器 - 单节点控制旋转 -->
           <div
-            v-if="isRightCollapsed"
-            class="sidebar-expand-trigger sidebar-expand-trigger--right"
+            class="sidebar-toggle-trigger sidebar-toggle-trigger--right"
+            :class="{ 'sidebar-toggle-trigger--collapsed': isRightCollapsed }"
             :style="{ backgroundImage: `url(${rankingDecorationImage})` }"
             role="button"
             tabindex="0"
-            :aria-label="'展开右侧面板'"
-            @click="toggleRightPanel"
-            @keydown.enter="toggleRightPanel"
-            @keydown.space="toggleRightPanel"
-          ></div>
-
-          <div
-            v-if="!isRightCollapsed"
-            class="sidebar-collapse-trigger sidebar-collapse-trigger--right"
-            :style="{ backgroundImage: `url(${rankingDecorationImage})` }"
-            role="button"
-            tabindex="0"
-            :aria-label="'收起右侧面板'"
+            :aria-label="isRightCollapsed ? '展开右侧面板' : '收起右侧面板'"
             @click="toggleRightPanel"
             @keydown.enter="toggleRightPanel"
             @keydown.space="toggleRightPanel"
@@ -537,8 +513,8 @@ export default {
     scrollbar-width: none;
 }
 
-// 侧边栏展开触发器 - 使用装饰图片旋转180度
-.sidebar-expand-trigger {
+// 侧边栏展开/收缩触发器
+.sidebar-toggle-trigger {
     position: absolute;
     z-index: 15;
     top: 50%;
@@ -548,122 +524,31 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    transition: opacity .3s ease, transform .2s ease;
     transform: translateY(-50%);
+    transition: opacity .3s ease;
     cursor: pointer;
 
     &:hover {
-        opacity: .8;
-        transform: translateY(-50%) scaleX(1.2);
+        opacity: .85;
     }
 
     &:active {
-        transform: translateY(-50%) scaleX(.95);
+        opacity: .7;
     }
 }
 
-.sidebar-collapse-trigger {
-    position: absolute;
-    z-index: 15;
-    top: 50%;
-    width: 14px;
-    height: 279px;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    transition: opacity .3s ease, transform .2s ease;
-    transform: translateY(-50%);
-    cursor: pointer;
-
-    &:hover {
-        opacity: .8;
-        transform: translateY(-50%) scaleX(1.1);
-    }
-
-    &:active {
-        transform: translateY(-50%) scaleX(.95);
-    }
+.sidebar-toggle-trigger--collapsed {
+    transform: translateY(-50%) rotate(180deg);
 }
 
-.sidebar-collapse-trigger {
-    position: absolute;
-    z-index: 15;
-    top: 50%;
-    width: 14px;
-    height: 279px;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    transition: opacity .3s ease, transform .2s ease;
-    transform: translateY(-50%);
-    cursor: pointer;
-
-    &:hover {
-        opacity: .8;
-        transform: translateY(-50%) scaleX(1.1);
-    }
-
-    &:active {
-        transform: translateY(-50%) scaleX(.95);
-    }
-}
-
-.sidebar-expand-trigger--left {
+.sidebar-toggle-trigger--left {
     right: 0;
     left: auto;
-    transform: translateY(-50%);
-
-    &:hover {
-        transform: translateY(-50%) scaleX(1.2);
-    }
-
-    &:active {
-        transform: translateY(-50%) scaleX(.95);
-    }
 }
 
-.sidebar-collapse-trigger--left {
-    right: 0;
-    left: auto;
-    transform: translateY(-50%);
-
-    &:hover {
-        transform: translateY(-50%) scaleX(1.1);
-    }
-
-    &:active {
-        transform: translateY(-50%) scaleX(.95);
-    }
-}
-
-.sidebar-expand-trigger--right {
+.sidebar-toggle-trigger--right {
     right: auto;
     left: 0;
-    transform: translateY(-50%);
-
-    &:hover {
-        transform: translateY(-50%) scaleX(1.2);
-    }
-
-    &:active {
-        transform: translateY(-50%) scaleX(.95);
-    }
-}
-
-.sidebar-collapse-trigger--right {
-    right: auto;
-    left: 0;
-    transform: translateY(-50%);
-
-    &:hover {
-        transform: translateY(-50%) scaleX(1.1);
-    }
-
-    &:active {
-        transform: translateY(-50%) scaleX(.95);
-    }
 }
 
 .dashboard-layout--full-map .dashboard-layout__content {
