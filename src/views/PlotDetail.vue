@@ -58,7 +58,7 @@
 
         <!-- 农户信息 -->
         <div class="farmer-profile" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
-          <img class="farmer-avatar" src="/images/farmer-avatar.jpg" />
+          <img class="farmer-avatar" :src="farmerAvatarUrl" />
           <div class="farmer-details">
             <div class="farmer-name">农户：{{ plotData.farmerName || '隆启雷' }}</div>
             <img class="detail-divider" src="/images/divider.png" />
@@ -332,6 +332,13 @@ export default {
     },
     data() {
         return {
+            // 农户配置映射表 - 根据地块ID映射农户信息
+            farmerConfig: {
+                '宏哥': { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                '1001': { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                // 其他地块保持原样
+                default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
+            },
             // 健康指标弹窗控制
             healthModalVisible: false,
             // 选中的农事项目ID
@@ -640,6 +647,16 @@ export default {
                 name: '管理员',
                 avatar: this.images.userAvatar
             };
+        },
+        // 农户头像URL - 根据地块名称动态获取
+        farmerAvatarUrl() {
+            const plotName = this.plotData?.name;
+            // 先尝试按地块名称查找
+            if (plotName && this.farmerConfig[plotName]) {
+                return this.farmerConfig[plotName].avatar;
+            }
+            // 如果找不到，返回默认头像
+            return this.farmerConfig.default.avatar;
         }
     },
     mounted() {
@@ -659,6 +676,9 @@ export default {
             const area = this.$route.query.area || '40';
             const output = this.$route.query.output || '25';
 
+            // 获取该地块的农户信息
+            const farmerInfo = this.farmerConfig[plotName] || this.farmerConfig.default;
+
             // 基础地块数据
             this.plotData = {
                 id: decodedPlotId,
@@ -667,8 +687,8 @@ export default {
                 area,
                 yield: Math.floor((parseFloat(output) || 25) * 2000 / 10000) || '48', // 转换为万斤
                 unitYield: output ? Math.floor(parseFloat(output) * 2000 / parseFloat(area)) : '1200',
-                farmerName: '隆启雷',
-                farmerAge: '54',
+                farmerName: farmerInfo.name,
+                farmerAge: farmerInfo.age,
                 price: '4.10'
             };
 
