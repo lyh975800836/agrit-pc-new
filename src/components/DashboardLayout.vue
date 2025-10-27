@@ -381,7 +381,7 @@ export default {
     display: flex;
     flex: 1;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     width: 100%;
     min-height: 0;
     padding: 0 10px;
@@ -434,6 +434,7 @@ export default {
     align-items: stretch;
     min-width: 0;
 
+    height: 100%;
     opacity: .9;
     background: #00282a;
     transition: flex-basis .3s ease, width .3s ease;
@@ -457,7 +458,7 @@ export default {
     position: absolute;
     z-index: 20;
     top: 0;
-    bottom: (@bottom-nav-height + 20px);
+    bottom: @bottom-nav-height;
     flex: 0 0 auto;
     width: min(375px, calc(50% - 40px), calc(100% - 80px));
 
@@ -480,9 +481,11 @@ export default {
 .sidebar-panel__content {
     position: relative;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: none;
     width: 375px;
     max-width: 100%;
+    height: 100%;
 }
 
 .left-panel-container,
@@ -569,7 +572,7 @@ export default {
 }
 
 .dashboard-layout--full-map .sidebar-panel--overlay {
-    max-height: calc(100% - 90px);
+    max-height: calc(100% - 75px);
     pointer-events: auto;
 }
 

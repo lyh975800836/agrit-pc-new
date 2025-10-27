@@ -992,7 +992,7 @@ export default {
     width: 375px;
     height: 734px;
     margin: 0 0 0 5px;
-    padding: 0 23px 35px 33px;
+    padding: 0 23px 35px 23px;
 
     background-repeat: no-repeat;
     background-position: center;
