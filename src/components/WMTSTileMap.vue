@@ -1182,28 +1182,26 @@ export default {
 .tile-image-count {
     position: absolute;
     z-index: 10;
-    right: 8px;
-    bottom: 8px;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 8px;
+    right: 6px;
+    bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 37px;
+    height: 37px;
     font-size: 14px;
-    font-weight: bold;
-    line-height: 24px;
-    text-align: center;
+    font-weight: 700;
 
     color: #fff;
-    border-radius: 12px;
-    background: #ff4757;
-    box-shadow: 0 2px 8px #ff475766;
-    transition: all .2s;
+    background: url('/public/images/mark-point.png') no-repeat center/contain;
+    filter: drop-shadow(0 2px 6px rgba(255, 71, 87, 0.45));
+    transition: transform .2s ease, filter .2s ease;
     cursor: pointer;
 }
 
 .tile-image-count:hover {
-    background: #ff3838;
-    box-shadow: 0 4px 12px #ff475799;
-    transform: scale(1.1);
+    transform: scale(1.08);
+    filter: drop-shadow(0 4px 10px rgba(255, 71, 87, 0.55));
 }
 
 /* 瓦片图片管理弹窗样式 */
