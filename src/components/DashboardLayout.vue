@@ -491,6 +491,7 @@ export default {
 .left-panel-container,
 .right-panel-container {
     width: 100%;
+    border: 1px solid #c69c6d;
 }
 
 .left-panel-container {
@@ -627,7 +628,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
 
-    color: #4cfcea;
+    color: #C69C6D;
     border-radius: 6px;
     background: #4ccfea1a;
     transition: all .3s ease;
@@ -684,12 +685,12 @@ export default {
     cursor: pointer;
 
     &:not(.breadcrumb-list__link--current):hover {
-        color: #4cfcea;
+        color: #C69C6D;
     }
 
     &.breadcrumb-list__link--current {
         font-weight: 500;
-        color: #4cfcea;
+        color: #C69C6D;
         cursor: default;
     }
 }

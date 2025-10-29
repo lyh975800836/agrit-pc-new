@@ -627,13 +627,13 @@ export default {
 @keyframes meteorFall {
     0% {
         opacity: 1;
-        box-shadow: 0 0 10px #4cfcea;
+        box-shadow: 0 0 10px #C69C6D;
         transform: translateX(0) translateY(0);
     }
 
     100% {
         opacity: 0;
-        box-shadow: 0 0 50px #4cfcea;
+        box-shadow: 0 0 50px #C69C6D;
         transform: translateX(-300px) translateY(300px);
     }
 }
@@ -943,7 +943,7 @@ export default {
     font-size: 48px;
     font-weight: bold;
 
-    background: linear-gradient(135deg, #4cfcea, #39b44a);
+    background: linear-gradient(135deg, #C69C6D, #39b44a);
     background-clip: text;
     background-clip: text;
     text-shadow: 0 0 30px #4cfcea4d;
@@ -992,7 +992,7 @@ export default {
     animation: twinkle 3s infinite;
 
     &:nth-child(3n) {
-        background: #4cfcea;
+        background: #C69C6D;
         animation-duration: 4s;
     }
 
@@ -1019,7 +1019,7 @@ export default {
     height: 2px;
 
     border-radius: 50%;
-    background: #4cfcea;
+    background: #C69C6D;
     animation: meteorFall 6s linear infinite;
 
     &:nth-child(1) {
@@ -1102,8 +1102,8 @@ export default {
     height: 2px;
 
     opacity: 0;
-    background: linear-gradient(90deg, transparent 0%, #4cfcea 20%, #fff 50%, #4cfcea 80%, transparent 100%);
-    box-shadow: 0 0 10px #4cfcea;
+    background: linear-gradient(90deg, transparent 0%, #C69C6D 20%, #fff 50%, #C69C6D 80%, transparent 100%);
+    box-shadow: 0 0 10px #C69C6D;
     animation: scanMove 2s linear infinite;
 
     &:nth-child(1) {
@@ -1153,8 +1153,8 @@ export default {
     font-size: 18px;
     letter-spacing: 2px;
 
-    color: #4cfcea;
-    text-shadow: 0 0 10px #4cfcea;
+    color: #C69C6D;
+    text-shadow: 0 0 10px #C69C6D;
 }
 
 .loading-bar {
@@ -1162,7 +1162,7 @@ export default {
     overflow: hidden;
     width: 200px;
     height: 4px;
-    border: 1px solid #4cfcea;
+    border: 1px solid #C69C6D;
 
     border-radius: 2px;
     background: #4cfcea33;
@@ -1172,8 +1172,8 @@ export default {
     width: 0%;
     height: 100%;
 
-    background: linear-gradient(90deg, #4cfcea, #fff, #4cfcea);
-    box-shadow: 0 0 10px #4cfcea;
+    background: linear-gradient(90deg, #C69C6D, #fff, #C69C6D);
+    box-shadow: 0 0 10px #C69C6D;
     animation: loadingProgress 3s ease-in-out infinite;
 }
 
@@ -1194,7 +1194,7 @@ export default {
 
         opacity: 0;
         border-radius: 50%;
-        background: linear-gradient(45deg, #4cfcea, transparent, #4cfcea) border-box;
+        background: linear-gradient(45deg, #C69C6D, transparent, #C69C6D) border-box;
         animation: borderGlow 3s ease-in-out infinite;
 
         mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);

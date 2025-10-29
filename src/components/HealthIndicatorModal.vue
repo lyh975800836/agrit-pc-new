@@ -35,20 +35,20 @@
                   <!-- 折线图 -->
                   <polyline
                     fill="none"
-                    stroke="#4cfcea"
+                    stroke="#C69C6D"
                     stroke-width="2"
                     points="18,90 56,75 94,82 132,70 170,65 208,68 246,62 284,58"
                   />
                   
                   <!-- 数据点 -->
-                  <circle cx="18" cy="90" r="3" fill="#4cfcea" />
-                  <circle cx="56" cy="75" r="3" fill="#4cfcea" />
-                  <circle cx="94" cy="82" r="3" fill="#4cfcea" />
-                  <circle cx="132" cy="70" r="3" fill="#4cfcea" />
-                  <circle cx="170" cy="65" r="3" fill="#4cfcea" />
-                  <circle cx="208" cy="68" r="3" fill="#4cfcea" />
-                  <circle cx="246" cy="62" r="3" fill="#4cfcea" />
-                  <circle cx="284" cy="58" r="3" fill="#4cfcea" />
+                  <circle cx="18" cy="90" r="3" fill="#C69C6D" />
+                  <circle cx="56" cy="75" r="3" fill="#C69C6D" />
+                  <circle cx="94" cy="82" r="3" fill="#C69C6D" />
+                  <circle cx="132" cy="70" r="3" fill="#C69C6D" />
+                  <circle cx="170" cy="65" r="3" fill="#C69C6D" />
+                  <circle cx="208" cy="68" r="3" fill="#C69C6D" />
+                  <circle cx="246" cy="62" r="3" fill="#C69C6D" />
+                  <circle cx="284" cy="58" r="3" fill="#C69C6D" />
                 </svg>
                 
                 <!-- X轴标签 -->
@@ -339,7 +339,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
     font-weight: 500;
-    color: #4cfcea;
+    color: #C69C6D;
     margin-bottom: 15px;
 }
 
@@ -424,7 +424,7 @@ export default {
 .data-cell {
     font-family: SourceHanSansCN-Medium;
     font-weight: 500;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 .trend-indicator {
@@ -439,7 +439,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     font-weight: 300;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 .trend-down {
@@ -502,7 +502,7 @@ export default {
     top: 0;
     bottom: 0;
     width: 2px;
-    background: #4cfcea;
+    background: #C69C6D;
     cursor: ew-resize;
     z-index: 10;
     transform: translateX(-50%);
@@ -515,7 +515,7 @@ export default {
     left: 50%;
     width: 16px;
     height: 16px;
-    background: #4cfcea;
+    background: #C69C6D;
     border: 2px solid #ffffff;
     border-radius: 50%;
     transform: translate(-50%, -50%);
@@ -532,7 +532,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
     font-weight: 300;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 /* 诊断建议区域 */

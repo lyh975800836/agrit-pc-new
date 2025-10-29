@@ -101,12 +101,12 @@ export default {
             data: prices,
             smooth: true,
             lineStyle: {
-              color: '#4CFCEA',
+              color: '#C69C6D',
               width: 2
             },
             itemStyle: {
-              color: '#4CFCEA',
-              borderColor: '#4CFCEA',
+              color: '#C69C6D',
+              borderColor: '#C69C6D',
               borderWidth: 2
             },
             areaStyle: {
@@ -138,12 +138,12 @@ export default {
                     show: true,
                     position: 'top',
                     formatter: '25.4元',
-                    color: '#4CFCEA',
+                    color: '#C69C6D',
                     fontSize: 12,
                     fontFamily: 'SourceHanSansCN-Medium'
                   },
                   itemStyle: {
-                    color: '#4CFCEA'
+                    color: '#C69C6D'
                   }
                 },
                 {
@@ -152,12 +152,12 @@ export default {
                     show: true,
                     position: 'bottom',
                     formatter: '23.8元',
-                    color: '#4CFCEA',
+                    color: '#C69C6D',
                     fontSize: 12,
                     fontFamily: 'SourceHanSansCN-Medium'
                   },
                   itemStyle: {
-                    color: '#4CFCEA'
+                    color: '#C69C6D'
                   }
                 },
                 {
@@ -166,19 +166,19 @@ export default {
                     show: true,
                     position: 'right',
                     formatter: '17.5元',
-                    color: '#4CFCEA',
+                    color: '#C69C6D',
                     fontSize: 12,
                     fontFamily: 'SourceHanSansCN-Medium'
                   },
                   itemStyle: {
-                    color: '#4CFCEA'
+                    color: '#C69C6D'
                   }
                 }
               ]
             },
             emphasis: {
               itemStyle: {
-                color: '#4CFCEA',
+                color: '#C69C6D',
                 borderColor: '#fff',
                 borderWidth: 2,
                 shadowColor: 'rgba(76, 252, 234, 0.5)',
@@ -193,7 +193,7 @@ export default {
           borderColor: 'rgba(76, 252, 234, 0.5)',
           borderWidth: 1,
           textStyle: {
-            color: '#4CFCEA',
+            color: '#C69C6D',
             fontSize: 12
           },
           formatter: function(params) {

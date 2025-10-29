@@ -383,7 +383,7 @@ this.getLeftPanelImageStyle('BACKGROUND')
   margin: 0;
   padding: 0;
   border: 1px solid rgba(76, 253, 235, 0.45);
-  color: #4cfcea;
+  color: #C69C6D;
   border-radius: 999px;
   background: rgba(16, 40, 56, 0.9);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
@@ -476,7 +476,7 @@ this.getLeftPanelImageStyle('BACKGROUND')
     border: 1px solid rgba(76, 253, 235, 0.3);
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    color: #4cfcea;
+    color: #C69C6D;
     border-radius: 6px;
     background: rgba(76, 253, 235, 0.1);
     transition: all 0.3s ease;
@@ -529,12 +529,12 @@ this.getLeftPanelImageStyle('BACKGROUND')
     cursor: pointer;
 
     &:hover:not(.is-current) {
-      color: #4cfcea;
+      color: #C69C6D;
     }
 
     &.is-current {
       font-weight: 500;
-      color: #4cfcea;
+      color: #C69C6D;
       cursor: default;
       pointer-events: none;
     }

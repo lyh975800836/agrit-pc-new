@@ -117,7 +117,7 @@ export default {
     height: 32px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4cfcea 0%, #2dd4bf 100%);
+    background: linear-gradient(135deg, #C69C6D 0%, #2dd4bf 100%);
     box-shadow: 0 0 10px rgba(76, 207, 234, 0.5);
     transition: all 0.3s ease;
     cursor: pointer;

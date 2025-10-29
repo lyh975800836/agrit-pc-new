@@ -928,7 +928,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
     font-weight: 500;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 .farming-items-list {
@@ -953,7 +953,7 @@ export default {
 
 .farming-item--active {
     background: rgba(76, 253, 235, 0.2);
-    border-left: 3px solid #4cfcea;
+    border-left: 3px solid #C69C6D;
     transform: translateX(2px);
 }
 
@@ -975,7 +975,7 @@ export default {
     font-family: SourceHanSansCN-Regular;
     font-size: 11px;
     line-height: 1.4;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 .farming-text--gold {
@@ -998,7 +998,7 @@ export default {
 .status-text {
     font-family: SourceHanSansCN-Regular;
     font-size: 9px;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 .status-bar {
@@ -1007,7 +1007,7 @@ export default {
 }
 
 .status-bar--executed {
-    background: #4cfcea;
+    background: #C69C6D;
 }
 
 .status-bar--pending {
@@ -1040,7 +1040,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
     font-weight: 500;
-    color: #4cfcea;
+    color: #C69C6D;
 }
 
 .current-badge {
@@ -1063,7 +1063,7 @@ export default {
 .time-label {
     font-family: SourceHanSansCN-Regular;
     font-size: 10px;
-    color: #4cfcea;
+    color: #C69C6D;
     min-width: 60px;
 }
 
@@ -1083,7 +1083,7 @@ export default {
 .prescription-label {
     font-family: SourceHanSansCN-Regular;
     font-size: 10px;
-    color: #4cfcea;
+    color: #C69C6D;
     min-width: 40px;
 }
 
@@ -1101,7 +1101,7 @@ export default {
 .requirement-label {
     font-family: SourceHanSansCN-Regular;
     font-size: 10px;
-    color: #4cfcea;
+    color: #C69C6D;
     display: block;
     margin-bottom: 4px;
 }
@@ -1122,7 +1122,7 @@ export default {
 .details-link {
     font-family: SourceHanSansCN-Regular;
     font-size: 9px;
-    color: #4cfcea;
+    color: #C69C6D;
     cursor: pointer;
     text-decoration: none;
 }

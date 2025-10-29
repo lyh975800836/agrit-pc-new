@@ -103,7 +103,7 @@ export default {
                 colorStops: [
                   {
                     offset: 0,
-                    color: '#4CFCEA'
+                    color: '#C69C6D'
                   },
                   {
                     offset: 1,
@@ -151,7 +151,7 @@ export default {
           borderColor: 'rgba(76, 252, 234, 0.5)',
           borderWidth: 1,
           textStyle: {
-            color: '#4CFCEA',
+            color: '#C69C6D',
             fontSize: 12
           },
           formatter: function(params) {

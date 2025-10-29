@@ -76,7 +76,10 @@
 </template>
 
 <script>
-import { generateMockPlotConfig } from '@/utils/plotConfig';
+import {
+    generateMockPlotConfig,
+    getSupplyChainNodesForPlot
+} from '@/utils/plotConfig';
 
 // 使用CDN引入的Leaflet (在index.html中已引入)
 const { L } = window;
@@ -129,6 +132,11 @@ export default {
             ],
             selectedPlotFilter: 'all',
             showPlotFilterBar: true,
+            // 供应链相关
+            supplyChainLayers: {},        // 存储供应链节点的标记图层
+            supplyChainMarkers: [],        // 供应链节点标记数组
+            showSupplyChain: true,         // 是否显示供应链
+            selectedPlotForChain: null,    // 当前选中的产业链地块
             // 区域中心坐标
             regionCoordinates: {
                 百色市: [23.9, 106.6],
@@ -248,6 +256,11 @@ export default {
             this.popupData = null;
             this.selectedPlotFilter = 'all';
             this.showPlotFilterBar = true;
+
+            // 清理供应链相关
+            this.clearSupplyChainMarkers();
+            this.supplyChainMarkers = [];
+            this.selectedPlotForChain = null;
 
             if (this.connectorLine && this.map) {
                 this.map.removeLayer(this.connectorLine);
@@ -993,6 +1006,9 @@ export default {
                 // 调整地图视野以显示所有地块标记
                 console.log('正在调整地图视野以显示地块标记...');
                 this.fitMapToPlotMarkers();
+
+                // 显示所有地块的产业链
+                this.displayAllSupplyChains();
             }
             catch (error) {
                 console.error('加载坐标数据失败:', error);
@@ -2465,6 +2481,9 @@ export default {
                 this.map.removeLayer(this.connectorLine);
                 this.connectorLine = null;
             }
+
+            // 清理产业链可视化
+            this.clearSupplyChainMarkers();
         },
 
         // 跳转到地块详情页面
@@ -2622,6 +2641,167 @@ export default {
             ret += (20.0 * Math.sin(lng * Math.PI) + 40.0 * Math.sin(lng / 3.0 * Math.PI)) * 2.0 / 3.0;
             ret += (150.0 * Math.sin(lng / 12.0 * Math.PI) + 300.0 * Math.sin(lng / 30.0 * Math.PI)) * 2.0 / 3.0;
             return ret;
+        },
+
+        // ==================== 产业链可视化方法 ====================
+
+        /**
+         * 显示所有已配置地块的产业链（二级地图初始化时调用）
+         */
+        displayAllSupplyChains() {
+            if (!this.showSupplyChain || !this.map) return;
+
+            try {
+                // 清理之前的标记
+                this.clearSupplyChainMarkers();
+
+                // 获取所有配置的地块ID
+                const plotIds = [1000, 1001, 1002]; // 雷哥、宏哥、巴塘
+
+                // 为每个地块显示产业链
+                plotIds.forEach(plotId => {
+                    const nodes = getSupplyChainNodesForPlot(plotId);
+
+                    // 添加节点标记
+                    nodes.forEach(node => {
+                        this.addSupplyChainMarker(node);
+                    });
+
+                    // 绘制连接线
+                    this.drawSupplyChainConnections(nodes);
+                });
+
+                console.log('已显示所有地块的产业链节点');
+            }
+            catch (error) {
+                console.error('显示产业链失败:', error);
+            }
+        },
+
+        /**
+         * 显示特定地块的产业链节点
+         * @param {number} plotId - 地块ID
+         */
+        displaySupplyChainForPlot(plotId) {
+            if (!this.showSupplyChain || !this.map) return;
+
+            // 清理之前的标记
+            this.clearSupplyChainMarkers();
+
+            // 获取该地块的所有产业链节点
+            const nodes = getSupplyChainNodesForPlot(plotId);
+
+            // 创建标记
+            nodes.forEach(node => {
+                this.addSupplyChainMarker(node);
+            });
+
+            // 绘制连接线
+            this.drawSupplyChainConnections(nodes);
+
+            this.selectedPlotForChain = plotId;
+        },
+
+        /**
+         * 添加单个产业链节点标记
+         */
+        addSupplyChainMarker(node) {
+            if (!this.map || !node.lat || !node.lng) return;
+
+            try {
+                // 创建自定义icon
+                const customIcon = L.divIcon({
+                    className: 'supply-chain-marker',
+                    html: `
+                        <div class="supply-chain-node" style="background-color: ${node.color};">
+                            <div class="node-icon">${node.icon}</div>
+                        </div>
+                    `,
+                    iconSize: [50, 50],
+                    iconAnchor: [25, 25],
+                    popupAnchor: [0, -25]
+                });
+
+                const marker = L.marker([node.lat, node.lng], { icon: customIcon });
+
+                // 添加弹窗信息
+                const popupHTML = `
+                    <div class="supply-chain-popup">
+                        <h4>${node.name}</h4>
+                        <p><strong>阶段:</strong> ${node.stageName}</p>
+                        <p><strong>描述:</strong> ${node.description}</p>
+                    </div>
+                `;
+                marker.bindPopup(popupHTML);
+
+                marker.addTo(this.map);
+
+                // 保存标记
+                this.supplyChainMarkers.push({
+                    marker,
+                    node
+                });
+
+            } catch (error) {
+                console.error(`添加供应链节点 ${node.name} 失败:`, error);
+            }
+        },
+
+        /**
+         * 绘制产业链连接线
+         */
+        drawSupplyChainConnections(nodes) {
+            if (!this.map || nodes.length < 2) return;
+
+            // 按流程步骤排序
+            const sortedNodes = [...nodes].sort((a, b) => a.flowStep - b.flowStep);
+
+            // 绘制相邻节点间的连接线
+            for (let i = 0; i < sortedNodes.length - 1; i++) {
+                const from = sortedNodes[i];
+                const to = sortedNodes[i + 1];
+
+                if (from.lat && from.lng && to.lat && to.lng) {
+                    const polyline = L.polyline(
+                        [[from.lat, from.lng], [to.lat, to.lng]],
+                        {
+                            color: from.color,
+                            weight: 3,
+                            opacity: 0.7,
+                            dashArray: '5, 5',
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        }
+                    );
+                    polyline.addTo(this.map);
+                }
+            }
+        },
+
+        /**
+         * 清除所有供应链标记
+         */
+        clearSupplyChainMarkers() {
+            if (!this.map) return;
+
+            // 移除所有标记
+            this.supplyChainMarkers.forEach(({ marker }) => {
+                this.map.removeLayer(marker);
+            });
+
+            this.supplyChainMarkers = [];
+        },
+
+        /**
+         * 切换供应链显示
+         */
+        toggleSupplyChain() {
+            this.showSupplyChain = !this.showSupplyChain;
+            if (!this.showSupplyChain) {
+                this.clearSupplyChainMarkers();
+            } else if (this.selectedPlotForChain) {
+                this.displaySupplyChainForPlot(this.selectedPlotForChain);
+            }
         }
     }
 };
@@ -3566,5 +3746,57 @@ export default {
     border-left: 6px solid transparent;
 
     transform: translateX(-50%);
+}
+
+/* ==================== 产业链节点样式 ==================== */
+
+.supply-chain-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.supply-chain-node {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.supply-chain-node:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.node-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.supply-chain-popup {
+    font-size: 12px;
+    color: #333;
+}
+
+.supply-chain-popup h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+}
+
+.supply-chain-popup p {
+    margin: 4px 0;
+    font-size: 11px;
+}
+
+.supply-chain-popup strong {
+    color: #555;
 }
 </style>

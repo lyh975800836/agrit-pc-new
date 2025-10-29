@@ -242,7 +242,7 @@ computed: {
     align-items: center;
     padding: 8px 16px;
     border: 1px solid rgba(76, 253, 235, 0.3);
-    color: #4cfcea;
+    color: #C69C6D;
     border-radius: 6px;
     background: rgba(76, 253, 235, 0.1);
     cursor: pointer;
@@ -287,11 +287,11 @@ computed: {
     transition: color 0.3s ease;
 
     &:hover {
-      color: #4cfcea;
+      color: #C69C6D;
     }
 
     &.is-current {
-      color: #4cfcea;
+      color: #C69C6D;
       cursor: default;
     }
   }
@@ -399,7 +399,7 @@ export const images = { bg };
 ### Q: 如何处理已有的样式变量？
 **A:** 将所有颜色值提取到 `variables.less`：
 ```less
-@color-primary: #4cfcea;
+@color-primary: #C69C6D;
 @color-secondary: #5dd7ce;
 @color-bg-dark: rgba(16, 40, 56, 0.9);
 

@@ -36,7 +36,7 @@
           <span class="region-name">{{ plotData.district || '右江区' }}</span>
         </div>
 
-        <img class="section-divider" src="/images/decoration-2.jpg" />
+        <img class="section-divider" src="/images/decoration-2.png" />
 
         <!-- 地块统计数据 -->
         <div class="plot-statistics">
@@ -77,14 +77,12 @@
 
         <!-- 价格信息 -->
         <div class="price-info" :style="{ backgroundImage: `url(${images.priceInfo})` }">
-          <img class="price-decoration-top" src="/images/price-icon.jpg" />
           <div class="price-display">
             <span class="price-label">今日价格：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
             <span class="price-value">{{ plotData.price || '4.10' }}</span>
             <span class="price-unit">&nbsp;&nbsp;元/斤</span>
           </div>
-          <img class="price-decoration-bottom" src="/images/decoration-3.jpg" />
         </div>
 
         <!-- 健康指标 -->
@@ -96,7 +94,7 @@
               <span class="link-arrow">>></span>
             </div>
           </div>
-          <img class="third-divider" src="/images/decoration-2.jpg" />
+          <img class="third-divider" src="/images/decoration-2.png" />
           <!-- 健康指标圆形图表 -->
           <div class="health-indicators">
             <!-- 郁闭度 -->
@@ -104,7 +102,7 @@
               <div class="circular-progress" data-percentage="20">
                 <div class="circle-bg"></div>
                 <div class="circle" style="--percentage: 20;
---color: #4cfcea;"></div>
+--color: #c69c6d;"></div>
                 <div class="percentage">20%</div>
               </div>
               <div class="indicator-label">郁闭度</div>
@@ -136,7 +134,7 @@
 
     <template #right-panel>
       <!-- 右侧面板 - 农情动态 -->
-      <div class="farming-dynamics-panel" :style="{ backgroundImage: `url(${images.rankingPanelBg})` }">
+      <div class="farming-dynamics-panel">
         <!-- 面板标题区域 -->
         <div class="farming-dynamics__header">
           <h3 class="farming-dynamics__title">农情动态</h3>
@@ -334,8 +332,8 @@ export default {
         return {
             // 农户配置映射表 - 根据地块ID映射农户信息
             farmerConfig: {
-                '宏哥': { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
-                '1001': { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                宏哥: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                1001: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
                 // 其他地块保持原样
                 default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
             },
@@ -360,7 +358,7 @@ export default {
                 threeNong: '/images/three-nong.png',
                 // 装饰图片
                 decoration1: '/images/decoration-1.jpg',
-                decoration2: '/images/decoration-2.jpg',
+                decoration2: '/images/decoration-2.png',
                 decoration3: '/images/decoration-3.jpg',
                 regionLabel: '/images/region-label.jpg',
                 divider: '/images/divider.png',
@@ -369,7 +367,7 @@ export default {
                 farmingDynamicIcon: '/images/farming-dynamic-icon.jpg',
                 standardFarmingIcon: '/images/standard-farming-icon.jpg',
                 warningFarmingIcon: '/images/warning-farming-icon.jpg',
-                farmingIcon1: '/images/farming-icon-1.jpg',
+                farmingIcon1: '/images/farming-icon-1.png',
                 farmingWarm: '/images/farming-warm.png',
                 serviceIconMain: '/images/service-icon-main.jpg',
                 serviceIcon1: '/images/service-icon-1.jpg',
@@ -1012,7 +1010,7 @@ export default {
     width: 375px;
     height: 734px;
     margin: 0 0 0 5px;
-    padding: 0 23px 35px 23px;
+    padding: 0 23px 35px;
 
     background-repeat: no-repeat;
     background-position: center;
@@ -1026,7 +1024,7 @@ export default {
     width: 100%;
     height: auto;
     margin-bottom: 35px;
-    object-fit: none;
+    object-fit: fill;
 }
 
 .section-divider {
@@ -1050,7 +1048,7 @@ export default {
     font-size: 17px;
     font-weight: 500;
 
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .region-label {
@@ -1079,24 +1077,26 @@ export default {
     align-items: center;
     width: 99px;
     height: 107px;
-    padding-top: 30px;
+    padding-top: 26px;
     text-align: center;
+
+    background-size: cover;
 }
 
 .stat-label {
     margin-bottom: 10px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
 
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .stat-value-large {
     font-family: BebasNeueRegular;
-    font-size: 30px;
+    font-size: 44px;
     line-height: 1;
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .farmer-profile {
@@ -1126,7 +1126,7 @@ export default {
     width: 95px;
     height: 3px;
     margin: 5px 0 13px;
-    object-fit: none;
+    object-fit: fill;
 }
 
 .farmer-name,
@@ -1136,7 +1136,7 @@ export default {
     font-weight: 500;
     line-height: 16px;
 
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .farmer-age {
@@ -1150,12 +1150,12 @@ export default {
 
 .rating-filled {
     font-size: 12px;
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .rating-empty {
     font-size: 12px;
-    color: #20776a;
+    color: #c69c6d;
 }
 
 .farmer-status {
@@ -1168,7 +1168,7 @@ export default {
 .status-tag {
     padding: 3px 8px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 500;
     text-align: center;
 
@@ -1176,18 +1176,18 @@ export default {
 }
 
 .status-general {
-    color: #0ea4a4;
-    background: #0ea4a433;
+    color: #c69c6d;
+    background: #8D7552;
 }
 
 .status-unpoverty {
-    color: #0ea4a4;
-    background: #0ea4a433;
+    color: #c69c6d;
+    background: #424821;
 }
 
 .status-poverty {
-    color: #4cfcea;
-    background: #4cfcea33;
+    color: #c69c6d;
+    background: #424821;
 }
 
 /* 价格信息 */
@@ -1221,7 +1221,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 18px;
     font-weight: 500;
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .down-arrow {
@@ -1234,13 +1234,13 @@ export default {
     font-family: BebasNeueRegular;
     font-size: 52px;
     line-height: 1;
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .price-unit {
     font-family: SourceHanSansCN-Medium;
     font-size: 18px;
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .third-divider {
@@ -1249,7 +1249,7 @@ export default {
     height: 3px;
     margin-top: 5px;
 
-    object-fit: none;
+    object-fit: contain;
 }
 
 /* 健康指标区域 */
@@ -1268,14 +1268,13 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
     font-weight: 500;
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 .health-link {
     display: flex;
     align-items: center;
     padding: 5px 8px;
-
     border-radius: 4px;
     transition: all .2s ease;
     cursor: pointer;
@@ -1290,14 +1289,15 @@ export default {
 
 .link-text {
     font-family: SourceHanSansCN-Light;
-    font-size: 9px;
-    color: #4cfcea;
+    font-size: 11px;
+    color: #c69c6d;
+    font-weight: 500;
 }
 
 .link-arrow {
     font-family: FZCKJW--GB1-0;
-    font-size: 9px;
-    color: #4cfcea;
+    font-size: 11px;
+    color: #c69c6d;
 }
 
 /* 健康指标容器 */
@@ -1347,7 +1347,7 @@ export default {
 .circle[style*="--percentage: 20"] {
     border: none;
     border-radius: 50%;
-    background: conic-gradient(from -90deg, #4cfcea 0deg, #4cfcea 72deg, transparent 72deg);
+    background: conic-gradient(from -90deg, #c69c6d 0deg, #c69c6d 72deg, transparent 72deg);
     transform: none;
 
     &::before {
@@ -1366,7 +1366,7 @@ export default {
 .circle[style*="--percentage: 30"] {
     border: none;
     border-radius: 50%;
-    background: conic-gradient(from -90deg, #ffa500 0deg, #ffa500 108deg, transparent 108deg);
+    background: conic-gradient(from -90deg, #c69c6d 0deg, #c69c6d 72deg, transparent 72deg);
     transform: none;
 
     &::before {
@@ -1384,13 +1384,13 @@ export default {
 
 .percentage {
     position: absolute;
-    top: 50%;
+    top: 55%;
     left: 50%;
     font-family: BebasNeueRegular;
-    font-size: 16px;
+    font-size: 36px;
     text-align: center;
 
-    color: #4cfcea;
+    color: #c69c6d;
     transform: translate(-50%, -50%);
 }
 
@@ -1411,28 +1411,26 @@ export default {
         box-sizing: border-box;
         width: 100%;
         height: 100%;
-        border: 2px solid #0f0c;
-
+        border: 2px solid #c69c6d;
         border-radius: 50%;
-        background: radial-gradient(circle, #0f03 0%, #00ff001a 50%, transparent 70%);
     }
 
     .health-score {
         z-index: 1;
         font-family: BebasNeueRegular;
-        font-size: 24px;
-        color: #0f0;
+        font-size: 36px;
+        color: #c69c6d;
     }
 }
 
 .indicator-label {
     margin-top: 5px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 500;
     text-align: center;
 
-    color: #4cfcea;
+    color: #c69c6d;
 }
 
 /* ===== 右侧农情动态面板样式 - BEM命名规范 ===== */
@@ -1443,10 +1441,7 @@ export default {
     width: 375px;
     height: 734px;
     padding: 0;
-
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 100% 100%;
+    background: #041F1D;
 }
 
 /* 农情动态标题区域 */
@@ -1466,13 +1461,13 @@ export default {
 }
 
 .farming-dynamics__title {
-    margin: 14px 0 0;
+    margin: 20px 0 0;
     font-family: SourceHanSansCN-Medium;
     font-size: 17px;
     font-weight: 500;
     line-height: 16px;
 
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__title-divider {
@@ -1529,7 +1524,7 @@ export default {
     font-weight: 500;
     line-height: 15px;
 
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__section-divider {
@@ -1565,7 +1560,7 @@ export default {
 }
 
 .farming-dynamics__item--active {
-    border-left: 3px solid #4cfcea;
+    border-left: 3px solid #c69c6d;
     background: #4cfdeb33;
     transform: translateX(2px);
 }
@@ -1588,12 +1583,12 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 14px;
     line-height: 17px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__item-text--gold {
-    color: #faaf3b;
+    color: #c7b299;
 }
 
 /* 状态指示器 */
@@ -1615,7 +1610,7 @@ export default {
     font-family: SourceHanSansCN-Normal;
     font-size: 12px;
     line-height: 10px;
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__status-bar {
@@ -1624,7 +1619,7 @@ export default {
 }
 
 .farming-dynamics__status-bar--executed {
-    background: #4cfcea;
+    background: #c69c6d;
 }
 
 .farming-dynamics__status-bar--pending {
@@ -1672,7 +1667,7 @@ export default {
     font-size: 17px;
     font-weight: 500;
 
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-alert-icon {
@@ -1681,7 +1676,7 @@ export default {
     right: 10px;
     font-size: 18px;
 
-    color: #faaf3b;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-basic-info {
@@ -1689,6 +1684,7 @@ export default {
     flex-wrap: wrap;
     align-items: flex-start;
     margin-bottom: 6px;
+    font-weight: 600;
 }
 
 .farming-dynamics__warning-time-level {
@@ -1696,7 +1692,7 @@ export default {
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 6px;
-
+    font-weight: 600;
     gap: 8px;
 }
 
@@ -1705,6 +1701,7 @@ export default {
     flex-wrap: wrap;
     align-items: flex-start;
     margin-bottom: 6px;
+    font-weight: 600;
 }
 
 .farming-dynamics__warning-label {
@@ -1712,8 +1709,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-name-value {
@@ -1723,15 +1720,16 @@ export default {
     font-size: 12px;
     line-height: 14px;
     word-break: break-all;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-time-value {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-    color: #4cfcea;
+    color: #c7b299;
+    font-weight: 600;
 }
 
 .farming-dynamics__warning-prescription-text {
@@ -1741,8 +1739,8 @@ export default {
     font-size: 12px;
     line-height: 14px;
     word-break: break-all;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-level-label {
@@ -1750,8 +1748,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-level-value {
@@ -1759,8 +1757,8 @@ export default {
     font-size: 12px;
     font-weight: 500;
     line-height: 14px;
-
-    color: #faaf3b;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-cycle-info {
@@ -1768,8 +1766,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-description {
@@ -1777,8 +1775,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-info {
@@ -1786,45 +1784,48 @@ export default {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 10px;
+    font-weight: 600;
 }
 
 .farming-dynamics__trigger-time {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     line-height: 14px;
-    color: #4cfcea;
+    color: #c7b299;
+    font-weight: 600;
 }
 
 .farming-dynamics__warning-level {
     display: flex;
     align-items: center;
     gap: 4px;
+    font-weight: 600;
 }
 
 .farming-dynamics__level-label {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     line-height: 14px;
-    color: #4cfcea;
+    color: #c7b299;
+    font-weight: 600;
 }
 
 .farming-dynamics__level-value--high {
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 14px;
-
-    color: #faaf3b;
+    color: #c7b299;
 }
 
 .farming-dynamics__level-value--completed {
     padding: 2px 6px;
     font-family: SourceHanSansCN-Medium;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 14px;
 
-    color: #000;
+    color: #c7b299;
     border-radius: 2px;
     background: #00ff7f;
 }
@@ -1836,7 +1837,7 @@ export default {
     font-weight: 500;
     line-height: 14px;
 
-    color: #000;
+    color: #c7b299;
     border-radius: 2px;
     background: #faaf3b;
 }
@@ -1848,9 +1849,9 @@ export default {
     font-weight: 500;
     line-height: 14px;
 
-    color: #000;
+    color: #c7b299;
     border-radius: 2px;
-    background: #4cfcea;
+    background: #c69c6d;
 }
 
 /* 查看详情链接样式 */
@@ -1862,12 +1863,12 @@ export default {
 .farming-dynamics__view-link {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    color: #4cfcea;
+    color: #c7b299;
     cursor: pointer;
 }
 
 .farming-dynamics__view-link:hover {
-    color: #faaf3b;
+    color: #c7b299;
 }
 
 /* 预期农事项目样式 */
@@ -1881,7 +1882,7 @@ export default {
     font-size: 12px;
     font-weight: 500;
 
-    color: #faaf3b;
+    color: #c7b299;
 }
 
 .farming-dynamics__expected-info {
@@ -1893,7 +1894,7 @@ export default {
 .farming-dynamics__expected-time {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-details {
@@ -1906,14 +1907,14 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     line-height: 14px;
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__cycle {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     line-height: 14px;
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__divider {
@@ -1951,7 +1952,6 @@ export default {
     line-height: 12px;
     white-space: nowrap;
     text-overflow: ellipsis;
-
     color: #093036;
 }
 
@@ -1962,7 +1962,7 @@ export default {
     font-weight: 500;
     line-height: 10px;
 
-    color: #00ff7f;
+    color: #FCEE21;
     border-radius: 2px;
 }
 
@@ -1973,10 +1973,10 @@ export default {
 .farming-dynamics__time-item {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
-    font-weight: 500;
     line-height: 10px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
+    margin-bottom: 4px;
 }
 
 .farming-dynamics__time-item:last-child {
@@ -1985,12 +1985,13 @@ export default {
 }
 
 .farming-dynamics__time-label {
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__time-value {
     font-family: SourceHanSansCN-Light;
-    color: #4cfcea;
+    color: #c7b299;
+    font-weight: 600;
 }
 
 .farming-dynamics__prescription {
@@ -1998,8 +1999,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__standards {
@@ -2008,8 +2009,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 14px;
-
-    color: #4cfcea;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__view-details {
@@ -2026,14 +2027,14 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     line-height: 13px;
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__details-arrow {
     font-family: FZCKJW--GB1-0;
     font-size: 10px;
     line-height: 13px;
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 /* 下一任务 */
@@ -2047,7 +2048,7 @@ export default {
     height: auto;
     min-height: 20px;
     margin: 8px 0 0 12px;
-    padding: 2px 17px 2px 25px;
+    padding: 2px 8px 2px 25px;
 
     background-repeat: no-repeat;
     background-size: 100% 100%;
@@ -2075,7 +2076,7 @@ export default {
     font-weight: 500;
     line-height: 10px;
 
-    color: #00ff7f;
+    color: #FCEE21;
     border-radius: 2px;
 }
 
@@ -2111,7 +2112,7 @@ export default {
     font-weight: 500;
     line-height: 15px;
 
-    color: #4cfcea;
+    color: #c7b299;
 }
 
 .farming-dynamics__services-content {
@@ -2143,8 +2144,8 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     line-height: 12px;
-
-    color: #5dd7ce;
+    font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__service-provider {
@@ -2153,7 +2154,7 @@ export default {
     font-weight: 500;
     line-height: 12px;
 
-    color: #5dd7ce;
+    color: #c7b299;
 }
 
 /* ===== 地块详情页面样式 ===== */
