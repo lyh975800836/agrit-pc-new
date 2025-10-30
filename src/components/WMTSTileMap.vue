@@ -109,21 +109,18 @@
             <!-- 农事建议 -->
             <div class="farming-suggestion">
               <div class="suggestion-header">
-                <span class="suggestion-icon">🌱</span>
-                <strong>智能农事建议</strong>
+                <strong class="suggestion-title">
+                  <span>智能</span>
+                  <span>农事</span>
+                  <span>建议</span>
+                </strong>
               </div>
               <div class="suggestion-content">
-                <p>✓ 该区域作物长势良好，叶色浓绿，整体健康状态优良</p>
-                <p>✓ 未发现明显病虫害迹象，无需进行病虫害防治</p>
-                <p>✓ 建议保持当前管理措施，继续观察作物生长动态</p>
-                <p>✓ 近期如遇连续阴雨天气，注意排水防涝工作</p>
+                <p>1、该区域作物长势良好，叶色浓绿，整体健康状态优良</p>
+                <p>2、未发现明显病虫害迹象，无需进行病虫害防治</p>
+                <p>3、建议保持当前管理措施，继续观察作物生长动态</p>
+                <p>4、近期如遇连续阴雨天气，注意排水防涝工作</p>
               </div>
-            </div>
-
-            <div class="preview-actions">
-              <button @click="closeImagePreview" class="btn btn-secondary">
-                ← 返回列表
-              </button>
             </div>
           </div>
         </div>
@@ -1169,9 +1166,11 @@ export default {
 
 .marker-details {
     margin-top: 12px;
+    padding: 0 40px;
     line-height: 1.6;
     text-align: left;
     color: #c7b299;
+    font-size: 17px;
 }
 
 .marker-details strong {
@@ -1213,8 +1212,8 @@ export default {
     width: 820px;
     max-width: 92vw;
     max-height: 88vh;
-    padding: 26px 32px 32px;
-    border: 2px solid rgba(76, 252, 234, 0.25);
+    padding: 26px 12px 32px;
+    border: 1px solid rgba(76, 252, 234, 0.25);
     border-radius: 12px;
     overflow: hidden;
     background: linear-gradient(135deg, rgba(16, 40, 56, 0.95) 0%, rgba(8, 28, 36, 0.95) 100%);
@@ -1227,7 +1226,6 @@ export default {
     flex: 1;
     overflow-y: auto;
     max-height: calc(88vh - 120px);
-    padding-right: 6px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -1326,8 +1324,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 42px 14px 0;
-    border-bottom: 1px solid rgba(76, 252, 234, 0.2);
+    padding: 0 42px 14px 24px;
 }
 
 .modal-header h3 {
@@ -1366,8 +1363,6 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    padding: 18px;
-    border: 1px solid rgba(76, 252, 234, 0.18);
     border-radius: 12px;
     background: rgba(12, 38, 54, 0.55);
 }
@@ -1386,11 +1381,7 @@ export default {
     justify-content: center;
     min-height: 300px;
     max-height: 52vh;
-    padding: 16px;
-    border: 1px solid rgba(199, 178, 153, 0.28);
     border-radius: 12px;
-    background: rgba(8, 28, 36, 0.65);
-    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35);
 }
 
 .preview-image-container img {
@@ -1452,29 +1443,46 @@ export default {
 /* 农事建议样式 */
 .farming-suggestion {
     margin-top: 14px;
-    padding: 16px;
-    border-radius: 10px;
-    border: 1px solid rgba(76, 252, 234, 0.16);
-    background: rgba(8, 28, 36, 0.75);
+    padding: 24px 32px;
+    border-radius: 18px;
+    background-color: rgba(8, 28, 36, 0.65);
+    background-image: url('/public/images/ai-advice.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
     color: #c7b299;
 }
 
 .suggestion-header {
+    position: relative;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 12px;
-    font-size: 16px;
-
     color: #c7b299;
-    gap: 8px;
 }
 
-.suggestion-icon {
-    font-size: 20px;
+.suggestion-title {
+    position: absolute;
+    left: 24px;
+    display: flex;
+    flex-direction: column;
+    font-size: 38px;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.suggestion-title span {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.suggestion-title span + span {
+    margin-top: 6px;
 }
 
 .suggestion-content {
     line-height: 1.8;
+    padding-left: 160px;
 }
 
 .suggestion-content p {
