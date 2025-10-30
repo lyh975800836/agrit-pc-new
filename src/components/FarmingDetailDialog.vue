@@ -44,10 +44,10 @@ export default {
         return {
             // 示例图片 - 使用已存在的占位图片或空图片处理
             images: [
-                '/images/comparison-image-1.jpg',
-                '/images/comparison-image-2.jpg',
-                '/images/comparison-image-1.jpg',
-                '/images/comparison-image-2.jpg'
+                '/images/farming-demo1.png',
+                '/images/farming-demo2.png',
+                '/images/farming-demo3.png',
+                '/images/farming-demo4.png'
             ]
         };
     },
@@ -56,7 +56,7 @@ export default {
             const baseUrl = process.env.BASE_URL || '/';
             return {
                 backgroundImage: `url(${ baseUrl }images/farming-detail-dialog.png)`,
-                backgroundSize: 'cover',
+                backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center'
             };
@@ -99,7 +99,6 @@ export default {
     height: 655px;
     overflow: hidden;
     padding: 23px 50px 33px 44px;
-    border-radius: 20px;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -117,8 +116,7 @@ export default {
     height: 32px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, #C69C6D 0%, #2dd4bf 100%);
-    box-shadow: 0 0 10px rgba(76, 207, 234, 0.5);
+    background: #C69C6D;
     transition: all 0.3s ease;
     cursor: pointer;
 
@@ -147,14 +145,14 @@ export default {
     font-size: 20px;
     font-weight: 500;
 
-    color: #4CFAE8;
+    color: #C69C6D;
 }
 
 .header-content {
     font-family: SourceHanSansCN-Regular;
     font-size: 14px;
     line-height: 21px;
-    color: #4CFAE8;
+    color: #C69C6D;
 }
 
 // 施工安全事项标题
@@ -164,7 +162,7 @@ export default {
     font-size: 20px;
     font-weight: 500;
 
-    color: #4CFAE8;
+    color: #C69C6D;
 }
 
 // 图片网格
