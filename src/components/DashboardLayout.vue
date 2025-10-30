@@ -573,46 +573,33 @@ export default {
 }
 
 .dashboard-layout--full-map .sidebar-panel--overlay {
-    max-height: calc(100% - 75px);
+    max-height: calc(100% - 10px);
     pointer-events: auto;
-}
-
-.dashboard-layout--full-map .breadcrumb-navigation {
-    right: 20px;
-    left: 20px;
 }
 
 .dashboard-layout--full-map .breadcrumb-navigation__container {
     max-width: none;
 }
 
-.dashboard-layout--with-bottom-nav .dashboard-layout__map-area {
-    padding-bottom: (@bottom-nav-height + 5px);
-}
-
 // 底部导航条（面包屑导航）
 .breadcrumb-navigation {
     position: absolute;
     z-index: 10;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: @bottom-nav-height;
-    border-top: 1px solid #4ccfea4d;
-
-    opacity: .8;
-
-    backdrop-filter: blur(10px);
+    bottom: 26px;
+    left: 50%;
+    height: 40px;
+    transform: translate(-50%, 0);
+    max-width: 550px;
+    box-sizing: border-box;
 }
 
 .breadcrumb-navigation__container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 1000px;
+    max-width: 550px;
     height: 100%;
     margin: 0 auto;
-    padding: 0 30px;
 }
 
 .breadcrumb-navigation__left {
@@ -621,36 +608,25 @@ export default {
 }
 
 .breadcrumb-navigation__back-btn {
+    margin-left: 5px;
     display: flex;
     align-items: center;
-    padding: 8px 16px;
-    border: 1px solid #4ccfea4d;
+    justify-content: center;
+    padding: 8px 0;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-
+    background: #7C714C;
     color: #C69C6D;
-    border-radius: 6px;
-    background: #4ccfea1a;
-    transition: all .3s ease;
     cursor: pointer;
-
-    gap: 8px;
-
-    &:hover {
-        border-color: #4ccfea80;
-        background: #4ccfea33;
-        transform: translateX(-2px);
-    }
-
-    &:active {
-        transform: translateX(-1px);
-    }
+    width: 154px;
+    height: 40px;
+    box-sizing: border-box;
 }
 
 .breadcrumb-navigation__back-arrow {
+    margin-right: 20px;
     font-size: 18px;
     font-weight: bold;
-    line-height: 1;
 }
 
 .breadcrumb-navigation__back-text {
@@ -662,12 +638,15 @@ export default {
 .breadcrumb-list {
     display: flex;
     align-items: center;
-    margin: 0;
-    padding: 0;
-
+    margin-left: 5px;
+    padding: 0 30px;
+    height: 100%;
     list-style: none;
-
+    background: #041F1C;
     gap: 8px;
+    border: 1px solid #937C57;
+    box-sizing: border-box;
+    opacity: .9;
 }
 
 .breadcrumb-list__item {
@@ -680,24 +659,28 @@ export default {
     font-family: SourceHanSansCN-Regular;
     font-size: 14px;
 
-    color: #5dd7ce;
+    color: #C69C6D;
     transition: color .3s ease;
     cursor: pointer;
+    opacity: .5;
 
     &:not(.breadcrumb-list__link--current):hover {
         color: #C69C6D;
+        opacity: 1;
     }
 
     &.breadcrumb-list__link--current {
         font-weight: 500;
         color: #C69C6D;
+        opacity: 1;
         cursor: default;
     }
 }
 
 .breadcrumb-list__separator {
     font-size: 14px;
-    color: #5dd7ce99;
+    color: #C69C6D;
+    opacity: .5;
     user-select: none;
 }
 </style>
