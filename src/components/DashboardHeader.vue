@@ -225,7 +225,8 @@ export default {
     width: 65px;
     font-size: 22px;
     text-align: right;
-    color: #08c4b6;
+    color: #F6F4EE;
+    font-weight: 600;
 }
 
 .weather-desc {
@@ -233,8 +234,8 @@ export default {
     font-size: 11px;
     text-align: center;
     white-space: nowrap;
-
-    color: #08c4b6;
+    font-weight: 600;
+    color: #F6F4EE;
 }
 
 .time-info {
@@ -244,21 +245,24 @@ export default {
 .current-time {
     font-size: 22px;
     text-align: center;
-    color: #08c4b6;
+    color: #F6F4EE;
+    font-weight: 600;
 }
 
 .current-date {
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
     text-align: center;
-    color: #08c4b6;
+    color: #F6F4EE;
+    font-weight: 600;
 }
 
 .weekday {
     margin-left: 32px;
     font-size: 22px;
     text-align: center;
-    color: #08c4b6;
+    color: #F6F4EE;
+    font-weight: 600;
 }
 
 // 中间区域：头部装饰图片 - 绝对居中
@@ -319,7 +323,7 @@ export default {
     font-family: SourceHanSansCN-Regular;
     font-size: 12px;
     white-space: nowrap;
-    color: #4cfdeb;
+    color: #F6F4EE;
 }
 
 .page-title {
@@ -348,7 +352,7 @@ export default {
     font-family: SourceHanSansCN-Regular;
     font-size: 12px;
     white-space: nowrap;
-    color: #4cfdeb;
+    color: #F6F4EE;
 }
 
 // 右侧区域：八角总揽图、数据驾驶舱、管理员
@@ -373,7 +377,7 @@ export default {
     font-family: SourceHanSansCN-Regular;
     font-size: 12px;
     white-space: nowrap;
-    color: #4cfdeb;
+    color: #F6F4EE;
 }
 
 // 装饰元素
