@@ -308,7 +308,7 @@
             </div>
             <div class="disease-legend-compact">
               <div class="legend-item">
-                <div class="legend-color-small" style="background: #C69C6D;"></div>
+                <div class="legend-color-small" style="background: #c69c6d;"></div>
                 <span>健康地块</span>
               </div>
               <div class="legend-item">
@@ -530,7 +530,7 @@ export default {
     justify-content: space-between;
     width: 100%;
 
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .stat-number {
@@ -560,7 +560,7 @@ export default {
 .trend-text {
     font-family: BebasNeueRegular;
     font-size: 31px;
-    color: #C69C6D;
+    color: #c69c6d;
 
     &.trend-down {
         color: #ff6b4a;
@@ -570,7 +570,7 @@ export default {
 .stat-label {
     font-family: SourceHanSansCN-Medium;
     font-size: 17px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 /* 图表主网格 - 匹配demo布局 */
@@ -585,7 +585,7 @@ export default {
     box-sizing: border-box;
     padding: 20px;
 
-    color: #C69C6D;
+    color: #c69c6d;
     border-radius: 8px;
     background-repeat: no-repeat;
     background-position: center;
@@ -605,14 +605,14 @@ export default {
     margin: 0 0 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 24px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .chart-subtitle {
     margin: 0 0 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .chart-desc {
@@ -661,7 +661,7 @@ export default {
     margin: 0 0 5px;
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .insight-text p {
@@ -690,7 +690,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
 
-    color: #C69C6D;
+    color: #c69c6d;
     border-radius: 4px;
     outline: none;
     background: transparent;
@@ -735,7 +735,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 24px;
 
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .price-point {
@@ -767,7 +767,7 @@ export default {
 
     &.active {
         border-color: #4cfcea99;
-        color: #C69C6D;
+        color: #c69c6d;
         background: #4cfcea40;
     }
 
@@ -826,7 +826,7 @@ export default {
     margin-top: 10px;
     font-family: SourceHanSansCN-Medium;
     font-size: 18px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 /* 底部图表区域 - 单行四个模块 */
@@ -848,7 +848,7 @@ export default {
     height: 395px;
     padding: 20px;
 
-    color: #C69C6D;
+    color: #c69c6d;
     border-radius: 8px;
     background-repeat: no-repeat;
     background-position: center;
@@ -874,7 +874,7 @@ export default {
     height: 395px;
     padding: 20px;
 
-    color: #C69C6D;
+    color: #c69c6d;
     border-radius: 8px;
     background-repeat: no-repeat;
     background-position: center;
@@ -897,7 +897,7 @@ export default {
     margin: 0;
     font-family: SourceHanSansCN-Medium;
     font-size: 20px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .panel-controls {
@@ -962,7 +962,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 14px;
 
-    color: #C69C6D;
+    color: #c69c6d;
 
     gap: 12px;
 }
@@ -1018,7 +1018,6 @@ export default {
     height: 300px;
 }
 
-
 /* 数据表格 */
 .table-header {
     display: flex;
@@ -1031,7 +1030,7 @@ export default {
     margin: 0;
     font-family: SourceHanSansCN-Medium;
     font-size: 20px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .search-box {
@@ -1054,7 +1053,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
 
-    color: #C69C6D;
+    color: #c69c6d;
     outline: none;
     background: transparent;
 
@@ -1076,12 +1075,12 @@ export default {
     font-size: 12px;
     text-align: center;
 
-    color: #C69C6D;
+    color: #c69c6d;
 
     &.table-head {
         font-family: SourceHanSansCN-Medium;
         font-weight: bold;
-        color: #C69C6D;
+        color: #c69c6d;
     }
 
     &:not(.table-head) {
@@ -1104,7 +1103,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
 
-    color: #C69C6D;
+    color: #c69c6d;
     border-radius: 4px;
     outline: none;
     background: #4cfcea26;
@@ -1117,7 +1116,7 @@ export default {
     }
 
     option {
-        color: #C69C6D;
+        color: #c69c6d;
         background: #0f3734;
     }
 }

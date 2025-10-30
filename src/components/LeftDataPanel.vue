@@ -12,16 +12,16 @@
       <!-- 地块数卡片 -->
       <div class="data-card block-count-card" :style="getLeftPanelImageStyle('BLOCK_COUNT_CARD')">
           <div class="card-label" :style="getLeftPanelImageStyle('CARD_LABEL_BLOCK')"></div>
-          <div class="card-data">{{ projectData.blockCount }}</div>
           <div class="label-text">-地块数-</div>
+          <div class="card-data">{{ projectData.blockCount }}</div>
           <div class="data-details">{{ projectData.blockDetails }}</div>
       </div>
 
       <!-- 总面积卡片 -->
       <div class="data-card total-area-card" :style="getLeftPanelImageStyle('TOTAL_AREA_CARD')">
         <div class="card-label" :style="getLeftPanelImageStyle('CARD_LABEL_AREA')"></div>
-          <div class="card-data">{{ projectData.totalArea }}</div>
           <div class="label-text">-总面积（亩）-</div>
+          <div class="card-data">{{ projectData.totalArea }}</div>
           <div class="data-details">{{ projectData.areaDetails }}</div>
       </div>
     </div>
@@ -195,7 +195,7 @@ export default {
     font-size: 17px;
     font-weight: 500;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .title-underline {
@@ -264,37 +264,39 @@ export default {
 }
 
 .card-data {
-    margin-top: 18px;
+    margin-top: 12px;
     font-family: BebasNeueRegular;
     font-size: 53px; // 原设计约128px * 0.417
+    font-weight: 600;
     line-height: 1;
     text-align: center;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .label-text {
-    margin-bottom: 15px;
+    margin-top: 20px;
     font-family: SourceHanSansCN-Regular;
     font-size: 14px; // 原设计约34px * 0.417
+    font-weight: 600;
     text-align: center;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .data-details {
     position: absolute;
-    bottom: 14px;
+    bottom: 2px;
     left: 50%;
-    width: 110px; // 原设计约264px * 0.417
+    width: 128px; // 原设计约264px * 0.417
     font-family: SourceHanSansCN-Light;
-    font-size: 6px; // 原设计约14px * 0.417
-    font-weight: 300;
+    font-size: 9px; // 原设计约14px * 0.417
+    font-weight: 600;
     line-height: 11px; // 原设计约26px * 0.417
     text-align: center;
 
-    color: #4cfdeb;
+    color: #c69c6d;
     transform: translateX(-50%);
 }
 
@@ -356,7 +358,7 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 // 月份标签
@@ -370,7 +372,7 @@ export default {
     font-size: 9px; // 调整字体大小
     font-weight: 300;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 
     span {
         // 确保月份标签与图表网格线对齐
@@ -404,9 +406,9 @@ export default {
     margin: 5px 0 8px 10px;
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    font-weight: 300;
+    font-weight: 500;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .col-region {
@@ -442,7 +444,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
     font-weight: 300;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .total-number {
@@ -452,14 +454,14 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .total-unit {
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
     font-weight: 500;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .table-divider {
@@ -486,7 +488,7 @@ export default {
     font-size: 10px;
     font-weight: 300;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .region-cell {

@@ -314,7 +314,7 @@ export default {
                     fillColor: '#1B4B47', // 深青色
                     weight: 2,
                     opacity: 1,
-                    color: '#4CFDEB',
+                    color: '#c69c6d',
                     fillOpacity: 0.7,
                     dashArray: null
                 };
@@ -325,7 +325,7 @@ export default {
                 fillColor: '#2C5F5A',
                 weight: 1.5,
                 opacity: 0.8,
-                color: '#4CFDEB',
+                color: '#c69c6d',
                 fillOpacity: 0.2,
                 dashArray: hasProjects ? null : '5,5' // 有项目用实线，无项目用虚线
             };
@@ -737,7 +737,7 @@ export default {
                     const markerIcon = L.divIcon({
                         className: 'farming-marker',
                         html: `<div class="farming-marker-content">
-                            <div class="farming-icon" style="background: ${ item.isActive ? '#FFD700' : '#4CFDEB' };">
+                            <div class="farming-icon" style="background: ${ item.isActive ? '#FFD700' : '#c69c6d' };">
                                 <span>${ item.name }</span>
                             </div>
                         </div>`,
@@ -828,7 +828,7 @@ export default {
 
 .loading-spinner {
     text-align: center;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .spinner {
@@ -836,7 +836,7 @@ export default {
     height: 60px;
     margin: 0 auto 20px;
     border: 4px solid #4cfdeb33;
-    border-left: 4px solid #4cfdeb;
+    border-left: 4px solid #c69c6d;
 
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -909,7 +909,7 @@ export default {
     font-size: 12px !important;
     font-weight: bold !important;
 
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
     border-radius: 6px !important;
     background: #102838f2 !important;
     box-shadow: 0 4px 12px #0006 !important;
@@ -946,7 +946,7 @@ export default {
 }
 
 .marker-point.normal {
-    background: radial-gradient(circle, #4cfdeb, #00bcd4);
+    background: radial-gradient(circle, #c69c6d, #00bcd4);
     animation: pulse-blue 2s infinite;
 }
 
@@ -957,7 +957,7 @@ export default {
     font-weight: bold;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
     border-radius: 4px;
     background: linear-gradient(135deg, #102838f2, #081c24fa);
     box-shadow: 0 2px 8px #0000004d;
@@ -989,7 +989,7 @@ export default {
     margin: 0 0 8px !important;
     font-size: 14px !important;
     font-weight: bold !important;
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
 }
 
 .marker-popup p {
@@ -1015,7 +1015,7 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
     background: none;
     box-shadow: none;
     text-shadow: 1px 1px 2px #000c;
@@ -1030,7 +1030,7 @@ export default {
 .label-content.no-projects,
 .auto-label-content.no-projects {
     border: none;
-    color: #4cfdeb;
+    color: #c69c6d;
     background: none;
     box-shadow: none;
 }
@@ -1051,7 +1051,7 @@ export default {
     font-weight: bold !important;
     line-height: 32px !important;
 
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
     background: linear-gradient(135deg, #102838f2 0%, #081c24fa 100%) !important;
     transition: all .3s ease !important;
 
@@ -1095,7 +1095,7 @@ export default {
     flex-direction: column;
     align-items: center;
     padding: 8px;
-    border: 2px solid #4cfdeb;
+    border: 2px solid #c69c6d;
     text-align: center;
 
     border-radius: 8px;
@@ -1113,7 +1113,7 @@ export default {
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 /* 农田图像弹窗样式 */
@@ -1121,7 +1121,7 @@ export default {
     margin: 0 0 8px !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
 }
 
 .field-image-popup p {
@@ -1138,10 +1138,10 @@ export default {
 
 .popup-actions button {
     padding: 4px 8px;
-    border: 1px solid #4cfdeb;
+    border: 1px solid #c69c6d;
     font-size: 10px;
 
-    color: #4cfdeb;
+    color: #c69c6d;
     border-radius: 4px;
     background: transparent;
     transition: all .3s ease;
@@ -1150,7 +1150,7 @@ export default {
 
 .popup-actions button:hover {
     color: #102838;
-    background: #4cfdeb;
+    background: #c69c6d;
 }
 
 .field-placeholder-popup .error-msg {
@@ -1199,7 +1199,7 @@ export default {
 }
 
 .field-info strong {
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
 }
 
 .field-actions {
@@ -1256,7 +1256,7 @@ export default {
 
 .farming-icon {
     padding: 4px 8px;
-    border: 1px solid #4cfdeb;
+    border: 1px solid #c69c6d;
     font-size: 10px;
     font-weight: bold;
     text-align: center;

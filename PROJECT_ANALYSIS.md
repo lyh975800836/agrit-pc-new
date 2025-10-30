@@ -217,7 +217,7 @@ These are also defined in `global.less` - causing duplication
 
 #### Issue #4: Missing Convention Documentation
 Components don't follow consistent patterns for:
-- Color naming (`.heading-color` vs `#4cfdeb` vs `var(--color-primary)`)
+- Color naming (`.heading-color` vs `#c69c6d` vs `var(--color-primary)`)
 - Size naming (`.small`, `.medium`, `.large` vs `sm`, `md`, `lg`)
 - State naming (`.active` vs `.selected` vs `--active`)
 
@@ -630,7 +630,7 @@ Uses CSS custom properties with LESS fallbacks:
 ```less
 :root {
   // Color system
-  --color-primary: #4cfdeb;
+  --color-primary: #c69c6d;
   --color-success: #22c55e;
   --color-warning: #ffd700;
   

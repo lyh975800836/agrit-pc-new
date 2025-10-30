@@ -31,10 +31,10 @@ export const IMAGES = {
     LEFT_PANEL: {
         TITLE_DECORATION: `${ IMAGE_BASE_PATH }title-decoration.png`,
         TITLE_UNDERLINE: `${ IMAGE_BASE_PATH }title-underline.png`,
-        BLOCK_COUNT_CARD: `${ IMAGE_BASE_PATH }block-count-card.png`,
+        BLOCK_COUNT_CARD: `${ IMAGE_BASE_PATH }total-area-card.png`,
         TOTAL_AREA_CARD: `${ IMAGE_BASE_PATH }total-area-card.png`,
         CARD_LABEL_BLOCK: `${ IMAGE_BASE_PATH }card-label-block.png`,
-        CARD_LABEL_AREA: `${ IMAGE_BASE_PATH }card-label-area.png`,
+        CARD_LABEL_AREA: `${ IMAGE_BASE_PATH }card-label-block.png`,
         PRICE_CHART_CONTAINER: `${ IMAGE_BASE_PATH }price-chart-container.png`,
         PRICE_CHART_BG: `${ IMAGE_BASE_PATH }price-chart-bg.png`,
         PRICE_INDICATOR: `${ IMAGE_BASE_PATH }price-indicator.png`,
@@ -53,16 +53,16 @@ export const IMAGES = {
         RANKING_DECORATION: `${ IMAGE_BASE_PATH }ranking-decoration.png`,
         // 排名背景
         FIRST_PLACE_BG: `${ IMAGE_BASE_PATH }first-place-bg.png`,
-        SECOND_PLACE_BG: `${ IMAGE_BASE_PATH }second-place-bg.png`,
-        THIRD_PLACE_BG: `${ IMAGE_BASE_PATH }third-place-bg.png`,
+        SECOND_PLACE_BG: `${ IMAGE_BASE_PATH }first-place-bg.png`,
+        THIRD_PLACE_BG: `${ IMAGE_BASE_PATH }first-place-bg.png`,
         // 排名图标
         FIRST_PLACE_ICON: `${ IMAGE_BASE_PATH }first-place-icon.png`,
         SECOND_PLACE_ICON: `${ IMAGE_BASE_PATH }second-place-icon.png`,
         THIRD_PLACE_ICON: `${ IMAGE_BASE_PATH }third-place-icon.png`,
         // 管理员背景
         FIRST_MANAGER_BG: `${ IMAGE_BASE_PATH }first-manager-bg.png`,
-        SECOND_MANAGER_BG: `${ IMAGE_BASE_PATH }second-manager-bg.png`,
-        THIRD_MANAGER_BG: `${ IMAGE_BASE_PATH }third-manager-bg.png`,
+        SECOND_MANAGER_BG: `${ IMAGE_BASE_PATH }first-manager-bg.png`,
+        THIRD_MANAGER_BG: `${ IMAGE_BASE_PATH }first-manager-bg.png`,
         // 质量相关
         QUALITY_ICON: `${ IMAGE_BASE_PATH }quality-icon.png`,
         QUALITY_DIVIDER: `${ IMAGE_BASE_PATH }quality-divider.png`,

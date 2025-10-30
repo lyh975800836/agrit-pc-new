@@ -506,7 +506,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 
     overflow-wrap: break-word;
 }
@@ -533,7 +533,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .text_82 {
@@ -544,7 +544,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .group_12 {
@@ -566,7 +566,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 
     overflow-wrap: break-word;
 }
@@ -593,7 +593,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .text_85 {
@@ -604,7 +604,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .image-wrapper_4 {

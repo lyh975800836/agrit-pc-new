@@ -7,7 +7,7 @@
         <div class="header-underline" :style="{ backgroundImage: `url(${images.productionUnderline})` }"></div>
       </div>
       <div class="header-section team-ranking flex-col" :style="{ backgroundImage: `url(${images.teamRankingHeader})` }">
-        <span class="header-title">专业队排名</span>
+        <span class="header-title header-title-second">专业队排名</span>
         <div class="header-underline" :style="{ backgroundImage: `url(${images.teamUnderline})` }"></div>
       </div>
     </div>
@@ -491,8 +491,8 @@ export default {
     line-height: 15px;
     text-align: center;
     white-space: nowrap;
-
-    color: #4cfdeb;
+    font-weight: 600;
+    color: #1D3534;
 
     .production-ranking & {
         width: 117px;
@@ -505,6 +505,10 @@ export default {
     }
 }
 
+.header-title-second {
+    color: #C69C6D;
+}
+
 .header-underline {
     width: 110px;
     height: 5px;
@@ -513,12 +517,6 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-
-    .production-ranking & {
-    }
-
-    .team-ranking & {
-    }
 }
 
 // Top5标题
@@ -528,14 +526,15 @@ export default {
     .main-title {
         font-family: SourceHanSansCN-Medium;
         font-size: 17px;
-        font-weight: 500;
-        color: #4cfdeb;
+        font-weight: 600;
+        color: #c69c6d;
     }
 
     .sub-title {
         font-family: SourceHanSansCN-Light;
         font-size: 14px;
-        color: #4cfdeb;
+        color: #c69c6d;
+        font-weight: 600;
     }
 }
 
@@ -650,7 +649,7 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #579042;
+    color: #C69C6D;
 }
 
 .location-info {
@@ -672,27 +671,30 @@ export default {
     font-size: 13px;
     text-align: center;
     white-space: nowrap;
-
-    color: #4cfdeb;
+    font-weight: 600;
+    color: #c69c6d;
 }
 
 .area-info {
     display: flex;
     align-items: baseline;
     justify-content: center;
+    font-weight: 600;
     gap: 2px;
 }
 
 .area-number {
     font-family: SourceHanSansCN-Medium;
     font-size: 13px;
-    color: #4cfdeb;
+    color: #c69c6d;
+    font-weight: 600;
 }
 
 .area-unit {
     font-family: SourceHanSansCN-Light;
     font-size: 13px;
-    color: #4cfdeb;
+    color: #c69c6d;
+    font-weight: 600;
 }
 
 .district-name {
@@ -701,8 +703,7 @@ export default {
     font-weight: 700;
     text-align: center;
     white-space: nowrap;
-
-    color: #4cfdeb;
+    color: #4CFDEB;
 }
 
 .yield-info {
@@ -725,7 +726,7 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .yield-unit {
@@ -735,7 +736,7 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 // 林地质量类别区域
@@ -760,7 +761,7 @@ export default {
     text-align: left;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .quality-icon {
@@ -872,7 +873,7 @@ export default {
 
 // 农情动态区域样式
 .farming-dynamics-section {
-    margin-top: 20px;
+    margin-top: 30px;
     padding: 0 2px;
 }
 

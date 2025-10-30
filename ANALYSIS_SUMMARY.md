@@ -152,7 +152,7 @@ const images = { rankingPanelBg: '/images/ranking-panel-bg.png' }
 ### ✓ Design Token System
 ```less
 :root {
-  --color-primary: #4cfdeb;
+  --color-primary: #c69c6d;
   --space-4: 1rem;
   --font-size-base: 1rem;
   --z-index-modal: 1400;

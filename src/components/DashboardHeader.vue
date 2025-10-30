@@ -191,7 +191,7 @@ export default {
     position: relative;
     box-sizing: border-box;
     width: 100%;
-    height: 157px;
+    height: 100px;
     padding: 0 3%;
 
     /* background moved to inline style */

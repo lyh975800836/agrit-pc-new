@@ -1162,20 +1162,20 @@ export default {
 
 .marker-image {
     max-width: 100%;
-    max-height: 60vh;
+    max-height: 50vh;
     border-radius: 8px;
-    box-shadow: 0 8px 24px #0003;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
 .marker-details {
-    margin-top: 15px;
+    margin-top: 12px;
     line-height: 1.6;
     text-align: left;
-    color: #555;
+    color: #c7b299;
 }
 
 .marker-details strong {
-    color: #333;
+    color: #c7b299;
 }
 
 /* 瓦片图片数量徽章样式 */
@@ -1206,36 +1206,60 @@ export default {
 
 /* 瓦片图片管理弹窗样式 */
 .tile-image-modal {
-    width: 800px;
-    max-width: 90vw;
-    max-height: 90vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 820px;
+    max-width: 92vw;
+    max-height: 88vh;
+    padding: 26px 32px 32px;
+    border: 2px solid rgba(76, 252, 234, 0.25);
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(16, 40, 56, 0.95) 0%, rgba(8, 28, 36, 0.95) 100%);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.72);
+    color: #c7b299;
+    gap: 20px;
 }
 
 .tile-image-modal .modal-body {
+    flex: 1;
     overflow-y: auto;
-    max-height: 75vh;
+    max-height: calc(88vh - 120px);
+    padding-right: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .tile-images-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid rgba(76, 252, 234, 0.18);
+    border-radius: 12px;
+    background: rgba(12, 38, 54, 0.55);
+    backdrop-filter: blur(2px);
 }
 
 .tile-image-item {
     position: relative;
     overflow: hidden;
-    padding-bottom: 100%;
-
-    border-radius: 8px;
-    box-shadow: 0 2px 8px #0000001a;
-    transition: all .2s;
+    padding-top: 72%;
+    border-radius: 10px;
+    border: 1px solid rgba(199, 178, 153, 0.18);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     cursor: pointer;
 }
 
 .tile-image-item:hover {
-    box-shadow: 0 4px 16px #0003;
     transform: translateY(-4px);
+    border-color: rgba(199, 178, 153, 0.45);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
 }
 
 .tile-image-item img {
@@ -1249,9 +1273,14 @@ export default {
 }
 
 .empty-message {
-    padding: 40px;
+    padding: 42px;
     text-align: center;
-    color: #999;
+    font-family: SourceHanSansCN-Regular;
+    font-size: 16px;
+    color: #c7b299;
+    border: 1px dashed rgba(199, 178, 153, 0.45);
+    border-radius: 12px;
+    background: rgba(12, 38, 54, 0.55);
 }
 
 /* 通用按钮样式 */
@@ -1286,62 +1315,68 @@ export default {
     width: 100%;
     height: 100%;
 
-    background: #000000b3;
+    background: #00000080;
 }
 
 .modal-content {
-    position: relative;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 20px 60px #0000004d;
+    border-radius: 12px;
 }
 
 .modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 20px;
-    border-bottom: 1px solid #eee;
+    padding: 0 42px 14px 0;
+    border-bottom: 1px solid rgba(76, 252, 234, 0.2);
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 18px;
-    color: #333;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 20px;
+    font-weight: 500;
+    color: #c7b299;
 }
 
 .close-btn {
-    padding: 5px 10px;
-    border: none;
-    font-size: 1.5em;
-
-    color: #666;
-    border-radius: 5px;
-    background: none;
-    transition: background .3s ease;
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid rgba(199, 178, 153, 0.45);
+    border-radius: 50%;
+    background: rgba(8, 28, 36, 0.65);
+    color: #c7b299;
+    font-size: 18px;
+    line-height: 26px;
+    text-align: center;
+    transition: transform .2s ease, background .2s ease;
     cursor: pointer;
 }
 
 .close-btn:hover {
-    background: #0000001a;
-}
-
-.modal-body {
-    padding: 20px;
+    background: rgba(199, 178, 153, 0.18);
+    transform: scale(1.05);
 }
 
 /* 预览视图样式 */
 .preview-view {
-    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid rgba(76, 252, 234, 0.18);
+    border-radius: 12px;
+    background: rgba(12, 38, 54, 0.55);
 }
 
 .preview-navigation {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
-
-    gap: 20px;
+    gap: 16px;
 }
 
 .preview-image-container {
@@ -1350,38 +1385,44 @@ export default {
     align-items: center;
     justify-content: center;
     min-height: 300px;
-    max-height: 50vh;
+    max-height: 52vh;
+    padding: 16px;
+    border: 1px solid rgba(199, 178, 153, 0.28);
+    border-radius: 12px;
+    background: rgba(8, 28, 36, 0.65);
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35);
 }
 
 .preview-image-container img {
     max-width: 100%;
     max-height: 50vh;
     object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
+
 
 .nav-btn {
     flex-shrink: 0;
-    width: 50px;
-    height: 50px;
-    border: none;
-
-    font-size: 24px;
-
-    color: #fff;
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(199, 178, 153, 0.35);
     border-radius: 50%;
-    background: #667eeacc;
-    transition: all .2s;
+    background: rgba(8, 28, 36, 0.65);
+    color: #c7b299;
+    font-size: 20px;
+    transition: transform .2s ease, background .2s ease;
     cursor: pointer;
 }
 
 .nav-btn:disabled {
-    opacity: .3;
+    opacity: .35;
     cursor: not-allowed;
 }
 
 .nav-btn:hover:not(:disabled) {
-    background: #667eea;
-    transform: scale(1.1);
+    background: rgba(199, 178, 153, 0.18);
+    transform: scale(1.08);
 }
 
 .nav-btn:active:not(:disabled) {
@@ -1391,26 +1432,31 @@ export default {
 .preview-actions {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 6px;
 }
 
 .btn-secondary {
-    color: #fff;
-    background: #6c757d;
+    color: #c7b299;
+    background: rgba(8, 28, 36, 0.65);
+    border: 1px solid rgba(199, 178, 153, 0.35);
+    border-radius: 6px;
+    padding: 8px 24px;
+    transition: background .2s ease, transform .2s ease;
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: rgba(199, 178, 153, 0.18);
+    transform: translateY(-1px);
 }
 
 /* 农事建议样式 */
 .farming-suggestion {
-    margin-top: 20px;
-    padding: 15px;
-    border: 2px solid #4caf50;
-
-    border-radius: 8px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+    margin-top: 14px;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(76, 252, 234, 0.16);
+    background: rgba(8, 28, 36, 0.75);
+    color: #c7b299;
 }
 
 .suggestion-header {
@@ -1419,8 +1465,7 @@ export default {
     margin-bottom: 12px;
     font-size: 16px;
 
-    color: #2e7d32;
-
+    color: #c7b299;
     gap: 8px;
 }
 
@@ -1433,10 +1478,10 @@ export default {
 }
 
 .suggestion-content p {
-    margin: 8px 0;
+    margin: 6px 0;
     padding-left: 4px;
     font-size: 14px;
-    color: #424242;
+    color: #c7b299;
 }
 
 .suggestion-content p:first-child {

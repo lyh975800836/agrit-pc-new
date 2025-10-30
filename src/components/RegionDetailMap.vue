@@ -747,7 +747,7 @@ export default {
                 // 创建区域轮廓图层
                 const regionLayer = L.geoJSON(regionFeature, {
                     style: {
-                        color: '#4CFDEB',
+                        color: '#c69c6d',
                         weight: 3,
                         opacity: 1,
                         fillColor: 'rgba(76, 253, 235, 0.1)',
@@ -1020,7 +1020,7 @@ export default {
         // 添加备用标记
         addFallbackMarkers() {
             const plotLocations = [
-                { name: '示例地块1', lat: 23.75, lng: 106.28, color: '#4CFDEB' },
+                { name: '示例地块1', lat: 23.75, lng: 106.28, color: '#c69c6d' },
                 { name: '示例地块2', lat: 23.76, lng: 106.29, color: '#FFD700' },
                 { name: '示例地块3', lat: 23.74, lng: 106.27, color: '#FF6B35' }
             ];
@@ -1323,10 +1323,10 @@ export default {
 
                 // 创建多边形样式
                 const plotStyle = {
-                    color: index % 2 === 0 ? '#4CFDEB' : '#FFD700',
+                    color: index % 2 === 0 ? '#c69c6d' : '#FFD700',
                     weight: 3,
                     opacity: 0.8,
-                    fillColor: index % 2 === 0 ? '#4CFDEB' : '#FFD700',
+                    fillColor: index % 2 === 0 ? '#c69c6d' : '#FFD700',
                     fillOpacity: 0.2,
                     dashArray: '8,4'
                 };
@@ -1536,9 +1536,9 @@ export default {
 
             defaultPlots.forEach(plot => {
                 const polygon = L.polygon(plot.coordinates, {
-                    color: '#4CFDEB',
+                    color: '#c69c6d',
                     weight: 3,
-                    fillColor: '#4CFDEB',
+                    fillColor: '#c69c6d',
                     fillOpacity: 0.2
                 });
 
@@ -2049,7 +2049,7 @@ export default {
 
                 // 添加地块轮廓多边形
                 const plotPolygon = L.polygon(plotCoordinates, {
-                    color: '#4CFDEB',
+                    color: '#c69c6d',
                     weight: 4,
                     opacity: 1,
                     fillColor: 'rgba(76, 252, 234, 0.3)',
@@ -2070,7 +2070,7 @@ export default {
                     plotPolygon.setStyle({
                         weight: 4,
                         fillOpacity: 0.3,
-                        color: '#4CFDEB'
+                        color: '#c69c6d'
                     });
                 });
 
@@ -2130,7 +2130,7 @@ export default {
 
                 // 添加地块轮廓多边形
                 const plotPolygon = L.polygon(plotCoordinates, {
-                    color: '#4CFDEB',
+                    color: '#c69c6d',
                     weight: 4,
                     opacity: 1,
                     fillColor: 'rgba(76, 252, 234, 0.3)',
@@ -2515,7 +2515,7 @@ export default {
 
                 // 创建连接线
                 this.connectorLine = L.polyline([plotCenter, popupLatLng], {
-                    color: '#4CFDEB',
+                    color: '#c69c6d',
                     weight: 2,
                     opacity: 0.8,
                     dashArray: '5,5'
@@ -2906,7 +2906,7 @@ export default {
 
 .plot-filter-close:hover,
 .plot-filter-close:focus {
-    border-color: #4cfdeb;
+    border-color: #c69c6d;
 
     color: #051921;
     outline: none;
@@ -2939,7 +2939,7 @@ export default {
 
 .plot-filter-button:hover,
 .plot-filter-button:focus {
-    border-color: #4cfdeb;
+    border-color: #c69c6d;
 
     color: #fff;
     outline: none;
@@ -2948,9 +2948,9 @@ export default {
 }
 
 .plot-filter-button.is-active {
-    border-color: #4cfdeb;
+    border-color: #c69c6d;
     color: #051921;
-    background: linear-gradient(135deg, #4cfdeb 0%, #1c9fff 100%);
+    background: linear-gradient(135deg, #c69c6d 0%, #1c9fff 100%);
     box-shadow: 0 10px 24px #4cfdeb66;
 }
 
@@ -2978,11 +2978,11 @@ export default {
 
 .plot-filter-toggle:hover,
 .plot-filter-toggle:focus {
-    border-color: #4cfdeb;
+    border-color: #c69c6d;
 
     color: #051921;
     outline: none;
-    background: linear-gradient(135deg, #4cfdeb 0%, #1c9fff 100%);
+    background: linear-gradient(135deg, #c69c6d 0%, #1c9fff 100%);
     box-shadow: 0 10px 24px #4cfdeb66;
 }
 
@@ -2994,13 +2994,13 @@ export default {
     align-items: center;
     justify-content: space-between;
     padding: 15px 20px;
-    border-bottom: 1px solid #4cfdeb;
+    border-bottom: 1px solid #c69c6d;
 }
 
 .panel-header h4 {
     margin: 0;
     font-size: 16px;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .close-btn {
@@ -3013,7 +3013,7 @@ export default {
     border: none;
     font-size: 24px;
 
-    color: #4cfdeb;
+    color: #c69c6d;
     background: none;
     cursor: pointer;
 }
@@ -3048,7 +3048,7 @@ export default {
     bottom: 20px;
     left: 20px;
     padding: 15px;
-    border: 1px solid #4cfdeb;
+    border: 1px solid #c69c6d;
 
     border-radius: 8px;
     background: #001e3ce6;
@@ -3059,7 +3059,7 @@ export default {
 .map-legend h5 {
     margin: 0 0 10px;
     font-size: 14px;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .legend-item {
@@ -3087,7 +3087,7 @@ export default {
 
 .plot-popup h4 {
     margin: 0 0 10px;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .plot-popup p {
@@ -3102,7 +3102,7 @@ export default {
 
     color: #000;
     border-radius: 3px;
-    background: #4cfdeb;
+    background: #c69c6d;
     cursor: pointer;
 }
 
@@ -3136,7 +3136,7 @@ export default {
 
 .loading-spinner {
     text-align: center;
-    color: #4cfdeb;
+    color: #c69c6d;
 }
 
 .spinner {
@@ -3144,7 +3144,7 @@ export default {
     height: 50px;
     margin: 0 auto 20px;
     border: 4px solid #4cfdeb4d;
-    border-left: 4px solid #4cfdeb;
+    border-left: 4px solid #c69c6d;
 
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -3467,7 +3467,7 @@ export default {
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
 
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
 }
 
 .marker-info {
@@ -3563,7 +3563,7 @@ export default {
     border: 2px solid #0a1420;
 
     border-radius: 50%;
-    background: linear-gradient(135deg, #4cfdeb 0%, #00bcd4 100%);
+    background: linear-gradient(135deg, #c69c6d 0%, #00bcd4 100%);
     box-shadow: 0 0 10px #4cfcea80;
     transition: all .3s ease;
     cursor: pointer;
@@ -3596,7 +3596,7 @@ export default {
 }
 
 .popup-image-container:hover {
-    border-color: #4cfdeb;
+    border-color: #c69c6d;
     box-shadow: 0 0 10px #4cfdeb80;
 }
 
@@ -3627,7 +3627,7 @@ export default {
     line-height: 30px !important;
     text-decoration: none !important;
 
-    color: #4cfdeb !important;
+    color: #c69c6d !important;
     border-radius: 0 !important;
     background: linear-gradient(135deg, #102838e6 0%, #081c24f2 100%) !important;
     transition: all .3s ease !important;
@@ -3715,7 +3715,7 @@ export default {
 }
 
 .marker-point.normal {
-    background: radial-gradient(circle, #4cfdeb, #00bcd4);
+    background: radial-gradient(circle, #c69c6d, #00bcd4);
     animation: pulse-blue 2s infinite;
 }
 
@@ -3727,7 +3727,7 @@ export default {
     font-weight: bold;
     white-space: nowrap;
 
-    color: #4cfdeb;
+    color: #c69c6d;
     border-radius: 4px;
     background: linear-gradient(135deg, #102838f2, #081c24fa);
     box-shadow: 0 2px 8px #0000004d;
