@@ -38,24 +38,6 @@
 
         <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 地块统计数据 -->
-        <div class="plot-statistics">
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">总面积(亩)：</span>
-            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
-          </div>
-
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">产量(万斤)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.yield || '48' }}</span>
-          </div>
-
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">亩产量(斤/亩)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.unitYield || '1200' }}</span>
-          </div>
-        </div>
-
         <!-- 农户信息 -->
         <div class="farmer-profile" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
           <img class="farmer-avatar" :src="farmerAvatarUrl" />
@@ -74,7 +56,23 @@
             </div>
           </div>
         </div>
+        <!-- 地块统计数据 -->
+        <div class="plot-statistics">
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">总面积(亩)：</span>
+            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
+          </div>
 
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">产量(万斤)：</span>
+            <span class="stat-value stat-value-large">{{ plotData.yield || '48' }}</span>
+          </div>
+
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">亩产量(斤/亩)：</span>
+            <span class="stat-value stat-value-large">{{ plotData.unitYield || '1200' }}</span>
+          </div>
+        </div>
         <!-- 价格信息 -->
         <div class="price-info" :style="{ backgroundImage: `url(${images.priceInfo})` }">
           <div class="price-display">
@@ -1068,7 +1066,6 @@ export default {
 .plot-statistics {
     display: flex;
     justify-content: space-between;
-    margin: 21px 0 17px;
 }
 
 .stat-item {
@@ -1102,9 +1099,10 @@ export default {
 .farmer-profile {
     display: flex;
     align-items: flex-start;
-    width: 315px;
+    width: 330px;
     height: 173px;
     padding: 8px 0 11px 13px;
+    margin: 21px 0 17px;
 
     background-size: 100% 100%;
 }

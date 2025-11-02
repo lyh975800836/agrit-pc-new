@@ -88,6 +88,7 @@
                   :src="currentPreviewImage.image_url"
                   :alt="`图片 ${currentPreviewImage.id}`"
                   class="marker-image"
+                  @click="openFullscreenPreview"
                 />
               </div>
 
@@ -121,9 +122,57 @@
                 <p>3、建议保持当前管理措施，继续观察作物生长动态</p>
                 <p>4、近期如遇连续阴雨天气，注意排水防涝工作</p>
               </div>
+              <div class="suggestion-back">
+                返回列表
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div
+      v-if="isFullscreenPreview"
+      class="fullscreen-image-overlay"
+      @click="closeFullscreenPreview"
+    >
+      <div class="fullscreen-image-wrapper" @click.stop>
+        <button
+          type="button"
+          class="fullscreen-close-btn"
+          @click.stop="closeFullscreenPreview"
+          aria-label="关闭全屏预览"
+          title="关闭 (Esc)"
+        >
+          ×
+        </button>
+
+        <button
+          type="button"
+          class="fullscreen-nav-btn fullscreen-nav-prev"
+          @click.stop="previousImage"
+          :disabled="currentPreviewIndex === 0"
+          aria-label="上一张"
+          title="上一张 (←)"
+        >
+          ←
+        </button>
+
+        <img
+          :src="currentPreviewImage.image_url"
+          :alt="currentPreviewImage.id ? `图片 ${currentPreviewImage.id}` : '图片预览'"
+        />
+
+        <button
+          type="button"
+          class="fullscreen-nav-btn fullscreen-nav-next"
+          @click.stop="nextImage"
+          :disabled="currentPreviewIndex === currentTileImages.length - 1"
+          aria-label="下一张"
+          title="下一张 (→)"
+        >
+          →
+        </button>
       </div>
     </div>
   </div>
@@ -171,6 +220,7 @@ export default {
             // 图片预览相关
             showImagePreview: false,
             currentPreviewIndex: 0,
+            isFullscreenPreview: false,
             // 响应式瓦片尺寸
             tileSizePx: 120,
             resizeObserver: null
@@ -887,6 +937,7 @@ export default {
             };
             this.showTileImageModal = true;
             this.currentPreviewIndex = 0;
+            this.isFullscreenPreview = false;
 
             // 加载该瓦片的图片列表
             await this.loadTileImages(x, y);
@@ -916,6 +967,7 @@ export default {
             this.showImagePreview = false;
             this.currentTileImages = [];
             this.currentPreviewIndex = 0;
+            this.isFullscreenPreview = false;
             // 移除键盘事件监听
             document.removeEventListener('keydown', this.handleKeyboardNavigation);
         },
@@ -924,11 +976,27 @@ export default {
         openImagePreview(index) {
             this.currentPreviewIndex = index;
             this.showImagePreview = true;
+            this.isFullscreenPreview = false;
         },
 
         closeImagePreview() {
             this.showImagePreview = false;
             this.currentPreviewIndex = 0;
+            this.isFullscreenPreview = false;
+        },
+
+        openFullscreenPreview() {
+            if (!this.currentPreviewImage || !this.currentPreviewImage.image_url) {
+                return;
+            }
+            this.isFullscreenPreview = true;
+        },
+
+        closeFullscreenPreview() {
+            if (!this.isFullscreenPreview) {
+                return;
+            }
+            this.isFullscreenPreview = false;
         },
 
         previousImage() {
@@ -946,6 +1014,14 @@ export default {
         handleKeyboardNavigation(event) {
             if (!this.showTileImageModal) {
                 return;
+            }
+
+            if (this.isFullscreenPreview) {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    this.closeFullscreenPreview();
+                    return;
+                }
             }
 
             // 如果在预览模式
@@ -1209,7 +1285,7 @@ export default {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    width: 820px;
+    width: 50%;
     max-width: 92vw;
     max-height: 88vh;
     padding: 26px 12px 32px;
@@ -1368,28 +1444,139 @@ export default {
 }
 
 .preview-navigation {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    width: 100%;
+    min-height: 300px;
+    max-height: 52vh;
 }
 
 .preview-image-container {
+    position: relative;
     display: flex;
-    flex: 1;
     align-items: center;
     justify-content: center;
-    min-height: 300px;
-    max-height: 52vh;
+    width: 100%;
+    height: 100%;
     border-radius: 12px;
 }
 
 .preview-image-container img {
-    max-width: 100%;
-    max-height: 50vh;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
     border-radius: 8px;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    cursor: zoom-in;
+}
+
+.preview-navigation .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.preview-navigation .nav-prev {
+    left: 12px;
+}
+
+.preview-navigation .nav-next {
+    right: 12px;
+}
+
+.fullscreen-image-overlay {
+    position: fixed;
+    z-index: 1500;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: rgba(4, 12, 18, 0.1);
+    backdrop-filter: blur(2px);
+}
+
+.fullscreen-image-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    max-width: 100%;
+}
+
+.fullscreen-image-overlay img {
+    max-width: 88vw;
+    max-height: 88vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+    cursor: zoom-out;
+}
+
+.fullscreen-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: 1px solid rgba(199, 178, 153, 0.45);
+    border-radius: 50%;
+    background: rgba(8, 28, 36, 0.7);
+    color: #c7b299;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.fullscreen-nav-btn:hover:not(:disabled) {
+    background: rgba(199, 178, 153, 0.2);
+    transform: scale(1.08);
+}
+
+.fullscreen-nav-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.fullscreen-nav-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.fullscreen-nav-prev,
+.fullscreen-nav-next {
+    flex-shrink: 0;
+}
+
+.fullscreen-close-btn {
+    position: absolute;
+    top: 26px;
+    right: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(199, 178, 153, 0.45);
+    border-radius: 50%;
+    background: rgba(8, 28, 36, 0.7);
+    color: #c7b299;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.fullscreen-close-btn:hover {
+    background: rgba(199, 178, 153, 0.2);
+    transform: scale(1.05);
+}
+
+.fullscreen-close-btn:active {
+    transform: scale(0.92);
 }
 
 
@@ -1402,22 +1589,12 @@ export default {
     background: rgba(8, 28, 36, 0.65);
     color: #c7b299;
     font-size: 20px;
-    transition: transform .2s ease, background .2s ease;
     cursor: pointer;
 }
 
 .nav-btn:disabled {
     opacity: .35;
     cursor: not-allowed;
-}
-
-.nav-btn:hover:not(:disabled) {
-    background: rgba(199, 178, 153, 0.18);
-    transform: scale(1.08);
-}
-
-.nav-btn:active:not(:disabled) {
-    transform: scale(.95);
 }
 
 .preview-actions {
@@ -1442,6 +1619,7 @@ export default {
 
 /* 农事建议样式 */
 .farming-suggestion {
+    position: relative;
     margin-top: 14px;
     padding: 24px 32px;
     border-radius: 18px;
@@ -1463,7 +1641,8 @@ export default {
 
 .suggestion-title {
     position: absolute;
-    left: 24px;
+    top: 10px;
+    left: 1.5vw;
     display: flex;
     flex-direction: column;
     font-size: 38px;
@@ -1482,13 +1661,13 @@ export default {
 
 .suggestion-content {
     line-height: 1.8;
-    padding-left: 160px;
+    padding-left: 9vw;
 }
 
 .suggestion-content p {
     margin: 6px 0;
     padding-left: 4px;
-    font-size: 14px;
+    font-size: 18px;
     color: #c7b299;
 }
 
@@ -1498,5 +1677,25 @@ export default {
 
 .suggestion-content p:last-child {
     margin-bottom: 0;
+}
+
+.suggestion-back {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translate(0, -40%);
+    width: 160px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    color: #D8AF87;
+    font-weight: 600;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
+    background-image: url('/public/images/back-list.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    border-radius: 14px;
+    cursor: pointer;
 }
 </style>

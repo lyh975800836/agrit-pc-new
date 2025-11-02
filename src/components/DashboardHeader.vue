@@ -40,12 +40,6 @@
             :src="getImagePath('HEADER', 'CENTER_DECORATION_MAIN')"
             alt="中心装饰"
           />
-          <img
-            class="center-decoration-sub"
-            referrerpolicy="no-referrer"
-            :src="getImagePath('HEADER', 'CENTER_DECORATION_SUB')"
-            alt="装饰线条"
-          />
         </div>
       </div>
 
@@ -290,18 +284,10 @@ export default {
 
 .center-decoration-main {
     position: absolute;
-    bottom: 18px;
+    bottom: 22px;
     left: 170px;
     width: 420px;
     height: 36px;
-}
-
-.center-decoration-sub {
-    position: absolute;
-    bottom: 20px;
-    left: 122px;
-    width: 520px;
-    height: 28px;
 }
 
 .nav-button {
