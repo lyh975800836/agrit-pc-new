@@ -213,6 +213,8 @@ export default {
             totalTileAreaSquareMeters: 0,
             tilePlaceholderError: TILE_PLACEHOLDER_ERROR,
             currentRequestToken: null,
+            // 请求取消控制器 - 用于在组件销毁时取消所有待处理的请求
+            requestAbortController: null,
             // 瓦片图片管理相关
             showTileImageModal: false,
             currentTilePosition: { x: 0, y: 0, z: 0 },
@@ -360,6 +362,10 @@ export default {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
         }
+        // 取消所有待处理的请求
+        if (this.requestAbortController) {
+            this.requestAbortController.abort();
+        }
     },
     methods: {
         async loadMapData() {
@@ -368,6 +374,14 @@ export default {
             }
 
             this.resetTileState();
+
+            // 取消之前的请求
+            if (this.requestAbortController) {
+                this.requestAbortController.abort();
+            }
+            // 创建新的 AbortController
+            this.requestAbortController = new AbortController();
+
             const requestToken = Symbol('tile-load');
             this.currentRequestToken = requestToken;
 
@@ -426,7 +440,8 @@ export default {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ plot_id: String(this.plotId) })
+                    body: JSON.stringify({ plot_id: String(this.plotId) }),
+                    signal: this.requestAbortController?.signal
                 });
 
                 if (!response.ok) {
@@ -459,6 +474,10 @@ export default {
                 }
             }
             catch (error) {
+                // 如果请求被取消，不输出错误日志
+                if (error.name === 'AbortError') {
+                    return;
+                }
                 // eslint-disable-next-line no-console
                 console.error('加载瓦片信息失败:', error);
                 if (this.currentRequestToken === requestToken) {
@@ -473,7 +492,9 @@ export default {
             try {
                 const isProduction = process.env.NODE_ENV === 'production';
                 const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
-                const response = await fetch(`${ baseUrl }/api/v1/markers/plot/${ this.plotId }`);
+                const response = await fetch(`${ baseUrl }/api/v1/markers/plot/${ this.plotId }`, {
+                    signal: this.requestAbortController?.signal
+                });
                 const result = await response.json();
 
                 if (this.currentRequestToken !== requestToken) {
@@ -489,6 +510,10 @@ export default {
                 }
             }
             catch (error) {
+                // 如果请求被取消，不输出错误日志
+                if (error.name === 'AbortError') {
+                    return;
+                }
                 // eslint-disable-next-line no-console
                 console.error('加载标点失败:', error);
                 if (this.currentRequestToken === requestToken) {
@@ -710,7 +735,9 @@ export default {
             const tileUrl = `${ baseUrl }/api/v1/wmts/request?${ params }`;
 
             try {
-                const response = await fetch(tileUrl);
+                const response = await fetch(tileUrl, {
+                    signal: this.requestAbortController?.signal
+                });
                 const result = await response.json();
 
                 if (this.currentRequestToken !== requestToken) {
@@ -729,13 +756,16 @@ export default {
                 }
             }
             catch (error) {
-                // eslint-disable-next-line no-console
-                console.error(`获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
-                if (this.currentRequestToken !== requestToken) {
+                // 如果请求被取消，不输出错误日志
+                if (error.name === 'AbortError') {
                     return;
                 }
-                this.$set(this.tileImages, key, 'error');
-                this.$delete(this.tileAreas, key);
+                // eslint-disable-next-line no-console
+                console.error(`获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
+                if (this.currentRequestToken === requestToken) {
+                    this.$set(this.tileImages, key, 'error');
+                    this.$delete(this.tileAreas, key);
+                }
             }
         },
 
@@ -1301,10 +1331,16 @@ export default {
 .tile-image-modal .modal-body {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     max-height: calc(88vh - 120px);
     display: flex;
     flex-direction: column;
     gap: 20px;
+    scrollbar-width: none;
+}
+
+.tile-image-modal .modal-body::-webkit-scrollbar {
+    display: none;
 }
 
 .tile-images-grid {

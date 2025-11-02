@@ -24,8 +24,9 @@
     </template>
 
     <template #left-panel>
-      <!-- 左侧地块详情面板 -->
-      <div class="plot-details-panel">
+      <!-- 左侧面板 - 根据type类型动态显示 -->
+      <!-- 八角地块详情面板 -->
+      <div v-if="plotData.type !== 'factory' && plotData.type !== 'warehouse'" class="plot-details-panel">
         <!-- 装饰线 -->
         <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
 
@@ -128,11 +129,174 @@
           </div>
         </div>
       </div>
+
+      <!-- 烘干厂生产概况面板 -->
+      <div v-if="plotData.type === 'factory'" class="factory-overview-panel">
+        <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
+        <div class="factory-title-section">
+          <h2 class="factory-name">烘干示范工厂</h2>
+          <img class="region-label" src="/images/region-label.jpg" />
+          <span class="region-name">{{ regionName }}</span>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 今日产能 -->
+        <div class="factory-info-module">
+          <h3 class="module-title">今日产能</h3>
+          <div class="module-content">
+            <div class="info-row">
+              <span class="info-label">烘干量(吨)：</span>
+              <span class="info-value">45.5</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">产能利用率(%)：</span>
+              <span class="info-value">92.3</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">含水率下降(%)：</span>
+              <span class="info-value">8.5</span>
+            </div>
+          </div>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 设备状态 -->
+        <div class="factory-info-module">
+          <h3 class="module-title">设备状态</h3>
+          <div class="module-content">
+            <div class="info-row">
+              <span class="info-label">主机运行率(%)：</span>
+              <span class="info-value">98.0</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">加热温度(℃)：</span>
+              <span class="info-value">85.2</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">故障设备数：</span>
+              <span class="info-value">0</span>
+            </div>
+          </div>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 加工收益 -->
+        <div class="factory-info-module">
+          <h3 class="module-title">加工收益</h3>
+          <div class="module-content">
+            <div class="info-row">
+              <span class="info-label">加工费总额(元)：</span>
+              <span class="info-value">18500</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">平均单价(元/吨)：</span>
+              <span class="info-value">406.0</span>
+            </div>
+          </div>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 烘干厂所有人 -->
+        <div class="factory-info-module">
+          <h3 class="module-title">烘干厂所有人</h3>
+          <div class="module-content">
+            <div class="owner-info">
+              <div class="owner-name">隆启雷</div>
+              <div class="owner-details">
+                <span class="owner-label">名下烘干厂数量：</span>
+                <span class="owner-value">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 仓库概览面板 -->
+      <div v-if="plotData.type === 'warehouse'" class="warehouse-overview-panel">
+        <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
+        <div class="warehouse-title-section">
+          <h2 class="warehouse-name">仓库</h2>
+          <img class="region-label" src="/images/region-label.jpg" />
+          <span class="region-name">{{ regionName }}</span>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 库存状态 -->
+        <div class="warehouse-info-module">
+          <h3 class="module-title">库存状态</h3>
+          <div class="module-content">
+            <div class="info-row">
+              <span class="info-label">总库存(吨)：</span>
+              <span class="info-value">250.8</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">库存占用率(%)：</span>
+              <span class="info-value">78.5</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">可用容积(吨)：</span>
+              <span class="info-value">68.2</span>
+            </div>
+          </div>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 物品保管 -->
+        <div class="warehouse-info-module">
+          <h3 class="module-title">物品保管</h3>
+          <div class="module-content">
+            <div class="info-row">
+              <span class="info-label">品类总数：</span>
+              <span class="info-value">12</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">在库品类数：</span>
+              <span class="info-value">10</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">缺货品类数：</span>
+              <span class="info-value">2</span>
+            </div>
+          </div>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 进出统计 -->
+        <div class="warehouse-info-module">
+          <h3 class="module-title">进出统计</h3>
+          <div class="module-content">
+            <div class="info-row">
+              <span class="info-label">今日入库(吨)：</span>
+              <span class="info-value">12.5</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">今日出库(吨)：</span>
+              <span class="info-value">8.3</span>
+            </div>
+          </div>
+        </div>
+        <img class="section-divider" src="/images/decoration-2.png" />
+
+        <!-- 仓库管理员 -->
+        <div class="warehouse-info-module">
+          <h3 class="module-title">仓库管理员</h3>
+          <div class="module-content">
+            <div class="owner-info">
+              <div class="owner-name">李明</div>
+              <div class="owner-details">
+                <span class="owner-label">管理仓库数量：</span>
+                <span class="owner-value">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <template #right-panel>
-      <!-- 右侧面板 - 农情动态 -->
-      <div class="farming-dynamics-panel">
+      <!-- 右侧面板 - 根据type类型动态显示 -->
+      <!-- 八角地块农情动态面板 -->
+      <div v-if="plotData.type !== 'factory' && plotData.type !== 'warehouse'" class="farming-dynamics-panel">
         <!-- 面板标题区域 -->
         <div class="farming-dynamics__header">
           <h3 class="farming-dynamics__title">农情动态</h3>
@@ -278,6 +442,214 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 仓库库存与物流面板 -->
+      <div v-if="plotData.type === 'warehouse'" class="warehouse-inventory-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">库存与物流</h3>
+          <img class="title-divider" src="/images/divider.png" />
+        </div>
+
+        <!-- 库存分类 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">库存分类</h4>
+          <div class="batch-content">
+            <div class="batch-row">
+              <span class="batch-label">一级品：</span>
+              <span class="batch-value">180.5吨</span>
+            </div>
+            <div class="batch-row">
+              <span class="batch-label">二级品：</span>
+              <span class="batch-value">50.3吨</span>
+            </div>
+            <div class="batch-row">
+              <span class="batch-label">三级品：</span>
+              <span class="batch-value">20.0吨</span>
+            </div>
+          </div>
+        </div>
+        <img class="module-divider" src="/images/divider.png" />
+
+        <!-- 保管条件 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">保管条件</h4>
+          <div class="progress-content">
+            <div class="progress-stage">
+              <span class="stage-label">温度：</span>
+              <span class="stage-value">18-22℃</span>
+            </div>
+            <div class="progress-stage">
+              <span class="stage-label">湿度：</span>
+              <span class="stage-value">55-65%</span>
+            </div>
+            <div class="progress-stage">
+              <span class="stage-label">环境状态：</span>
+              <span class="stage-value">正常</span>
+            </div>
+          </div>
+        </div>
+        <img class="module-divider" src="/images/divider.png" />
+
+        <!-- 库存历史趋势 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">库存历史趋势</h4>
+          <div class="trend-content">
+            <p class="trend-description">最近7天库存量变化趋势</p>
+            <div class="trend-chart">
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 35%"></div>
+                <span class="trend-label">周一</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 40%"></div>
+                <span class="trend-label">周二</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 38%"></div>
+                <span class="trend-label">周三</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 45%"></div>
+                <span class="trend-label">周四</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 50%"></div>
+                <span class="trend-label">周五</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 42%"></div>
+                <span class="trend-label">周六</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 55%"></div>
+                <span class="trend-label">周日</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img class="module-divider" src="/images/divider.png" />
+
+        <!-- 待出库单据 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">待出库单据</h4>
+          <div class="alert-content">
+            <div class="alert-item">
+              <span class="alert-label">待发货单：</span>
+              <span class="alert-value">3笔</span>
+            </div>
+            <div class="alert-item">
+              <span class="alert-label">预计出库(吨)：</span>
+              <span class="alert-value">25.6</span>
+            </div>
+            <div class="alert-item">
+              <span class="alert-label">最近发货时间：</span>
+              <span class="alert-value">2025年11月2日 16:30</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 烘干厂生产流程与批次面板 -->
+      <div v-if="plotData.type === 'factory'" class="factory-production-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">生产流程与批次</h3>
+          <img class="title-divider" src="/images/divider.png" />
+        </div>
+
+        <!-- 当前批次 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">当前批次</h4>
+          <div class="batch-content">
+            <div class="batch-row">
+              <span class="batch-label">批次编号：</span>
+              <span class="batch-value">DH-2025-001</span>
+            </div>
+            <div class="batch-row">
+              <span class="batch-label">原料来源地：</span>
+              <span class="batch-value">右江区马山镇</span>
+            </div>
+            <div class="batch-row">
+              <span class="batch-label">烘干开始时间：</span>
+              <span class="batch-value">2025年11月2日 08:30</span>
+            </div>
+          </div>
+        </div>
+        <img class="module-divider" src="/images/divider.png" />
+
+        <!-- 批次进度 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">批次进度</h4>
+          <div class="progress-content">
+            <div class="progress-stage">
+              <span class="stage-label">当前阶段：</span>
+              <span class="stage-value">加热中</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" style="width: 45%"></div>
+            </div>
+            <div class="progress-percentage">45%</div>
+          </div>
+        </div>
+        <img class="module-divider" src="/images/divider.png" />
+
+        <!-- 历史产量趋势 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">历史产量趋势</h4>
+          <div class="trend-content">
+            <p class="trend-description">最近7天烘干量变化趋势</p>
+            <div class="trend-chart">
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 42%"></div>
+                <span class="trend-label">周一</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 45%"></div>
+                <span class="trend-label">周二</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 43%"></div>
+                <span class="trend-label">周三</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 48%"></div>
+                <span class="trend-label">周四</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 50%"></div>
+                <span class="trend-label">周五</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 46%"></div>
+                <span class="trend-label">周六</span>
+              </div>
+              <div class="trend-bar-group">
+                <div class="trend-bar" style="height: 44%"></div>
+                <span class="trend-label">周日</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img class="module-divider" src="/images/divider.png" />
+
+        <!-- 预警与任务 -->
+        <div class="batch-module">
+          <h4 class="batch-module-title">预警与任务</h4>
+          <div class="alert-content">
+            <div class="alert-item">
+              <span class="alert-label">温度异常：</span>
+              <span class="alert-value">正常</span>
+            </div>
+            <div class="alert-item">
+              <span class="alert-label">电流异常：</span>
+              <span class="alert-value">正常</span>
+            </div>
+            <div class="alert-item">
+              <span class="alert-label">下一批次排程时间：</span>
+              <span class="alert-value">2025年11月2日 14:00</span>
             </div>
           </div>
         </div>
@@ -432,7 +804,8 @@ export default {
                 farmerName: '',
                 farmerAge: '',
                 price: '',
-                photo: '/images/farm-field-1.jpg'
+                photo: '/images/farm-field-1.jpg',
+                type: '' // 地块类型：tea-oil（油茶）、star-anise（八角）、factory（工厂）、warehouse（仓库）
             },
             tileMetrics: null,
             // 农情详情弹窗控制
@@ -671,7 +1044,8 @@ export default {
             const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
             const area = this.$route.query.area || '40';
             const output = this.$route.query.output || '25';
-            const type = this.$route.query.type || '八角';
+            // 默认类型为八角
+            const type = this.$route.query.type || 'star-anise';
 
             // 获取该地块的农户信息
             const farmerInfo = this.farmerConfig[plotName] || this.farmerConfig.default;
@@ -772,7 +1146,11 @@ export default {
 
         handleBackClick() {
             // 返回到上一级地图
-            this.$router.go(-1);
+            const regionName = this.$route.query.region || '右江区';
+            // 使用push而不是go(-1)来确保正确的路由过渡和组件初始化
+            this.$router.push({
+                path: `/detail/${ encodeURIComponent(regionName) }`
+            });
         },
 
         handlePlotSelected(plot) {
@@ -2158,5 +2536,318 @@ export default {
 }
 
 /* ===== 地块详情页面样式 ===== */
+
+/* ===== 烘干厂界面样式 ===== */
+
+/* 左侧工厂概览面板 */
+.factory-overview-panel {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 375px;
+    height: 734px;
+    margin: 0 0 0 5px;
+    padding: 0 23px 35px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+}
+
+.factory-title-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.factory-name {
+    flex: 1;
+    margin: 0;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 17px;
+    font-weight: 500;
+    color: #c69c6d;
+}
+
+.factory-info-module {
+    margin-bottom: 15px;
+}
+
+.module-title {
+    margin: 0 0 10px 0;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 15px;
+    font-weight: 500;
+    color: #c69c6d;
+}
+
+.module-content {
+    padding: 8px 12px;
+    background: rgba(198, 156, 109, 0.05);
+    border-radius: 4px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+.info-label {
+    color: #c69c6d;
+    font-family: SourceHanSansCN-Medium;
+}
+
+.info-value {
+    color: #39b44a;
+    font-family: SourceHanSansCN-Medium;
+    font-weight: 500;
+}
+
+.owner-info {
+    padding: 8px 12px;
+    background: rgba(198, 156, 109, 0.05);
+    border-radius: 4px;
+}
+
+.owner-name {
+    margin-bottom: 8px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 14px;
+    color: #c69c6d;
+    font-weight: 500;
+}
+
+.owner-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.owner-label {
+    color: #c69c6d;
+}
+
+.owner-value {
+    color: #39b44a;
+    font-weight: 500;
+}
+
+/* 右侧生产流程面板 */
+.factory-production-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 375px;
+    height: 734px;
+    padding: 0;
+    background: #041F1D;
+    overflow-y: auto;
+}
+
+.panel-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 0 0 30px;
+}
+
+.panel-title {
+    margin: 0;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 17px;
+    font-weight: 500;
+    color: #c7b299;
+}
+
+.title-divider {
+    width: 67px;
+    height: 3px;
+    margin: 5px 0 0 0;
+}
+
+.batch-module {
+    margin: 15px 30px 0;
+    padding: 12px;
+    background: rgba(79, 253, 235, 0.08);
+    border-radius: 4px;
+}
+
+.batch-module-title {
+    margin: 0 0 10px 0;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 14px;
+    font-weight: 500;
+    color: #c7b299;
+}
+
+.batch-content,
+.progress-content,
+.trend-content,
+.alert-content {
+    color: #c7b299;
+    font-size: 12px;
+}
+
+.batch-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.batch-label {
+    font-family: SourceHanSansCN-Medium;
+}
+
+.batch-value {
+    font-family: SourceHanSansCN-Light;
+    color: #4cfcea;
+}
+
+.progress-stage {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.stage-label {
+    font-family: SourceHanSansCN-Medium;
+}
+
+.stage-value {
+    color: #4cfcea;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(76, 253, 234, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #4cfcea, #39b44a);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progress-percentage {
+    text-align: right;
+    color: #4cfcea;
+}
+
+.trend-description {
+    margin: 0 0 10px 0;
+    color: #c7b299;
+}
+
+.trend-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 60px;
+    gap: 4px;
+}
+
+.trend-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.trend-bar {
+    width: 100%;
+    background: linear-gradient(to top, #4cfcea, #39b44a);
+    border-radius: 2px 2px 0 0;
+    margin-bottom: 4px;
+}
+
+.trend-label {
+    font-size: 10px;
+    color: #c7b299;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.alert-label {
+    font-family: SourceHanSansCN-Medium;
+}
+
+.alert-value {
+    color: #4cfcea;
+    font-family: SourceHanSansCN-Light;
+}
+
+.module-divider {
+    width: 100%;
+    height: 1px;
+    margin: 10px 0;
+    object-fit: none;
+}
+
+/* ===== 仓库界面样式 ===== */
+
+/* 左侧仓库概览面板 */
+.warehouse-overview-panel {
+    position: relative;
+    display: flex;
+    overflow-y: auto;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 375px;
+    height: 734px;
+    margin: 0 0 0 5px;
+    padding: 0 23px 35px;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+}
+
+.warehouse-title-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.warehouse-name {
+    flex: 1;
+    margin: 0;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 17px;
+    font-weight: 500;
+
+    color: #c69c6d;
+}
+
+.warehouse-info-module {
+    margin-bottom: 15px;
+}
+
+/* 右侧仓库库存与物流面板 */
+.warehouse-inventory-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 375px;
+    height: 734px;
+    padding: 0;
+
+    background: #041f1d;
+    overflow-y: auto;
+}
 
 </style>

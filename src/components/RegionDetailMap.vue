@@ -2498,9 +2498,37 @@ export default {
         // 跳转到地块详情页面
         goToPlotDetail() {
             if (this.popupData && this.popupData.name) {
+                // 保存popupData的值，因为closePlotDetailPopup会将其设置为null
+                const popupDataSnapshot = {
+                    name: this.popupData.name,
+                    routeTarget: this.popupData.routeTarget,
+                    type: this.popupData.type,
+                    displayName: this.popupData.displayName
+                };
+
                 this.closePlotDetailPopup();
-                const targetName = this.popupData.routeTarget || this.popupData.name;
-                this.$router.push(`/plot/${ encodeURIComponent(targetName) }`);
+
+                const targetName = popupDataSnapshot.routeTarget || popupDataSnapshot.name;
+                const query = {
+                    region: this.regionName,
+                    plotName: popupDataSnapshot.name
+                };
+
+                // 根据弹窗类型添加对应的 type 参数
+                if (popupDataSnapshot.type === 'drying-facility' || popupDataSnapshot.displayName === '烘干示范工厂') {
+                    query.type = 'factory';
+                } else if (popupDataSnapshot.type === 'warehouse' || popupDataSnapshot.displayName === '仓库') {
+                    query.type = 'warehouse';
+                } else if (popupDataSnapshot.type === 'tea-oil') {
+                    query.type = 'tea-oil';
+                } else if (popupDataSnapshot.type === 'star-anise') {
+                    query.type = 'star-anise';
+                }
+
+                this.$router.push({
+                    path: `/plot/${ encodeURIComponent(targetName) }`,
+                    query
+                });
             }
         },
 
