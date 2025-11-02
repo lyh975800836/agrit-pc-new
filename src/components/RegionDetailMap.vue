@@ -925,13 +925,11 @@ export default {
 
                     if (fieldData.center && fieldData.leaflet_polygon) {
                         const assignedType = this.resolvePlotType(fieldData);
-                        const routeTarget = fieldData.routeName || fieldData.name;
                         const displayName = plotName;
 
                         const plotData = {
                             name: displayName,
                             displayName,
-                            routeTarget,
                             area: fieldData.area || '30',
                             output: '1970', // 产量
                             type: assignedType,
@@ -987,8 +985,19 @@ export default {
                             }
                             else {
                                 // 二级地图页面：跳转到三级地图页面
-                                const targetName = routeTarget || plotData.name;
-                                this.$router.push(`/plot/${ encodeURIComponent(targetName) }`);
+                                const typeMap = {
+                                    'drying-facility': 'factory',
+                                    'tea-oil': 'warehouse',
+                                    'star-anise': '八角'
+                                };
+                                const plotType = typeMap[assignedType] || '八角';
+                                this.$router.push({
+                                    path: `/plot/${ encodeURIComponent(plotData.name) }`,
+                                    query: {
+                                        type: plotType,
+                                        region: this.regionName
+                                    }
+                                });
                             }
                         });
 

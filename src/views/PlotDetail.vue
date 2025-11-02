@@ -671,6 +671,7 @@ export default {
             const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
             const area = this.$route.query.area || '40';
             const output = this.$route.query.output || '25';
+            const type = this.$route.query.type || '八角';
 
             // 获取该地块的农户信息
             const farmerInfo = this.farmerConfig[plotName] || this.farmerConfig.default;
@@ -685,7 +686,8 @@ export default {
                 unitYield: output ? Math.floor(parseFloat(output) * 2000 / parseFloat(area)) : '1200',
                 farmerName: farmerInfo.name,
                 farmerAge: farmerInfo.age,
-                price: '4.10'
+                price: '4.10',
+                type  // 地块类型
             };
 
             // 尝试加载地块坐标数据
