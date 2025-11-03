@@ -2090,7 +2090,7 @@ export default {
 .farming-dynamics__warning-label {
     margin-right: 4px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
 
@@ -2101,7 +2101,7 @@ export default {
     flex: 1;
     max-width: 120px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
     word-break: break-all;
@@ -2111,7 +2111,7 @@ export default {
 
 .farming-dynamics__warning-time-value {
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
 
@@ -2122,7 +2122,7 @@ export default {
     flex: 1;
     max-width: 140px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
     word-break: break-all;
@@ -2133,7 +2133,7 @@ export default {
 .farming-dynamics__warning-level-label {
     margin-right: 4px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
 
@@ -2142,7 +2142,7 @@ export default {
 
 .farming-dynamics__warning-level-value {
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 500;
     font-weight: 600;
     line-height: 14px;
@@ -2153,7 +2153,7 @@ export default {
 .farming-dynamics__warning-cycle-info {
     margin-top: 8px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
 
@@ -2341,7 +2341,7 @@ export default {
     max-width: 100px;
     margin-right: 8px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 12px;
     white-space: nowrap;
@@ -2353,7 +2353,7 @@ export default {
 .farming-dynamics__current-label {
     padding: 2px 6px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 500;
     line-height: 10px;
 
@@ -2368,7 +2368,7 @@ export default {
 .farming-dynamics__time-item {
     margin-bottom: 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 10px;
 
@@ -2393,7 +2393,7 @@ export default {
 .farming-dynamics__prescription {
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
 
@@ -2404,7 +2404,7 @@ export default {
     width: 149px;
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 14px;
 
