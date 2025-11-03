@@ -501,31 +501,31 @@
             <p class="trend-description">最近7天库存量变化趋势</p>
             <div class="trend-chart">
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 35%"></div>
+                <div class="trend-bar" style="height: 35%;"></div>
                 <span class="trend-label">周一</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 40%"></div>
+                <div class="trend-bar" style="height: 40%;"></div>
                 <span class="trend-label">周二</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 38%"></div>
+                <div class="trend-bar" style="height: 38%;"></div>
                 <span class="trend-label">周三</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 45%"></div>
+                <div class="trend-bar" style="height: 45%;"></div>
                 <span class="trend-label">周四</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 50%"></div>
+                <div class="trend-bar" style="height: 50%;"></div>
                 <span class="trend-label">周五</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 42%"></div>
+                <div class="trend-bar" style="height: 42%;"></div>
                 <span class="trend-label">周六</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 55%"></div>
+                <div class="trend-bar" style="height: 55%;"></div>
                 <span class="trend-label">周日</span>
               </div>
             </div>
@@ -589,7 +589,7 @@
               <span class="stage-value">加热中</span>
             </div>
             <div class="progress-bar-container">
-              <div class="progress-bar" style="width: 45%"></div>
+              <div class="progress-bar" style="width: 45%;"></div>
             </div>
             <div class="progress-percentage">45%</div>
           </div>
@@ -603,31 +603,31 @@
             <p class="trend-description">最近7天烘干量变化趋势</p>
             <div class="trend-chart">
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 42%"></div>
+                <div class="trend-bar" style="height: 42%;"></div>
                 <span class="trend-label">周一</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 45%"></div>
+                <div class="trend-bar" style="height: 45%;"></div>
                 <span class="trend-label">周二</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 43%"></div>
+                <div class="trend-bar" style="height: 43%;"></div>
                 <span class="trend-label">周三</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 48%"></div>
+                <div class="trend-bar" style="height: 48%;"></div>
                 <span class="trend-label">周四</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 50%"></div>
+                <div class="trend-bar" style="height: 50%;"></div>
                 <span class="trend-label">周五</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 46%"></div>
+                <div class="trend-bar" style="height: 46%;"></div>
                 <span class="trend-label">周六</span>
               </div>
               <div class="trend-bar-group">
-                <div class="trend-bar" style="height: 44%"></div>
+                <div class="trend-bar" style="height: 44%;"></div>
                 <span class="trend-label">周日</span>
               </div>
             </div>
@@ -1061,7 +1061,7 @@ export default {
                 farmerName: farmerInfo.name,
                 farmerAge: farmerInfo.age,
                 price: '4.10',
-                type  // 地块类型
+                type // 地块类型
             };
 
             // 尝试加载地块坐标数据
@@ -1481,8 +1481,8 @@ export default {
     align-items: flex-start;
     width: 330px;
     height: 173px;
-    padding: 8px 0 11px 13px;
     margin: 21px 0 17px;
+    padding: 8px 0 11px 13px;
 
     background-size: 100% 100%;
 }
@@ -1555,7 +1555,7 @@ export default {
 
 .status-general {
     color: #c69c6d;
-    background: #8D7552;
+    background: #8d7552;
 }
 
 .status-unpoverty {
@@ -1653,6 +1653,7 @@ export default {
     display: flex;
     align-items: center;
     padding: 5px 8px;
+
     border-radius: 4px;
     transition: all .2s ease;
     cursor: pointer;
@@ -1668,8 +1669,8 @@ export default {
 .link-text {
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
-    color: #c69c6d;
     font-weight: 500;
+    color: #c69c6d;
 }
 
 .link-arrow {
@@ -1790,6 +1791,7 @@ export default {
         width: 100%;
         height: 100%;
         border: 2px solid #c69c6d;
+
         border-radius: 50%;
     }
 
@@ -1819,7 +1821,8 @@ export default {
     width: 375px;
     height: 734px;
     padding: 0;
-    background: #041F1D;
+
+    background: #041f1d;
 }
 
 /* 农情动态标题区域 */
@@ -1959,9 +1962,10 @@ export default {
 .farming-dynamics__item-text {
     flex: 1;
     font-family: SourceHanSansCN-Light;
-    font-size: 14px;
-    line-height: 17px;
+    font-size: 16px;
     font-weight: 600;
+    line-height: 17px;
+
     color: #c7b299;
 }
 
@@ -2071,6 +2075,7 @@ export default {
     align-items: center;
     margin-bottom: 6px;
     font-weight: 600;
+
     gap: 8px;
 }
 
@@ -2085,9 +2090,10 @@ export default {
 .farming-dynamics__warning-label {
     margin-right: 4px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
@@ -2095,56 +2101,62 @@ export default {
     flex: 1;
     max-width: 120px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
+    font-size: 15px;
+    font-weight: 600;
     line-height: 14px;
     word-break: break-all;
-    font-weight: 600;
+
     color: #c7b299;
 }
 
 .farming-dynamics__warning-time-value {
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 14px;
-    color: #c7b299;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 14px;
+
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-prescription-text {
     flex: 1;
     max-width: 140px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
+    font-size: 15px;
+    font-weight: 600;
     line-height: 14px;
     word-break: break-all;
-    font-weight: 600;
+
     color: #c7b299;
 }
 
 .farming-dynamics__warning-level-label {
     margin-right: 4px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
 .farming-dynamics__warning-level-value {
     font-family: SourceHanSansCN-Medium;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 500;
-    line-height: 14px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
 .farming-dynamics__warning-cycle-info {
     margin-top: 8px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
@@ -2152,8 +2164,9 @@ export default {
     margin-bottom: 15px;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
-    line-height: 14px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
@@ -2168,24 +2181,26 @@ export default {
 .farming-dynamics__trigger-time {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    line-height: 14px;
-    color: #c7b299;
     font-weight: 600;
+    line-height: 14px;
+
+    color: #c7b299;
 }
 
 .farming-dynamics__warning-level {
     display: flex;
     align-items: center;
-    gap: 4px;
     font-weight: 600;
+    gap: 4px;
 }
 
 .farming-dynamics__level-label {
     font-family: SourceHanSansCN-Light;
     font-size: 10px;
-    line-height: 14px;
-    color: #c7b299;
     font-weight: 600;
+    line-height: 14px;
+
+    color: #c7b299;
 }
 
 .farming-dynamics__level-value--high {
@@ -2193,6 +2208,7 @@ export default {
     font-size: 10px;
     font-weight: 600;
     line-height: 14px;
+
     color: #c7b299;
 }
 
@@ -2325,22 +2341,23 @@ export default {
     max-width: 100px;
     margin-right: 8px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 500;
     line-height: 12px;
     white-space: nowrap;
     text-overflow: ellipsis;
+
     color: #093036;
 }
 
 .farming-dynamics__current-label {
     padding: 2px 6px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 500;
     line-height: 10px;
 
-    color: #FCEE21;
+    color: #fcee21;
     border-radius: 2px;
 }
 
@@ -2349,12 +2366,13 @@ export default {
 }
 
 .farming-dynamics__time-item {
-    font-family: SourceHanSansCN-Medium;
-    font-size: 12px;
-    line-height: 10px;
-    font-weight: 600;
-    color: #c7b299;
     margin-bottom: 4px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 10px;
+
+    color: #c7b299;
 }
 
 .farming-dynamics__time-item:last-child {
@@ -2368,16 +2386,17 @@ export default {
 
 .farming-dynamics__time-value {
     font-family: SourceHanSansCN-Light;
-    color: #c7b299;
     font-weight: 600;
+    color: #c7b299;
 }
 
 .farming-dynamics__prescription {
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
@@ -2385,9 +2404,10 @@ export default {
     width: 149px;
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 14px;
+
     color: #c7b299;
 }
 
@@ -2454,7 +2474,7 @@ export default {
     font-weight: 500;
     line-height: 10px;
 
-    color: #FCEE21;
+    color: #fcee21;
     border-radius: 2px;
 }
 
@@ -2521,8 +2541,9 @@ export default {
     margin-bottom: 8px;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
-    line-height: 12px;
     font-weight: 600;
+    line-height: 12px;
+
     color: #c7b299;
 }
 
@@ -2550,6 +2571,7 @@ export default {
     height: 734px;
     margin: 0 0 0 5px;
     padding: 0 23px 35px;
+
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
@@ -2568,6 +2590,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 17px;
     font-weight: 500;
+
     color: #c69c6d;
 }
 
@@ -2576,50 +2599,52 @@ export default {
 }
 
 .module-title {
-    margin: 0 0 10px 0;
+    margin: 0 0 10px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 500;
+
     color: #c69c6d;
 }
 
 .module-content {
     padding: 8px 12px;
-    background: rgba(198, 156, 109, 0.05);
     border-radius: 4px;
+    background: #c69c6d0d;
 }
 
 .info-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     padding: 4px 0;
-    font-size: 13px;
+    font-size: 16px;
 }
 
 .info-label {
-    color: #c69c6d;
     font-family: SourceHanSansCN-Medium;
+    color: #c69c6d;
 }
 
 .info-value {
-    color: #39b44a;
     font-family: SourceHanSansCN-Medium;
     font-weight: 500;
+    color: #39b44a;
 }
 
 .owner-info {
     padding: 8px 12px;
-    background: rgba(198, 156, 109, 0.05);
     border-radius: 4px;
+    background: #c69c6d0d;
 }
 
 .owner-name {
     margin-bottom: 8px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    color: #c69c6d;
     font-weight: 500;
+
+    color: #c69c6d;
 }
 
 .owner-details {
@@ -2633,20 +2658,21 @@ export default {
 }
 
 .owner-value {
-    color: #39b44a;
     font-weight: 500;
+    color: #39b44a;
 }
 
 /* 右侧生产流程面板 */
 .factory-production-panel {
     position: relative;
     display: flex;
+    overflow-y: auto;
     flex-direction: column;
     width: 375px;
     height: 734px;
     padding: 0;
-    background: #041F1D;
-    overflow-y: auto;
+
+    background: #041f1d;
 }
 
 .panel-header {
@@ -2661,27 +2687,29 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 17px;
     font-weight: 500;
+
     color: #c7b299;
 }
 
 .title-divider {
     width: 67px;
     height: 3px;
-    margin: 5px 0 0 0;
+    margin: 5px 0 0;
 }
 
 .batch-module {
     margin: 15px 30px 0;
     padding: 12px;
-    background: rgba(79, 253, 235, 0.08);
     border-radius: 4px;
+    background: #4ffdeb14;
 }
 
 .batch-module-title {
-    margin: 0 0 10px 0;
+    margin: 0 0 10px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
     font-weight: 500;
+
     color: #c7b299;
 }
 
@@ -2689,8 +2717,8 @@ export default {
 .progress-content,
 .trend-content,
 .alert-content {
-    color: #c7b299;
     font-size: 12px;
+    color: #c7b299;
 }
 
 .batch-row {
@@ -2723,19 +2751,20 @@ export default {
 }
 
 .progress-bar-container {
+    overflow: hidden;
     width: 100%;
     height: 6px;
-    background: rgba(76, 253, 234, 0.2);
-    border-radius: 3px;
-    overflow: hidden;
     margin-bottom: 4px;
+
+    border-radius: 3px;
+    background: #4cfdea33;
 }
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(to right, #4cfcea, #39b44a);
     border-radius: 3px;
-    transition: width 0.3s ease;
+    background: linear-gradient(to right, #4cfcea, #39b44a);
+    transition: width .3s ease;
 }
 
 .progress-percentage {
@@ -2744,7 +2773,7 @@ export default {
 }
 
 .trend-description {
-    margin: 0 0 10px 0;
+    margin: 0 0 10px;
     color: #c7b299;
 }
 
@@ -2753,21 +2782,22 @@ export default {
     align-items: flex-end;
     justify-content: space-around;
     height: 60px;
+
     gap: 4px;
 }
 
 .trend-bar-group {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
-    flex: 1;
 }
 
 .trend-bar {
     width: 100%;
-    background: linear-gradient(to top, #4cfcea, #39b44a);
-    border-radius: 2px 2px 0 0;
     margin-bottom: 4px;
+    border-radius: 2px 2px 0 0;
+    background: linear-gradient(to top, #4cfcea, #39b44a);
 }
 
 .trend-label {
@@ -2786,8 +2816,8 @@ export default {
 }
 
 .alert-value {
-    color: #4cfcea;
     font-family: SourceHanSansCN-Light;
+    color: #4cfcea;
 }
 
 .module-divider {
@@ -2841,13 +2871,13 @@ export default {
 .warehouse-inventory-panel {
     position: relative;
     display: flex;
+    overflow-y: auto;
     flex-direction: column;
     width: 375px;
     height: 734px;
     padding: 0;
 
     background: #041f1d;
-    overflow-y: auto;
 }
 
 </style>
