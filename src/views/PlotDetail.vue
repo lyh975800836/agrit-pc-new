@@ -131,80 +131,84 @@
       </div>
 
       <!-- 烘干厂生产概况面板 -->
-      <div v-if="plotData.type === 'factory'" class="factory-overview-panel">
+      <div v-if="plotData.type === 'factory'" class="plot-details-panel factory-panel">
+        <!-- 装饰线 -->
         <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
-        <div class="factory-title-section">
-          <h2 class="factory-name">烘干示范工厂</h2>
+
+        <!-- 地块标题信息 -->
+        <div class="plot-title-section">
+          <h2 class="left-plot-name">烘干示范工厂</h2>
           <img class="region-label" src="/images/region-label.jpg" />
           <span class="region-name">{{ regionName }}</span>
         </div>
+
         <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 今日产能 -->
-        <div class="factory-info-module">
-          <h3 class="module-title">今日产能</h3>
-          <div class="module-content">
-            <div class="info-row">
-              <span class="info-label">烘干量(吨)：</span>
-              <span class="info-value">45.5</span>
+        <!-- 所有人信息 -->
+        <div class="farmer-profile" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
+          <img class="farmer-avatar" :src="farmerAvatarUrl" />
+          <div class="farmer-details">
+            <div class="farmer-name">所有人：{{ plotData.farmerName || '隆启雷' }}</div>
+            <img class="detail-divider" src="/images/divider.png" />
+            <div class="farmer-age">名下工厂数：3个</div>
+            <div class="farmer-rating">
+              <span class="rating-filled">★★★★</span>
+              <span class="rating-empty">★</span>
             </div>
-            <div class="info-row">
-              <span class="info-label">产能利用率(%)：</span>
-              <span class="info-value">92.3</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">含水率下降(%)：</span>
-              <span class="info-value">8.5</span>
+            <div class="farmer-status">
+              <div class="status-tag status-general">机械加工</div>
+              <div class="status-tag status-unpoverty">阳光晾晒</div>
+              <div class="status-tag status-poverty">机械+阳光</div>
             </div>
           </div>
         </div>
-        <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 设备状态 -->
-        <div class="factory-info-module">
-          <h3 class="module-title">设备状态</h3>
-          <div class="module-content">
-            <div class="info-row">
-              <span class="info-label">主机运行率(%)：</span>
-              <span class="info-value">98.0</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">加热温度(℃)：</span>
-              <span class="info-value">85.2</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">故障设备数：</span>
-              <span class="info-value">0</span>
-            </div>
+        <!-- 工厂统计数据 -->
+        <div class="plot-statistics">
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">总面积(亩)：</span>
+            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
+          </div>
+
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">今年累计产量(万斤)：</span>
+            <span class="stat-value stat-value-large">{{ plotData.yield || '48' }}</span>
+          </div>
+
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">每日产能(斤)：</span>
+            <span class="stat-value stat-value-large">{{ plotData.unitYield || '1200' }}</span>
           </div>
         </div>
-        <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 加工收益 -->
-        <div class="factory-info-module">
-          <h3 class="module-title">加工收益</h3>
-          <div class="module-content">
-            <div class="info-row">
-              <span class="info-label">加工费总额(元)：</span>
-              <span class="info-value">18500</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">平均单价(元/吨)：</span>
-              <span class="info-value">406.0</span>
-            </div>
+        <!-- 加工价格信息 -->
+        <div class="price-info" :style="{ backgroundImage: `url(${images.priceInfo})` }">
+          <div class="price-display">
+            <span class="price-label">加工价格：</span>
+            <img class="down-arrow" src="/images/down-arrow.png">
+            <span class="price-value">{{ plotData.price || '4.10' }}</span>
+            <span class="price-unit">&nbsp;&nbsp;元/斤</span>
           </div>
         </div>
-        <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 烘干厂所有人 -->
-        <div class="factory-info-module">
-          <h3 class="module-title">烘干厂所有人</h3>
-          <div class="module-content">
-            <div class="owner-info">
-              <div class="owner-name">隆启雷</div>
-              <div class="owner-details">
-                <span class="owner-label">名下烘干厂数量：</span>
-                <span class="owner-value">3</span>
+        <!-- 施工计划（日历形式） -->
+        <div class="health-section">
+          <div class="health-header">
+            <span class="health-title">施工计划</span>
+            <div class="health-link" @click="showHealthModal">
+              <span class="link-text">查看详情</span>
+              <span class="link-arrow">>></span>
+            </div>
+          </div>
+          <img class="third-divider" src="/images/decoration-2.png" />
+          <!-- 施工计划日历 -->
+          <div class="construction-calendar">
+            <div class="calendar-header">
+              <span class="calendar-month">11月</span>
+            </div>
+            <div class="calendar-grid">
+              <div v-for="day in 30" :key="day" class="calendar-day" :class="{ 'has-schedule': [5, 10, 15, 20, 25].includes(day) }">
+                <span class="day-number">{{ day }}</span>
               </div>
             </div>
           </div>
@@ -212,81 +216,93 @@
       </div>
 
       <!-- 仓库概览面板 -->
-      <div v-if="plotData.type === 'warehouse'" class="warehouse-overview-panel">
+      <div v-if="plotData.type === 'warehouse'" class="plot-details-panel warehouse-panel">
+        <!-- 装饰线 -->
         <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
-        <div class="warehouse-title-section">
-          <h2 class="warehouse-name">仓库</h2>
+
+        <!-- 地块标题信息 -->
+        <div class="plot-title-section">
+          <h2 class="left-plot-name">仓库</h2>
           <img class="region-label" src="/images/region-label.jpg" />
           <span class="region-name">{{ regionName }}</span>
         </div>
+
         <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 库存状态 -->
-        <div class="warehouse-info-module">
-          <h3 class="module-title">库存状态</h3>
-          <div class="module-content">
-            <div class="info-row">
-              <span class="info-label">总库存(吨)：</span>
-              <span class="info-value">250.8</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">库存占用率(%)：</span>
-              <span class="info-value">78.5</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">可用容积(吨)：</span>
-              <span class="info-value">68.2</span>
+        <!-- 所有人信息（仓库不显示状态标签） -->
+        <div class="farmer-profile warehouse-owner" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
+          <img class="farmer-avatar" :src="farmerAvatarUrl" />
+          <div class="farmer-details">
+            <div class="farmer-name">所有人：{{ plotData.farmerName || '李明' }}</div>
+            <img class="detail-divider" src="/images/divider.png" />
+            <div class="farmer-age">管理仓库数：2个</div>
+            <div class="farmer-rating">
+              <span class="rating-filled">★★★★</span>
+              <span class="rating-empty">★</span>
             </div>
           </div>
         </div>
-        <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 物品保管 -->
-        <div class="warehouse-info-module">
-          <h3 class="module-title">物品保管</h3>
-          <div class="module-content">
-            <div class="info-row">
-              <span class="info-label">品类总数：</span>
-              <span class="info-value">12</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">在库品类数：</span>
-              <span class="info-value">10</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">缺货品类数：</span>
-              <span class="info-value">2</span>
-            </div>
+        <!-- 仓库统计数据 -->
+        <div class="plot-statistics">
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">总面积(亩)：</span>
+            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
+          </div>
+
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">总存储量(吨)：</span>
+            <span class="stat-value stat-value-large">{{ plotData.yield || '250' }}</span>
+          </div>
+
+          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
+            <span class="stat-label">总容积(吨)：</span>
+            <span class="stat-value stat-value-large">{{ plotData.unitYield || '320' }}</span>
           </div>
         </div>
-        <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 进出统计 -->
-        <div class="warehouse-info-module">
-          <h3 class="module-title">进出统计</h3>
-          <div class="module-content">
-            <div class="info-row">
-              <span class="info-label">今日入库(吨)：</span>
-              <span class="info-value">12.5</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">今日出库(吨)：</span>
-              <span class="info-value">8.3</span>
-            </div>
+        <!-- 存储价格信息 -->
+        <div class="price-info" :style="{ backgroundImage: `url(${images.priceInfo})` }">
+          <div class="price-display">
+            <span class="price-label">存储价格：</span>
+            <img class="down-arrow" src="/images/down-arrow.png">
+            <span class="price-value">{{ plotData.price || '0.50' }}</span>
+            <span class="price-unit">&nbsp;&nbsp;元/吨</span>
           </div>
         </div>
-        <img class="section-divider" src="/images/decoration-2.png" />
 
-        <!-- 仓库管理员 -->
-        <div class="warehouse-info-module">
-          <h3 class="module-title">仓库管理员</h3>
-          <div class="module-content">
-            <div class="owner-info">
-              <div class="owner-name">李明</div>
-              <div class="owner-details">
-                <span class="owner-label">管理仓库数量：</span>
-                <span class="owner-value">2</span>
+        <!-- 库存占比 -->
+        <div class="health-section">
+          <div class="health-header">
+            <span class="health-title">库存占比</span>
+            <div class="health-link" @click="showHealthModal">
+              <span class="link-text">查看详情</span>
+              <span class="link-arrow">>></span>
+            </div>
+          </div>
+          <img class="third-divider" src="/images/decoration-2.png" />
+          <!-- 库存占比圆形图表 -->
+          <div class="health-indicators">
+            <!-- 存储量 -->
+            <div class="health-indicator">
+              <div class="circular-progress" data-percentage="78">
+                <div class="circle-bg"></div>
+                <div class="circle" style="--percentage: 78;
+--color: #c69c6d;"></div>
+                <div class="percentage">78%</div>
               </div>
+              <div class="indicator-label">存储量</div>
+            </div>
+
+            <!-- 容积占比 -->
+            <div class="health-indicator">
+              <div class="circular-progress" data-percentage="65">
+                <div class="circle-bg"></div>
+                <div class="circle" style="--percentage: 65;
+--color: #ffa500;"></div>
+                <div class="percentage">65%</div>
+              </div>
+              <div class="indicator-label">容积占比</div>
             </div>
           </div>
         </div>
@@ -681,7 +697,6 @@ import DashboardLayout from '@/components/DashboardLayout.vue';
 import WMTSTileMap from '@/components/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
 import FarmingDetailDialog from '@/components/FarmingDetailDialog.vue';
-import { resolveManualPlotArea } from '@/utils/manualPlotAreas';
 import { getAllPlotNames } from '@/utils/plotConfig';
 
 export default {
@@ -815,19 +830,7 @@ export default {
     },
     computed: {
         displayedPlotArea() {
-            const manualArea = resolveManualPlotArea(this.plotData?.name, this.plotData?.id);
-
-            if (Number.isFinite(manualArea)) {
-                return this.formatNumber(manualArea, 2);
-            }
-
-            if (this.tileMetrics && Number.isFinite(this.tileMetrics.totalAreaMu)) {
-                return this.formatNumber(this.tileMetrics.totalAreaMu, 2);
-            }
-            if (this.plotData && Number.isFinite(Number(this.plotData.area))) {
-                return this.formatNumber(Number(this.plotData.area), 2);
-            }
-            return '0.00';
+            return '100.00';
         },
         // 标准农事项目 - 使用集中管理的图片常量
         standardFarmingItems() {
@@ -1382,7 +1385,8 @@ export default {
 .plot-details-panel {
     position: relative;
     display: flex;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     flex-direction: column;
     box-sizing: border-box;
     width: 375px;
@@ -1573,10 +1577,10 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     width: 315px;
-    height: 107px;
     margin-top: 22px;
-    padding: 0 16px 0 18px;
+    padding: 15px 16px;
 
     background-size: 100% 100%;
 }
@@ -1590,9 +1594,12 @@ export default {
 
 .price-display {
     display: flex;
-    flex: 1;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
     text-align: center;
+    width: 100%;
 }
 
 .price-label {
@@ -2881,6 +2888,83 @@ export default {
     padding: 0;
 
     background: #041f1d;
+}
+
+/* ===== 施工计划日历样式 ===== */
+.construction-calendar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.calendar-header {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.calendar-month {
+    font-family: SourceHanSansCN-Medium;
+    font-size: 16px;
+    font-weight: 500;
+    color: #c69c6d;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #666;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.calendar-day:hover {
+    border-color: #c69c6d;
+    background: rgba(198, 156, 109, 0.1);
+}
+
+.calendar-day.has-schedule {
+    background: #c69c6d;
+    border-color: #c69c6d;
+}
+
+.calendar-day.has-schedule .day-number {
+    color: #000;
+    font-weight: bold;
+}
+
+.day-number {
+    font-family: SourceHanSansCN-Medium;
+    font-size: 12px;
+    color: #c69c6d;
+    font-weight: 500;
+}
+
+/* ===== 仓库面板特定样式 ===== */
+.warehouse-owner .farmer-status {
+    display: none;
+}
+
+.warehouse-owner .farmer-age {
+    font-family: SourceHanSansCN-Medium;
+    font-size: 12px;
+    color: #c69c6d;
+    text-align: center;
 }
 
 </style>
