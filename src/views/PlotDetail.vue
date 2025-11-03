@@ -2685,7 +2685,7 @@ export default {
 .panel-title {
     margin: 0;
     font-family: SourceHanSansCN-Medium;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 500;
 
     color: #c7b299;
@@ -2707,7 +2707,7 @@ export default {
 .batch-module-title {
     margin: 0 0 10px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 500;
 
     color: #c7b299;
@@ -2717,7 +2717,7 @@ export default {
 .progress-content,
 .trend-content,
 .alert-content {
-    font-size: 12px;
+    font-size: 15px;
     color: #c7b299;
 }
 
@@ -2774,6 +2774,7 @@ export default {
 
 .trend-description {
     margin: 0 0 10px;
+    font-size: 15px;
     color: #c7b299;
 }
 
@@ -2791,6 +2792,8 @@ export default {
     flex: 1;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end;
+    height: 100%;
 }
 
 .trend-bar {
@@ -2801,7 +2804,7 @@ export default {
 }
 
 .trend-label {
-    font-size: 10px;
+    font-size: 13px;
     color: #c7b299;
 }
 
@@ -2857,7 +2860,7 @@ export default {
     flex: 1;
     margin: 0;
     font-family: SourceHanSansCN-Medium;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 500;
 
     color: #c69c6d;
