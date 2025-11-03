@@ -125,9 +125,9 @@ export default {
             connectorLine: null, // 连接线图层
             plotFilterOptions: [
                 { label: '全部', value: 'all' },
-                { label: '八角基地', value: 'star-anise' },
-                { label: '油茶基地', value: 'tea-oil' },
-                { label: '烘干工厂', value: 'drying-facility' }
+                { label: '林（八角林）', value: 'star-anise' },
+                { label: '厂（加工厂）', value: 'drying-facility' },
+                { label: '仓（交收仓）', value: 'tea-oil' }
             ],
             selectedPlotFilter: 'all',
             showPlotFilterBar: true,
@@ -2787,7 +2787,7 @@ export default {
     min-width: 0;
     height: 37px;
     border: 1px solid #4cfdeb59;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 500;
     line-height: 37px;
     letter-spacing: .5px;
