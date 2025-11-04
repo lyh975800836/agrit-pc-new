@@ -1385,12 +1385,13 @@ export default {
 .plot-details-panel {
     position: relative;
     display: flex;
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
     flex-direction: column;
     box-sizing: border-box;
     width: 375px;
-    height: 734px;
+    height: 100%;
+    max-height: calc(100vh - 180px);
     margin: 0 0 0 5px;
     padding: 0 23px 35px;
 
@@ -1597,9 +1598,10 @@ export default {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    text-align: center;
     width: 100%;
+    text-align: center;
+
+    gap: 8px;
 }
 
 .price-label {
@@ -2895,16 +2897,17 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15px 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
     margin: 10px 0;
+    padding: 15px 10px;
+
+    border-radius: 8px;
+    background: #0000004d;
 }
 
 .calendar-header {
     width: 100%;
-    text-align: center;
     margin-bottom: 15px;
+    text-align: center;
 }
 
 .calendar-month {
@@ -2917,42 +2920,44 @@ export default {
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 5px;
     width: 100%;
+    gap: 5px;
 }
 
 .calendar-day {
-    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid #666;
+
     border-radius: 4px;
-    background: rgba(0, 0, 0, 0.5);
+    background: #00000080;
+    transition: all .3s ease;
     cursor: pointer;
-    transition: all 0.3s ease;
+
+    aspect-ratio: 1;
 }
 
 .calendar-day:hover {
     border-color: #c69c6d;
-    background: rgba(198, 156, 109, 0.1);
+    background: #c69c6d1a;
 }
 
 .calendar-day.has-schedule {
-    background: #c69c6d;
     border-color: #c69c6d;
+    background: #c69c6d;
 }
 
 .calendar-day.has-schedule .day-number {
-    color: #000;
     font-weight: bold;
+    color: #000;
 }
 
 .day-number {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
-    color: #c69c6d;
     font-weight: 500;
+    color: #c69c6d;
 }
 
 /* ===== 仓库面板特定样式 ===== */
@@ -2963,8 +2968,8 @@ export default {
 .warehouse-owner .farmer-age {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
-    color: #c69c6d;
     text-align: center;
+    color: #c69c6d;
 }
 
 </style>
