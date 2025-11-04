@@ -15,52 +15,52 @@
       <div class="stats-grid">
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard1})` }">
           <div class="stat-content">
-            <div class="stat-number">10,273</div>
+            <div class="stat-number">135</div>
             <div class="stat-right">
               <div class="stat-trend">
-                <img :src="images.upArrow" class="trend-icon" />
-                <span class="trend-text">+5.8%</span>
+                <img :src="images.downArrow" class="trend-icon" />
+                <span class="trend-text">-1.5%</span>
               </div>
-              <div class="stat-label">总种植面积（亩）</div>
+              <div class="stat-label">种植面积（万亩）</div>
             </div>
           </div>
         </div>
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard2})` }">
           <div class="stat-content">
-            <div class="stat-number">3,850</div>
+            <div class="stat-number">28</div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
-                <span class="trend-text">+12.3%</span>
+                <span class="trend-text">+7.7%</span>
               </div>
-              <div class="stat-label">预计总产量（斤）</div>
+              <div class="stat-label">丰产林面积（万亩）</div>
             </div>
           </div>
         </div>
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard3})` }">
           <div class="stat-content">
-            <div class="stat-number">525</div>
+            <div class="stat-number">62</div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
-                <span class="trend-text">+8.5%</span>
+                <span class="trend-text">+4.8%</span>
               </div>
-              <div class="stat-label">增加农户收入（万元）</div>
+              <div class="stat-label">烘场数量</div>
             </div>
           </div>
         </div>
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard4})` }">
           <div class="stat-content">
-            <div class="stat-number">1000</div>
+            <div class="stat-number">22</div>
             <div class="stat-right">
               <div class="stat-trend">
-                <img :src="images.downArrow" class="trend-icon" />
-                <span class="trend-text">-30%</span>
+                <img :src="images.upArrow" class="trend-icon" />
+                <span class="trend-text">+10.0%</span>
               </div>
-              <div class="stat-label">减少农药使用（吨）</div>
+              <div class="stat-label">烘干线数量</div>
             </div>
           </div>
         </div>
@@ -477,10 +477,10 @@ export default {
                 breadcrumb: ['百色', '数据中心', '驾驶舱']
             },
             statisticsData: {
-                totalArea: 10273,
-                totalProduction: 3850,
-                farmersIncome: 525,
-                herbicideReduction: 1000
+                totalArea: 135,
+                totalProduction: 28,
+                farmersIncome: 62,
+                herbicideReduction: 22
             },
             rankingData: {},
             qualityData: {}
@@ -587,24 +587,26 @@ export default {
     align-items: center;
     justify-content: center;
     width: 100%;
-    gap: 20px;
 
     color: #c69c6d;
+
+    gap: 20px;
 }
 
 .stat-number {
+    max-width: 45%;
     font-family: BebasNeueRegular;
     font-size: 58px;
     font-weight: bold;
-    max-width: 45%;
     word-break: break-word;
 }
 
 .stat-right {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+
     gap: 8px;
 }
 
@@ -656,53 +658,57 @@ export default {
 }
 
 .price-chart-main {
-    height: 450px;
     display: flex;
     flex-direction: column;
+    height: 450px;
 }
 
 .chart-header-trend {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 12px;
     flex-shrink: 0;
+    margin-bottom: 12px;
+
+    gap: 12px;
 }
 
 .chart-header h3 {
     margin: 0 0 6px;
     font-family: SourceHanSansCN-Medium;
     font-size: 22px;
-    color: #c69c6d;
     line-height: 1.2;
+
+    color: #c69c6d;
 }
 
 .chart-subtitle {
     margin: 0;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    color: #c69c6d;
     line-height: 1.2;
+
+    color: #c69c6d;
 }
 
 .chart-desc {
     margin: 0;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
-    color: #4cfceacc;
     line-height: 1.2;
+
+    color: #4cfceacc;
 }
 
 .production-chart,
 .area-chart {
-    height: 450px;
     display: flex;
     flex-direction: column;
+    height: 450px;
 }
 
 .area-chart .chart-header {
-    margin-bottom: 12px;
     flex-shrink: 0;
+    margin-bottom: 12px;
 }
 
 .production-chart .chart-header {
@@ -719,17 +725,18 @@ export default {
 .price-insights {
     display: flex;
     flex-direction: row;
-    margin-bottom: 8px;
-    gap: 10px;
     flex-wrap: wrap;
+    margin-bottom: 8px;
+
+    gap: 10px;
 }
 
 .insight-card {
     display: flex;
     flex: 0 1 calc(50% - 6px);
     align-items: center;
-    padding: 12px;
     min-width: 150px;
+    padding: 12px;
 
     border-radius: 6px;
     background-repeat: no-repeat;
@@ -740,17 +747,18 @@ export default {
 }
 
 .insight-icon {
+    flex-shrink: 0;
     width: 28px;
     height: 28px;
-    flex-shrink: 0;
 }
 
 .insight-text h4 {
     margin: 0 0 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    color: #c69c6d;
     line-height: 1.1;
+
+    color: #c69c6d;
 }
 
 .insight-text p {
@@ -800,10 +808,11 @@ export default {
 }
 
 .price-chart-display {
-    flex: 1;
     display: flex;
+    flex: 1;
     align-items: stretch;
     justify-content: center;
+
     border-radius: 6px;
     background-repeat: no-repeat;
     background-position: center;
@@ -853,8 +862,8 @@ export default {
     border: 1px solid #4cfcea4d;
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
-    text-align: center;
     line-height: 1.2;
+    text-align: center;
 
     color: #4cfceacc;
     border-radius: 4px;
@@ -875,26 +884,27 @@ export default {
 
 /* 图表内容容器 */
 .chart-content {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
     min-height: 0;
 }
 
 .price-chart-controls {
+    display: flex;
     flex-shrink: 0;
     margin-bottom: 8px;
-    display: flex;
     gap: 10px;
 }
 
 /* 图表显示区域 */
 .chart-display {
-    flex: 1;
-    min-height: 200px;
     display: flex;
+    flex: 1;
     align-items: stretch;
     justify-content: center;
+    min-height: 200px;
+
     border-radius: 6px;
     background-repeat: no-repeat;
     background-position: center;
@@ -961,6 +971,8 @@ export default {
 }
 
 .distribution-panel {
+    display: flex;
+    flex-direction: column;
     min-height: 395px;
     padding: 20px;
 
@@ -969,12 +981,12 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    display: flex;
-    flex-direction: column;
 }
 
 .chart-panel.processing-lines-panel,
 .chart-panel.sulfur-comparison-panel {
+    display: flex;
+    flex-direction: column;
     min-height: 395px;
     padding: 20px;
 
@@ -983,8 +995,6 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    display: flex;
-    flex-direction: column;
 }
 
 /* 表格面板共同样式 - 优化单行显示 */
@@ -1003,6 +1013,8 @@ export default {
 }
 
 .disease-panel {
+    display: flex;
+    flex-direction: column;
     min-height: 395px;
     padding: 20px;
 
@@ -1011,8 +1023,6 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    display: flex;
-    flex-direction: column;
 }
 
 .panel-header {
@@ -1115,9 +1125,10 @@ export default {
 
 .disease-content-optimized {
     display: flex;
-    flex-direction: column;
     flex: 1;
+    flex-direction: column;
     min-height: 0;
+
     gap: 8px;
 }
 
@@ -1257,23 +1268,26 @@ export default {
 
 /* 星级评分样式 */
 .star-rating {
-    color: #ffd700;
     font-size: 14px;
     letter-spacing: 2px;
+    color: #ffd700;
 }
 
 /* 底部表格区域 - 四列 */
 .bottom-tables-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
     margin-top: 25px;
+    gap: 20px;
 }
 
 .data-table-panel.finance-table,
 .data-table-panel.purchase-table,
 .data-table-panel.service-team-table,
 .data-table-panel.plot-data-table {
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
     height: 350px;
     padding: 20px;
 
@@ -1282,9 +1296,6 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    display: flex;
-    overflow: hidden;
-    flex-direction: column;
 }
 
 .finance-table .data-table,
@@ -1298,22 +1309,22 @@ export default {
 
 .finance-table .table-row,
 .purchase-table .table-row {
+    position: relative;
     display: grid;
+    align-items: center;
     grid-template-columns: repeat(2, 1fr);
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
     font-weight: bold;
     text-align: center;
-    align-items: center;
-    position: relative;
 
     color: #c69c6d;
 
     > span {
         overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     &.table-head {
@@ -1327,33 +1338,33 @@ export default {
             background: #4cfcea0d;
 
             > span {
+                position: relative;
+                z-index: 10;
                 overflow: visible;
                 white-space: normal;
                 word-break: break-word;
-                position: relative;
-                z-index: 10;
             }
         }
     }
 }
 
 .service-team-table .table-row {
+    position: relative;
     display: grid;
+    align-items: center;
     grid-template-columns: repeat(5, 1fr);
     padding: 10px 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
     font-weight: bold;
     text-align: center;
-    align-items: center;
-    position: relative;
 
     color: #c69c6d;
 
     > span {
         overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     > span.star-rating {
@@ -1362,11 +1373,12 @@ export default {
     }
 
     &.table-head {
-        font-family: SourceHanSansCN-Medium;
-        font-weight: bold;
-        color: #c69c6d;
-        font-size: 13px;
         padding: 12px 4px;
+        font-family: SourceHanSansCN-Medium;
+        font-size: 13px;
+        font-weight: bold;
+
+        color: #c69c6d;
     }
 
     &:not(.table-head) {
@@ -1374,41 +1386,42 @@ export default {
             background: #4cfcea0d;
 
             > span {
+                position: relative;
+                z-index: 10;
                 overflow: visible;
                 white-space: normal;
                 word-break: break-word;
-                position: relative;
-                z-index: 10;
             }
         }
     }
 }
 
 .plot-data-table .table-row {
+    position: relative;
     display: grid;
+    align-items: center;
     grid-template-columns: repeat(3, 1fr);
     padding: 10px 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
     font-weight: bold;
     text-align: center;
-    align-items: center;
-    position: relative;
 
     color: #c69c6d;
 
     > span {
         overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     &.table-head {
-        font-family: SourceHanSansCN-Medium;
-        font-weight: bold;
-        color: #c69c6d;
-        font-size: 13px;
         padding: 12px 4px;
+        font-family: SourceHanSansCN-Medium;
+        font-size: 13px;
+        font-weight: bold;
+
+        color: #c69c6d;
     }
 
     &:not(.table-head) {
@@ -1416,11 +1429,11 @@ export default {
             background: #4cfcea0d;
 
             > span {
+                position: relative;
+                z-index: 10;
                 overflow: visible;
                 white-space: normal;
                 word-break: break-word;
-                position: relative;
-                z-index: 10;
             }
         }
     }
