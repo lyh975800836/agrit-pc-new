@@ -128,7 +128,7 @@
         <div class="chart-panel area-chart" :style="{ backgroundImage: `url(${images.areaChartBg})` }">
           <div class="chart-header">
             <h3>历年种植面积统计</h3>
-            <p class="chart-subtitle">面积（亩）</p>
+            <p class="chart-subtitle">面积（万亩）</p>
           </div>
           <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">
             <PlantingAreaChart />
@@ -195,7 +195,7 @@
         <div class="chart-panel sulfur-comparison-panel" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
           <div class="chart-header">
             <h3>无硫与有硫八角占比</h3>
-            <p class="chart-subtitle">种植面积（亩）</p>
+            <p class="chart-subtitle">种植面积（万亩）</p>
           </div>
           <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">
             <SulfurComparisonChart />

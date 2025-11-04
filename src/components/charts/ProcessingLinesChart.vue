@@ -13,11 +13,12 @@ export default {
         return {
             chart: null,
             linesData: [
-                { year: '2021', lines: 3, dryLines: 0 },
-                { year: '2022', lines: 5, dryLines: 0 },
-                { year: '2023', lines: 4, dryLines: 1 },
-                { year: '2024', lines: 3, dryLines: 5 },
-                { year: '2025', lines: 5, dryLines: 2 }
+                { year: '右江区', lines: 40, dryLines: 3 },
+                { year: '田林县', lines: 5, dryLines: 0 },
+                { year: '德保县', lines: 4, dryLines: 0 },
+                { year: '那坡县', lines: 3, dryLines: 1 },
+                { year: '凌云县', lines: 5, dryLines: 0 },
+                { year: '乐业县', lines: 5, dryLines: 2 }
             ]
         };
     },
@@ -68,8 +69,8 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 6,
-                    splitNumber: 3,
+                    max: 45,
+                    splitNumber: 4,
                     axisLine: {
                         show: false
                     },
@@ -136,20 +137,29 @@ export default {
                     },
                     {
                         name: '烘干线数量',
-                        type: 'line',
+                        type: 'bar',
                         data: dryLines,
-                        smooth: true,
-                        lineStyle: {
-                            color: '#22c55e',
-                            width: 2
-                        },
+                        barWidth: '40%',
                         itemStyle: {
-                            color: '#22c55e',
-                            borderColor: '#22c55e',
-                            borderWidth: 2
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [
+                                    {
+                                        offset: 0,
+                                        color: '#22c55e'
+                                    },
+                                    {
+                                        offset: 1,
+                                        color: 'rgba(34, 197, 94, 0.3)'
+                                    }
+                                ]
+                            },
+                            borderRadius: [4, 4, 0, 0]
                         },
-                        symbol: 'circle',
-                        symbolSize: 6,
                         label: {
                             show: true,
                             position: 'top',
@@ -157,15 +167,6 @@ export default {
                             fontSize: 12,
                             fontFamily: 'SourceHanSansCN-Medium',
                             formatter: '{c}'
-                        },
-                        emphasis: {
-                            itemStyle: {
-                                color: '#22c55e',
-                                borderColor: '#fff',
-                                borderWidth: 2,
-                                shadowColor: 'rgba(76, 252, 234, 0.5)',
-                                shadowBlur: 10
-                            }
                         }
                     }
                 ],

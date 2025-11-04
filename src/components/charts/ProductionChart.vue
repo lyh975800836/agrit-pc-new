@@ -13,12 +13,10 @@ export default {
         return {
             chart: null,
             productionData: [
-                { year: '2019', production: 2800 },
-                { year: '2020', production: 3200 },
-                { year: '2021', production: 2950 },
-                { year: '2022', production: 3400 },
-                { year: '2023', production: 3650 },
-                { year: '2024', production: 3850 }
+                { year: '2022', production: 30 },
+                { year: '2023', production: 20 },
+                { year: '2024', production: 24 },
+                { year: '2025', production: 12 }
             ]
         };
     },
@@ -69,7 +67,7 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 4000,
+                    max: 35,
                     splitNumber: 4,
                     axisLine: {
                         show: false

@@ -68,7 +68,7 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 12000,
+                    max: 180,
                     splitNumber: 4,
                     axisLine: {
                         show: false
@@ -181,7 +181,7 @@ export default {
                     formatter(params) {
                         let result = `${ params[0].name }年<br/>`;
                         params.forEach(item => {
-                            result += `${ item.seriesName }: ${ item.value }亩<br/>`;
+                            result += `${ item.seriesName }: ${ item.value }万亩<br/>`;
                         });
                         return result;
                     }
