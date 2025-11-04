@@ -15,7 +15,7 @@
       <div class="stats-grid">
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard1})` }">
           <div class="stat-content">
-            <div class="stat-number">1,258</div>
+            <div class="stat-number">10,273</div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
@@ -41,26 +41,26 @@
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard3})` }">
           <div class="stat-content">
-            <div class="stat-number">1160</div>
+            <div class="stat-number">525</div>
             <div class="stat-right">
               <div class="stat-trend">
-                <img :src="images.downArrow" class="trend-icon" />
-                <span class="trend-text">-2.1%</span>
+                <img :src="images.upArrow" class="trend-icon" />
+                <span class="trend-text">+8.5%</span>
               </div>
-              <div class="stat-label">活跃农户数（户）</div>
+              <div class="stat-label">增加农户收入（万元）</div>
             </div>
           </div>
         </div>
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard4})` }">
           <div class="stat-content">
-            <div class="stat-number">11.2</div>
+            <div class="stat-number">1000</div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.downArrow" class="trend-icon" />
-                <span class="trend-text">-3.4%</span>
+                <span class="trend-text">-30%</span>
               </div>
-              <div class="stat-label">病虫害影响率（%）</div>
+              <div class="stat-label">减少农药使用（吨）</div>
             </div>
           </div>
         </div>
@@ -180,118 +180,32 @@
           </div>
         </div>
 
-        <!-- 服务队详细数据表格 -->
-        <div class="data-table-panel service-team-table" :style="{ backgroundImage: `url(${images.tableBg})` }">
-          <div class="table-header">
-            <h3>服务队详细数据</h3>
-            <div class="search-box" :style="{ backgroundImage: `url(${images.searchBg})` }">
-              搜索队名...
-            </div>
+        <!-- 八角加工生产线数量 -->
+        <div class="chart-panel processing-lines-panel" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
+          <div class="chart-header">
+            <h3>八角加工生产线数量</h3>
+            <p class="chart-subtitle">生产线数量</p>
           </div>
-          <div class="data-table">
-            <div class="table-row table-head">
-              <span>队名</span>
-              <span>人数</span>
-              <span>负责人</span>
-              <span>区县</span>
-              <span>评分</span>
-            </div>
-            <div class="table-row">
-              <span>百色市农资销售队</span>
-              <span>26</span>
-              <span>龙少郎</span>
-              <span>右江区</span>
-              <span>98</span>
-            </div>
-            <div class="table-row">
-              <span>田林县农技服务队</span>
-              <span>21</span>
-              <span>黄燕</span>
-              <span>田林县</span>
-              <span>92</span>
-            </div>
-            <div class="table-row">
-              <span>德保县采购服务队</span>
-              <span>19</span>
-              <span>苏燕云</span>
-              <span>德保县</span>
-              <span>90</span>
-            </div>
-            <div class="table-row">
-              <span>靖西县技术服务队</span>
-              <span>15</span>
-              <span>韦伦德</span>
-              <span>靖西县</span>
-              <span>87</span>
-            </div>
-            <div class="table-row">
-              <span>凌云县综合服务队</span>
-              <span>19</span>
-              <span>李子炳</span>
-              <span>凌云县</span>
-              <span>81</span>
-            </div>
+          <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">
+            <ProcessingLinesChart />
           </div>
         </div>
 
-        <!-- 地块详细数据表格 -->
-        <div class="data-table-panel plot-data-table" :style="{ backgroundImage: `url(${images.tableBg})` }">
-          <div class="table-header">
-            <h3>地块详细数据</h3>
-            <div class="search-box" :style="{ backgroundImage: `url(${images.searchBg})` }">
-              搜索地块...
-            </div>
+        <!-- 无硫八角与有硫八角占比年度对比 -->
+        <div class="chart-panel sulfur-comparison-panel" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
+          <div class="chart-header">
+            <h3>无硫与有硫八角占比</h3>
+            <p class="chart-subtitle">种植面积（亩）</p>
           </div>
-          <div class="data-table">
-            <div class="table-row table-head">
-              <span>区域名称</span>
-              <span>种植面积</span>
-              <span>预计产量</span>
-              <span>负责人</span>
-              <span>联系方式</span>
-            </div>
-            <div class="table-row">
-              <span>地块A001</span>
-              <span>45亩</span>
-              <span>138斤</span>
-              <span>张建国</span>
-              <span>138****5068</span>
-            </div>
-            <div class="table-row">
-              <span>地块A002</span>
-              <span>38亩</span>
-              <span>116斤</span>
-              <span>李明华</span>
-              <span>138****9570</span>
-            </div>
-            <div class="table-row">
-              <span>地块A003</span>
-              <span>52亩</span>
-              <span>159斤</span>
-              <span>王德胜</span>
-              <span>138****9163</span>
-            </div>
-            <div class="table-row">
-              <span>地块A004</span>
-              <span>29亩</span>
-              <span>89斤</span>
-              <span>刘春花</span>
-              <span>138****0727</span>
-            </div>
-            <div class="table-row">
-              <span>地块A005</span>
-              <span>41亩</span>
-              <span>125斤</span>
-              <span>陈国强</span>
-              <span>138****1373</span>
-            </div>
+          <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">
+            <SulfurComparisonChart />
           </div>
         </div>
 
         <!-- 病虫害影响分布 -->
         <div class="disease-panel" :style="{ backgroundImage: `url(${images.diseaseBg})` }">
           <div class="panel-header">
-            <h3>病虫害影响面积分布</h3>
+            <h3>病虫害影响林地占比</h3>
             <div class="year-selector-dropdown">
               <select class="year-select-dropdown">
                 <option value="2024">2024年</option>
@@ -327,6 +241,145 @@
           </div>
         </div>
       </div>
+
+      <!-- 底部新增表格区域 - 两行两列 -->
+      <div class="bottom-tables-row">
+        <!-- 金融服务实体经济表格 -->
+        <div class="data-table-panel finance-table" :style="{ backgroundImage: `url(${images.tableBg})` }">
+          <div class="table-header">
+            <h3>金融服务实体经济</h3>
+          </div>
+          <div class="data-table">
+            <div class="table-row table-head table-head-finance">
+              <span>银行名称</span>
+              <span>支持金额（万元）</span>
+            </div>
+            <div class="table-row table-row-finance">
+              <span>农业银行百色分行</span>
+              <span>5000</span>
+            </div>
+            <div class="table-row table-row-finance">
+              <span>百色市商业银行</span>
+              <span>3800</span>
+            </div>
+            <div class="table-row table-row-finance">
+              <span>邮储银行百色支行</span>
+              <span>2500</span>
+            </div>
+            <div class="table-row table-row-finance">
+              <span>农村信用合作社</span>
+              <span>1800</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 大宗商品采购商表格 -->
+        <div class="data-table-panel purchase-table" :style="{ backgroundImage: `url(${images.tableBg})` }">
+          <div class="table-header">
+            <h3>大宗商品采购商</h3>
+          </div>
+          <div class="data-table">
+            <div class="table-row table-head table-head-purchase">
+              <span>大宗商品采购商</span>
+              <span>采购量</span>
+            </div>
+            <div class="table-row table-row-purchase">
+              <span>王守义十三香</span>
+              <span>3000吨</span>
+            </div>
+            <div class="table-row table-row-purchase">
+              <span>仲景食品</span>
+              <span>600吨</span>
+            </div>
+            <div class="table-row table-row-purchase">
+              <span>海底捞</span>
+              <span>500吨</span>
+            </div>
+            <div class="table-row table-row-purchase">
+              <span>杨安镇调味品集团</span>
+              <span>500吨</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 服务队详细数据表格 -->
+        <div class="data-table-panel service-team-table" :style="{ backgroundImage: `url(${images.tableBg})` }">
+          <div class="table-header">
+            <h3>服务队详细</h3>
+          </div>
+          <div class="data-table">
+            <div class="table-row table-head">
+              <span>服务队名称</span>
+              <span>负责人</span>
+              <span>服务范围</span>
+              <span>人数</span>
+              <span>评分</span>
+            </div>
+            <div class="table-row">
+              <span>西林服务队</span>
+              <span>王林</span>
+              <span>西林县</span>
+              <span>12</span>
+              <span class="star-rating">★★★★☆</span>
+            </div>
+            <div class="table-row">
+              <span>隆林服务队</span>
+              <span>李明</span>
+              <span>隆林县</span>
+              <span>15</span>
+              <span class="star-rating">★★★★★</span>
+            </div>
+            <div class="table-row">
+              <span>德保服务队</span>
+              <span>张华</span>
+              <span>德保县</span>
+              <span>10</span>
+              <span class="star-rating">★★★☆☆</span>
+            </div>
+            <div class="table-row">
+              <span>靖西服务队</span>
+              <span>陈刚</span>
+              <span>靖西市</span>
+              <span>18</span>
+              <span class="star-rating">★★★★☆</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 地块详细数据表格 -->
+        <div class="data-table-panel plot-data-table" :style="{ backgroundImage: `url(${images.tableBg})` }">
+          <div class="table-header">
+            <h3>地块详细</h3>
+          </div>
+          <div class="data-table">
+            <div class="table-row table-head">
+              <span>地块名称</span>
+              <span>位置</span>
+              <span>面积</span>
+            </div>
+            <div class="table-row">
+              <span>北山地块</span>
+              <span>右江区</span>
+              <span>500亩</span>
+            </div>
+            <div class="table-row">
+              <span>南畔地块</span>
+              <span>田阳区</span>
+              <span>380亩</span>
+            </div>
+            <div class="table-row">
+              <span>西侧地块</span>
+              <span>田东县</span>
+              <span>420亩</span>
+            </div>
+            <div class="table-row">
+              <span>东部地块</span>
+              <span>德保县</span>
+              <span>350亩</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -338,6 +391,8 @@ import ProductionChart from '@/components/charts/ProductionChart.vue';
 import PlantingAreaChart from '@/components/charts/PlantingAreaChart.vue';
 import RegionalDistributionChart from '@/components/charts/RegionalDistributionChart.vue';
 import DiseaseDistributionChart from '@/components/charts/DiseaseDistributionChart.vue';
+import ProcessingLinesChart from '@/components/charts/ProcessingLinesChart.vue';
+import SulfurComparisonChart from '@/components/charts/SulfurComparisonChart.vue';
 
 // 图片资源定义 - 使用从demo下载的正确背景图片
 const images = {
@@ -397,7 +452,9 @@ export default {
         ProductionChart,
         PlantingAreaChart,
         RegionalDistributionChart,
-        DiseaseDistributionChart
+        DiseaseDistributionChart,
+        ProcessingLinesChart,
+        SulfurComparisonChart
     },
     data() {
         return {
@@ -420,10 +477,10 @@ export default {
                 breadcrumb: ['百色', '数据中心', '驾驶舱']
             },
             statisticsData: {
-                totalArea: 1258,
+                totalArea: 10273,
                 totalProduction: 3850,
-                activeUsers: 1160,
-                diseaseRate: 11.2
+                farmersIncome: 525,
+                herbicideReduction: 1000
             },
             rankingData: {},
             qualityData: {}
@@ -515,8 +572,9 @@ export default {
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
     height: 141px;
-    padding: 0 27px 0 25px;
+    padding: 0;
 
     border-radius: 8px;
     background-repeat: no-repeat;
@@ -527,8 +585,9 @@ export default {
 .stat-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
+    gap: 20px;
 
     color: #c69c6d;
 }
@@ -537,12 +596,16 @@ export default {
     font-family: BebasNeueRegular;
     font-size: 58px;
     font-weight: bold;
+    max-width: 45%;
+    word-break: break-word;
 }
 
 .stat-right {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
 .stat-trend {
@@ -593,82 +656,108 @@ export default {
 }
 
 .price-chart-main {
-    height: 395px;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-header-trend {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .chart-header h3 {
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 24px;
+    font-size: 22px;
     color: #c69c6d;
+    line-height: 1.2;
 }
 
 .chart-subtitle {
-    margin: 0 0 8px;
+    margin: 0;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 14px;
     color: #c69c6d;
+    line-height: 1.2;
 }
 
 .chart-desc {
     margin: 0;
     font-family: SourceHanSansCN-Light;
-    font-size: 14px;
+    font-size: 12px;
     color: #4cfceacc;
+    line-height: 1.2;
 }
 
 .production-chart,
 .area-chart {
-    height: 395px;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
 }
 
 .area-chart .chart-header {
-    margin-bottom: 60px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.production-chart .chart-header {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+.chart-tabs {
+    flex-shrink: 0;
+    margin-bottom: 12px;
 }
 
 /* 价格图表特定样式 */
 .price-insights {
     display: flex;
-    margin-bottom: 20px;
-    gap: 15px;
+    flex-direction: row;
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .insight-card {
     display: flex;
-    flex: 1;
+    flex: 0 1 calc(50% - 6px);
     align-items: center;
-    padding: 15px;
+    padding: 12px;
+    min-width: 150px;
 
     border-radius: 6px;
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
 
-    gap: 10px;
+    gap: 8px;
 }
 
 .insight-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
 }
 
 .insight-text h4 {
-    margin: 0 0 5px;
+    margin: 0 0 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 14px;
     color: #c69c6d;
+    line-height: 1.1;
 }
 
 .insight-text p {
     margin: 0;
     font-family: SourceHanSansCN-Light;
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.3;
 
     color: #4cfceae6;
 }
@@ -711,13 +800,19 @@ export default {
 }
 
 .price-chart-display {
-    position: relative;
-    height: 220px;
-
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
     border-radius: 6px;
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+
+    > div {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .price-values {
@@ -748,17 +843,18 @@ export default {
 /* 图表标签页 */
 .chart-tabs {
     display: flex;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     gap: 8px;
 }
 
 .tab-btn {
     min-width: 60px;
-    padding: 4px 12px;
+    padding: 5px 12px;
     border: 1px solid #4cfcea4d;
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
     text-align: center;
+    line-height: 1.2;
 
     color: #4cfceacc;
     border-radius: 4px;
@@ -777,16 +873,37 @@ export default {
     }
 }
 
+/* 图表内容容器 */
+.chart-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.price-chart-controls {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 10px;
+}
+
 /* 图表显示区域 */
 .chart-display {
-    position: relative;
-    height: 250px;
-    padding: 15px 10px 10px;
-
+    flex: 1;
+    min-height: 200px;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
     border-radius: 6px;
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+
+    > div {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .chart-placeholder {
@@ -843,9 +960,8 @@ export default {
     gap: 20px;
 }
 
-.distribution-panel,
-.data-table-panel {
-    height: 395px;
+.distribution-panel {
+    min-height: 395px;
     padding: 20px;
 
     color: #c69c6d;
@@ -853,6 +969,22 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-panel.processing-lines-panel,
+.chart-panel.sulfur-comparison-panel {
+    min-height: 395px;
+    padding: 20px;
+
+    color: #c69c6d;
+    border-radius: 8px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 表格面板共同样式 - 优化单行显示 */
@@ -871,7 +1003,7 @@ export default {
 }
 
 .disease-panel {
-    height: 395px;
+    min-height: 395px;
     padding: 20px;
 
     color: #c69c6d;
@@ -879,6 +1011,8 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+    display: flex;
+    flex-direction: column;
 }
 
 .panel-header {
@@ -935,7 +1069,7 @@ export default {
     display: flex;
     flex: 1;
     align-items: center;
-    height: 300px;
+    min-height: 300px;
 
     gap: 20px;
 }
@@ -982,7 +1116,8 @@ export default {
 .disease-content-optimized {
     display: flex;
     flex-direction: column;
-    height: calc(100% - 70px);
+    flex: 1;
+    min-height: 0;
     gap: 8px;
 }
 
@@ -1015,7 +1150,7 @@ export default {
     flex: 1;
     align-items: center;
     justify-content: center;
-    height: 300px;
+    min-height: 280px;
 }
 
 /* 数据表格 */
@@ -1068,8 +1203,6 @@ export default {
 }
 
 .table-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
     padding: 12px 0;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
@@ -1089,6 +1222,7 @@ export default {
         }
     }
 }
+
 
 /* 病虫害面板 */
 
@@ -1120,4 +1254,176 @@ export default {
         background: #0f3734;
     }
 }
+
+/* 星级评分样式 */
+.star-rating {
+    color: #ffd700;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+/* 底部表格区域 - 四列 */
+.bottom-tables-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.data-table-panel.finance-table,
+.data-table-panel.purchase-table,
+.data-table-panel.service-team-table,
+.data-table-panel.plot-data-table {
+    height: 350px;
+    padding: 20px;
+
+    color: #c69c6d;
+    border-radius: 8px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.finance-table .data-table,
+.purchase-table .data-table,
+.service-team-table .data-table,
+.plot-data-table .data-table {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.finance-table .table-row,
+.purchase-table .table-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 12px 4px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    align-items: center;
+    position: relative;
+
+    color: #c69c6d;
+
+    > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &.table-head {
+        font-family: SourceHanSansCN-Medium;
+        font-weight: bold;
+        color: #c69c6d;
+    }
+
+    &:not(.table-head) {
+        &:hover {
+            background: #4cfcea0d;
+
+            > span {
+                overflow: visible;
+                white-space: normal;
+                word-break: break-word;
+                position: relative;
+                z-index: 10;
+            }
+        }
+    }
+}
+
+.service-team-table .table-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 10px 4px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    align-items: center;
+    position: relative;
+
+    color: #c69c6d;
+
+    > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    > span.star-rating {
+        overflow: visible;
+        white-space: normal;
+    }
+
+    &.table-head {
+        font-family: SourceHanSansCN-Medium;
+        font-weight: bold;
+        color: #c69c6d;
+        font-size: 13px;
+        padding: 12px 4px;
+    }
+
+    &:not(.table-head) {
+        &:hover {
+            background: #4cfcea0d;
+
+            > span {
+                overflow: visible;
+                white-space: normal;
+                word-break: break-word;
+                position: relative;
+                z-index: 10;
+            }
+        }
+    }
+}
+
+.plot-data-table .table-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 10px 4px;
+    font-family: SourceHanSansCN-Medium;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    align-items: center;
+    position: relative;
+
+    color: #c69c6d;
+
+    > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &.table-head {
+        font-family: SourceHanSansCN-Medium;
+        font-weight: bold;
+        color: #c69c6d;
+        font-size: 13px;
+        padding: 12px 4px;
+    }
+
+    &:not(.table-head) {
+        &:hover {
+            background: #4cfcea0d;
+
+            > span {
+                overflow: visible;
+                white-space: normal;
+                word-break: break-word;
+                position: relative;
+                z-index: 10;
+            }
+        }
+    }
+}
+
 </style>

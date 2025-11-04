@@ -13,12 +13,12 @@ export default {
     return {
       chart: null,
       areaData: [
-        { year: '2019', area: 980 },
-        { year: '2020', area: 1050 },
-        { year: '2021', area: 1120 },
-        { year: '2022', area: 1180 },
-        { year: '2023', area: 1200 },
-        { year: '2024', area: 1258 }
+        { year: '2019', forestArea: 980, productiveArea: 700 },
+        { year: '2020', forestArea: 1050, productiveArea: 780 },
+        { year: '2021', forestArea: 1120, productiveArea: 840 },
+        { year: '2022', forestArea: 1180, productiveArea: 920 },
+        { year: '2023', forestArea: 1200, productiveArea: 950 },
+        { year: '2024', forestArea: 10273, productiveArea: 8000 }
       ]
     }
   },
@@ -37,15 +37,17 @@ export default {
       this.chart = echarts.init(this.$refs.chartContainer)
       
       const years = this.areaData.map(item => item.year)
-      const areas = this.areaData.map(item => item.area)
-      
+      const forestAreas = this.areaData.map(item => item.forestArea)
+      const productiveAreas = this.areaData.map(item => item.productiveArea)
+
       const option = {
         backgroundColor: 'transparent',
         grid: {
           left: '15%',
           right: '10%',
-          top: '10%',
-          bottom: '15%'
+          top: '35px',
+          bottom: '40px',
+          containLabel: true
         },
         xAxis: {
           type: 'category',
@@ -66,8 +68,8 @@ export default {
         },
         yAxis: {
           type: 'value',
-          min: 800,
-          max: 1400,
+          min: 0,
+          max: 12000,
           splitNumber: 4,
           axisLine: {
             show: false
@@ -87,12 +89,23 @@ export default {
             }
           }
         },
+        legend: {
+          data: ['林地面积', '丰产林面积'],
+          textStyle: {
+            color: '#C69C6D',
+            fontSize: 12,
+            fontFamily: 'SourceHanSansCN-Light'
+          },
+          orient: 'horizontal',
+          top: '0px',
+          left: 'center'
+        },
         series: [
           {
-            name: '种植面积',
+            name: '林地面积',
             type: 'bar',
-            data: areas,
-            barWidth: '40%',
+            data: forestAreas,
+            barWidth: '35%',
             itemStyle: {
               color: {
                 type: 'linear',
@@ -117,31 +130,43 @@ export default {
               show: true,
               position: 'top',
               color: 'rgba(76, 252, 234, 1)',
-              fontSize: 14,
-              fontFamily: 'SourceHanSansCN-Medium',
-              fontWeight: 'bold',
+              fontSize: 11,
+              fontFamily: 'SourceHanSansCN-Light',
               formatter: '{c}'
+            }
+          },
+          {
+            name: '丰产林面积',
+            type: 'bar',
+            data: productiveAreas,
+            barWidth: '35%',
+            itemStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  {
+                    offset: 0,
+                    color: '#22c55e'
+                  },
+                  {
+                    offset: 1,
+                    color: 'rgba(34, 197, 94, 0.3)'
+                  }
+                ]
+              },
+              borderRadius: [4, 4, 0, 0]
             },
-            emphasis: {
-              itemStyle: {
-                color: {
-                  type: 'linear',
-                  x: 0,
-                  y: 0,
-                  x2: 0,
-                  y2: 1,
-                  colorStops: [
-                    {
-                      offset: 0,
-                      color: '#5DFDEB'
-                    },
-                    {
-                      offset: 1,
-                      color: 'rgba(93, 253, 235, 0.4)'
-                    }
-                  ]
-                }
-              }
+            label: {
+              show: true,
+              position: 'top',
+              color: 'rgba(76, 252, 234, 1)',
+              fontSize: 11,
+              fontFamily: 'SourceHanSansCN-Light',
+              formatter: '{c}'
             }
           }
         ],
@@ -155,8 +180,11 @@ export default {
             fontSize: 12
           },
           formatter: function(params) {
-            const data = params[0]
-            return `${data.name}年<br/>种植面积: ${data.value}亩`
+            let result = params[0].name + '年<br/>'
+            params.forEach(item => {
+              result += `${item.seriesName}: ${item.value}亩<br/>`
+            })
+            return result
           }
         }
       }
@@ -181,6 +209,6 @@ export default {
 
 .chart-container {
   width: 100%;
-  height: 200px;
+  height: 100%;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="production-chart">
+  <div class="sulfur-comparison-chart">
     <div ref="chartContainer" class="chart-container"></div>
   </div>
 </template>
@@ -8,17 +8,17 @@
 import * as echarts from 'echarts';
 
 export default {
-    name: 'ProductionChart',
+    name: 'SulfurComparisonChart',
     data() {
         return {
             chart: null,
-            productionData: [
-                { year: '2019', production: 2800 },
-                { year: '2020', production: 3200 },
-                { year: '2021', production: 2950 },
-                { year: '2022', production: 3400 },
-                { year: '2023', production: 3650 },
-                { year: '2024', production: 3850 }
+            sulfurData: [
+                { year: '2019', sulfurFree: 580, sulfured: 400 },
+                { year: '2020', sulfurFree: 720, sulfured: 360 },
+                { year: '2021', sulfurFree: 840, sulfured: 280 },
+                { year: '2022', sulfurFree: 950, sulfured: 230 },
+                { year: '2023', sulfurFree: 1050, sulfured: 150 },
+                { year: '2024', sulfurFree: 1200, sulfured: 100 }
             ]
         };
     },
@@ -36,9 +36,9 @@ export default {
         initChart() {
             this.chart = echarts.init(this.$refs.chartContainer);
 
-            const years = this.productionData.map(item => item.year);
-            const productions = this.productionData.map(item => item.production);
-            const dryFruitProductions = this.productionData.map(item => (item.production / 4).toFixed(0));
+            const years = this.sulfurData.map(item => item.year);
+            const sulfurFreeData = this.sulfurData.map(item => item.sulfurFree);
+            const sulfuredData = this.sulfurData.map(item => item.sulfured);
 
             const option = {
                 backgroundColor: 'transparent',
@@ -69,7 +69,7 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 4000,
+                    max: 1400,
                     splitNumber: 4,
                     axisLine: {
                         show: false
@@ -90,7 +90,7 @@ export default {
                     }
                 },
                 legend: {
-                    data: ['鲜果产量', '干果产量'],
+                    data: ['无硫八角', '有硫八角'],
                     textStyle: {
                         color: '#C69C6D',
                         fontSize: 12,
@@ -102,30 +102,10 @@ export default {
                 },
                 series: [
                     {
-                        name: '鲜果产量',
-                        type: 'line',
-                        data: dryFruitProductions,
-                        smooth: true,
-                        lineStyle: {
-                            color: '#22c55e',
-                            width: 2
-                        },
-                        itemStyle: {
-                            color: '#22c55e',
-                            borderColor: '#22c55e',
-                            borderWidth: 2
-                        },
-                        symbol: 'circle',
-                        symbolSize: 6,
-                        label: {
-                            show: false
-                        }
-                    },
-                    {
-                        name: '干果产量',
+                        name: '无硫八角',
                         type: 'bar',
-                        data: productions,
-                        barWidth: '40%',
+                        data: sulfurFreeData,
+                        barWidth: '35%',
                         itemStyle: {
                             color: {
                                 type: 'linear',
@@ -136,11 +116,11 @@ export default {
                                 colorStops: [
                                     {
                                         offset: 0,
-                                        color: '#C69C6D'
+                                        color: '#22c55e'
                                     },
                                     {
                                         offset: 1,
-                                        color: 'rgba(76, 252, 234, 0.3)'
+                                        color: 'rgba(34, 197, 94, 0.3)'
                                     }
                                 ]
                             },
@@ -150,30 +130,43 @@ export default {
                             show: true,
                             position: 'top',
                             color: 'rgba(76, 252, 234, 1)',
-                            fontSize: 12,
-                            fontFamily: 'SourceHanSansCN-Medium',
+                            fontSize: 11,
+                            fontFamily: 'SourceHanSansCN-Light',
                             formatter: '{c}'
+                        }
+                    },
+                    {
+                        name: '有硫八角',
+                        type: 'bar',
+                        data: sulfuredData,
+                        barWidth: '35%',
+                        itemStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [
+                                    {
+                                        offset: 0,
+                                        color: '#ff6b4a'
+                                    },
+                                    {
+                                        offset: 1,
+                                        color: 'rgba(255, 107, 74, 0.3)'
+                                    }
+                                ]
+                            },
+                            borderRadius: [4, 4, 0, 0]
                         },
-                        emphasis: {
-                            itemStyle: {
-                                color: {
-                                    type: 'linear',
-                                    x: 0,
-                                    y: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [
-                                        {
-                                            offset: 0,
-                                            color: '#5DFDEB'
-                                        },
-                                        {
-                                            offset: 1,
-                                            color: 'rgba(93, 253, 235, 0.4)'
-                                        }
-                                    ]
-                                }
-                            }
+                        label: {
+                            show: true,
+                            position: 'top',
+                            color: 'rgba(76, 252, 234, 1)',
+                            fontSize: 11,
+                            fontFamily: 'SourceHanSansCN-Light',
+                            formatter: '{c}'
                         }
                     }
                 ],
@@ -189,7 +182,7 @@ export default {
                     formatter(params) {
                         let result = `${ params[0].name }年<br/>`;
                         params.forEach(item => {
-                            result += `${ item.seriesName }: ${ item.value }斤<br/>`;
+                            result += `${ item.seriesName }: ${ item.value }亩<br/>`;
                         });
                         return result;
                     }
@@ -209,7 +202,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.production-chart {
+.sulfur-comparison-chart {
     width: 100%;
     height: 100%;
 }

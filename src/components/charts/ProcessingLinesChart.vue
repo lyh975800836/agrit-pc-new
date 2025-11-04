@@ -1,5 +1,5 @@
 <template>
-  <div class="price-trend-chart">
+  <div class="processing-lines-chart">
     <div ref="chartContainer" class="chart-container"></div>
   </div>
 </template>
@@ -8,23 +8,17 @@
 import * as echarts from 'echarts'
 
 export default {
-  name: 'PriceTrendChart',
+  name: 'ProcessingLinesChart',
   data() {
     return {
       chart: null,
-      priceData: [
-        { month: '01月', price: 18.2 },
-        { month: '02月', price: 19.5 },
-        { month: '03月', price: 20.1 },
-        { month: '04月', price: 22.3 },
-        { month: '05月', price: 21.8 },
-        { month: '06月', price: 23.5 },
-        { month: '07月', price: 25.4 },
-        { month: '08月', price: 24.7 },
-        { month: '09月', price: 26.1 },
-        { month: '10月', price: 23.8 },
-        { month: '11月', price: 22.4 },
-        { month: '12月', price: 25.0 }
+      linesData: [
+        { year: '2019', lines: 12 },
+        { year: '2020', lines: 15 },
+        { year: '2021', lines: 18 },
+        { year: '2022', lines: 22 },
+        { year: '2023', lines: 26 },
+        { year: '2024', lines: 31 }
       ]
     }
   },
@@ -41,23 +35,22 @@ export default {
   methods: {
     initChart() {
       this.chart = echarts.init(this.$refs.chartContainer)
-      
-      const months = this.priceData.map(item => item.month)
-      const prices = this.priceData.map(item => item.price)
-      const freshPrices = this.priceData.map(item => (item.price / 4).toFixed(2))
+
+      const years = this.linesData.map(item => item.year)
+      const lines = this.linesData.map(item => item.lines)
 
       const option = {
         backgroundColor: 'transparent',
         grid: {
-          left: '8%',
-          right: '8%',
+          left: '15%',
+          right: '10%',
           top: '35px',
           bottom: '40px',
           containLabel: true
         },
         xAxis: {
           type: 'category',
-          data: months,
+          data: years,
           axisLine: {
             lineStyle: {
               color: 'rgba(76, 252, 234, 0.3)'
@@ -74,8 +67,8 @@ export default {
         },
         yAxis: {
           type: 'value',
-          min: 4,
-          max: 30,
+          min: 0,
+          max: 35,
           splitNumber: 4,
           axisLine: {
             show: false
@@ -86,8 +79,7 @@ export default {
           axisLabel: {
             color: 'rgba(76, 252, 234, 0.8)',
             fontSize: 11,
-            fontFamily: 'SourceHanSansCN-Light',
-            formatter: '¥{value}'
+            fontFamily: 'SourceHanSansCN-Light'
           },
           splitLine: {
             lineStyle: {
@@ -97,7 +89,7 @@ export default {
           }
         },
         legend: {
-          data: ['干果价格', '鲜果价格'],
+          data: ['生产线数量'],
           textStyle: {
             color: '#C69C6D',
             fontSize: 12,
@@ -109,54 +101,9 @@ export default {
         },
         series: [
           {
-            name: '干果价格',
+            name: '生产线数量',
             type: 'line',
-            data: prices,
-            smooth: true,
-            lineStyle: {
-              color: '#C69C6D',
-              width: 2
-            },
-            itemStyle: {
-              color: '#C69C6D',
-              borderColor: '#C69C6D',
-              borderWidth: 2
-            },
-            areaStyle: {
-              color: {
-                type: 'linear',
-                x: 0,
-                y: 0,
-                x2: 0,
-                y2: 1,
-                colorStops: [
-                  {
-                    offset: 0,
-                    color: 'rgba(198, 156, 109, 0.2)'
-                  },
-                  {
-                    offset: 1,
-                    color: 'rgba(198, 156, 109, 0.05)'
-                  }
-                ]
-              }
-            },
-            symbol: 'circle',
-            symbolSize: 6,
-            emphasis: {
-              itemStyle: {
-                color: '#C69C6D',
-                borderColor: '#fff',
-                borderWidth: 2,
-                shadowColor: 'rgba(76, 252, 234, 0.5)',
-                shadowBlur: 10
-              }
-            }
-          },
-          {
-            name: '鲜果价格',
-            type: 'line',
-            data: freshPrices,
+            data: lines,
             smooth: true,
             lineStyle: {
               color: '#22c55e',
@@ -193,7 +140,7 @@ export default {
                 color: '#22c55e',
                 borderColor: '#fff',
                 borderWidth: 2,
-                shadowColor: 'rgba(34, 197, 94, 0.5)',
+                shadowColor: 'rgba(76, 252, 234, 0.5)',
                 shadowBlur: 10
               }
             }
@@ -209,18 +156,18 @@ export default {
             fontSize: 12
           },
           formatter: function(params) {
-            let result = params[0].name + '<br/>'
+            let result = params[0].name + '年<br/>'
             params.forEach(item => {
-              result += `${item.seriesName}: ¥${item.value}/斤<br/>`
+              result += `${item.seriesName}: ${item.value}条<br/>`
             })
             return result
           }
         }
       }
-      
+
       this.chart.setOption(option)
     },
-    
+
     handleResize() {
       if (this.chart) {
         this.chart.resize()
@@ -231,7 +178,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.price-trend-chart {
+.processing-lines-chart {
   width: 100%;
   height: 100%;
 }
