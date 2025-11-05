@@ -1,108 +1,38 @@
 <template>
   <div class="region-detail-map">
     <!-- 加载指示器 -->
-    <div v-if="isLoading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <div class="loading-text">{{ loadingText }}</div>
-      </div>
-    </div>
+    <MapLoadingOverlay
+      :isLoading="isLoading"
+      :loading-text="loadingText"
+    />
 
     <!-- 二级地图分类右侧栏 -->
-    <div v-if="!isPlotDetailPage" class="category-sidebar">
-      <div class="category-sidebar-title">分类</div>
-      <div class="category-sidebar-list">
-        <button
-          v-for="(category, index) in categories"
-          :key="index"
-          class="category-sidebar-btn"
-          :class="{ 'all-option': category.isAllOption, 'active': selectedCategoryType === category.type }"
-          :title="category.name"
-          @click="filterMapByCategory(category)"
-        >
-          <img v-if="category.icon" :src="category.icon" :alt="category.name" />
-          <span class="category-name">{{ category.name }}</span>
-        </button>
-      </div>
-    </div>
+    <CategorySidebar
+      :categories="categories"
+      :selected-category-type="selectedCategoryType"
+      :is-plot-detail-page="isPlotDetailPage"
+      @category-filter="filterMapByCategory"
+    />
 
     <!-- 分类弹窗 -->
-    <div v-if="selectedCategory" class="category-popup" @click.self="closeCategoryPopup">
-      <div class="popup-content">
-        <div class="popup-header">
-          <h3>{{ selectedCategory.name }}</h3>
-          <button class="popup-close-btn" @click="closeCategoryPopup">✕</button>
-        </div>
-        <div class="popup-body">
-          <p>{{ selectedCategory.description }}</p>
-          <div class="popup-stats" v-if="selectedCategory.count">
-            <span>共 {{ selectedCategory.count }} 个</span>
-          </div>
-        </div>
-        <div class="popup-footer">
-          <button class="navigate-btn" @click="navigateToTertiaryMap">查看详情</button>
-        </div>
-      </div>
-    </div>
+    <CategoryPopup
+      :selected-category="selectedCategory"
+      @close="closeCategoryPopup"
+      @navigate="navigateToTertiaryMap"
+    />
 
     <!-- Leaflet地图容器 -->
     <div id="leaflet-map" class="leaflet-container" :class="{ 'map-hidden': isLoading }"></div>
 
     <!-- 地块详情弹窗 -->
-    <div
-      v-if="showDetailPopup && popupData"
-      class="plot-detail-popup"
-      :style="{ top: popupPosition.top + 'px', left: popupPosition.left + 'px' }"
-    >
-      <!-- 弹窗关闭按钮 -->
-      <button class="popup-close-button" @click="closePlotDetailPopup">
-        <span class="close-icon">×</span>
-      </button>
-
-      <!-- 弹窗内容 -->
-      <div class="popup-content">
-        <!-- 信息展示区域 -->
-        <div class="popup-info-section">
-          <!-- 地块/设施名称 -->
-          <h3 class="popup-title">{{ popupData.name }}</h3>
-
-          <!-- 分隔线 -->
-          <div class="popup-divider"></div>
-
-          <!-- 地块信息 -->
-          <div class="popup-info-item">
-            <span class="info-label">区域：</span>
-            <span class="info-value">{{ popupData.district || regionName }}</span>
-          </div>
-
-          <!-- 面积信息 -->
-          <div class="popup-info-item">
-            <span class="info-label">面积：</span>
-            <span class="info-value">{{ popupData.area || '100' }}亩</span>
-          </div>
-
-          <!-- 农户/所有人信息 -->
-          <div class="popup-info-item" v-if="popupData.farmerName">
-            <span class="info-label">{{ popupData.type === 'warehouse' ? '所有人' : '农户' }}：</span>
-            <span class="info-value">{{ popupData.farmerName }}</span>
-          </div>
-        </div>
-
-        <!-- 图片容器 -->
-        <div class="popup-image-container">
-          <img
-            class="popup-image"
-            :src="popupData.photo || '/images/pop-banner.png'"
-            :alt="popupData.name"
-          />
-        </div>
-
-        <!-- 按钮区域 -->
-        <div class="popup-button-section">
-          <button class="detail-button" @click="goToPlotDetail">查看详情</button>
-        </div>
-      </div>
-    </div>
+    <PlotDetailPopup
+      v-if="showDetailPopup"
+      :popup-data="popupData"
+      :popup-position="popupPosition"
+      :region-name="regionName"
+      @close="closePlotDetailPopup"
+      @navigate="goToPlotDetail"
+    />
 
   </div>
 </template>
@@ -111,6 +41,10 @@
 import {
     generateMockPlotConfig
 } from '@/utils/plotConfig';
+import MapLoadingOverlay from '@/components/MapLoadingOverlay.vue';
+import CategorySidebar from '@/components/CategorySidebar.vue';
+import CategoryPopup from '@/components/CategoryPopup.vue';
+import PlotDetailPopup from '@/components/PlotDetailPopup.vue';
 
 // 使用CDN引入的Leaflet (在index.html中已引入)
 const { L } = window;
@@ -141,6 +75,12 @@ export default {
             default: false
         }
     },
+    components: {
+        MapLoadingOverlay,
+        CategorySidebar,
+        CategoryPopup,
+        PlotDetailPopup
+    },
     data() {
         return {
             map: null,
@@ -157,26 +97,26 @@ export default {
             connectorLine: null, // 连接线图层
             plotFilterOptions: [
                 { label: '全部', value: 'all' },
-                { label: '林（八角林）', value: 'star-anise' },
-                { label: '厂（加工厂）', value: 'drying-facility' },
-                { label: '仓（交收仓）', value: 'tea-oil' }
+                { label: '林', value: 'star-anise' },
+                { label: '厂', value: 'drying-facility' },
+                { label: '仓', value: 'tea-oil' }
             ],
             selectedPlotFilter: 'all',
             showPlotFilterBar: true,
             selectedCategory: null,
-            selectedCategoryType: 'all',  // 当前选中的分类类型
+            selectedCategoryType: 'all', // 当前选中的分类类型
             categories: [
                 { id: 0, name: '全部', icon: '', description: '查看所有地块', count: 85, type: 'all', isAllOption: true },
-                { id: 1, name: '林（八角林）', icon: '/images/map-filter1.png', description: '林业基地', count: 20, type: 'forest', subtypes: ['star-anise', 'tea-oil'] },
-                { id: 2, name: '厂（加工厂）', icon: '/images/map-filter3.png', description: '加工厂设施', count: 16, type: 'factory', subtypes: ['drying-facility', '中心工厂', '晒场'] },
-                { id: 3, name: '仓（交收仓）', icon: '/images/map-filter6.png', description: '仓储设施', count: 20, type: 'warehouse', subtypes: ['产地仓', '交收仓', '云仓'] }
+                { id: 1, name: '林', icon: '/images/map-filter1.png', description: '林业基地', count: 20, type: 'forest', subtypes: ['star-anise', 'tea-oil'] },
+                { id: 2, name: '厂', icon: '/images/map-filter3.png', description: '加工厂设施', count: 16, type: 'factory', subtypes: ['drying-facility', '中心工厂', '晒场'] },
+                { id: 3, name: '仓', icon: '/images/map-filter6.png', description: '仓储设施', count: 20, type: 'warehouse', subtypes: ['产地仓', '交收仓', '云仓'] }
             ],
             // 分类与具体类型的映射关系
             categoryTypeMapping: {
-                'all': ['star-anise', 'tea-oil', 'drying-facility', '中心工厂', '晒场', '产地仓', '交收仓', '云仓'],
-                'forest': ['star-anise', 'tea-oil'],
-                'factory': ['drying-facility', '中心工厂', '晒场'],
-                'warehouse': ['产地仓', '交收仓', '云仓']
+                all: ['star-anise', 'tea-oil', 'drying-facility', '中心工厂', '晒场', '产地仓', '交收仓', '云仓'],
+                forest: ['star-anise', 'tea-oil'],
+                factory: ['drying-facility', '中心工厂', '晒场'],
+                warehouse: ['产地仓', '交收仓', '云仓']
             },
             // 区域中心坐标
             regionCoordinates: {
@@ -376,7 +316,7 @@ export default {
                                     this.isLoading = false;
                                     resolve();
                                 })
-                                    .catch((fallbackError) => {
+                                    .catch(fallbackError => {
                                         console.error('卫星底图加载失败:', fallbackError);
                                         this.isLoading = false;
                                         reject(fallbackError);
@@ -526,7 +466,7 @@ export default {
                 case '晒场':
                     return {
                         backgroundImage: '/images/drying-facility.png',
-                        typeClass: `plot-type-${normalizedType}`,
+                        typeClass: `plot-type-${ normalizedType }`,
                         width: 174,
                         height: 82,
                         anchorYOffset: 8,
@@ -614,10 +554,10 @@ export default {
             const targetType = entry.type || DEFAULT_PLOT_TYPE;
             // Check if targetType matches selected category (using mapping)
             const categoryTypes = this.categoryTypeMapping[this.selectedCategoryType] || [];
-            const matchesCategory = this.selectedCategoryType === 'all' ||
-                                   categoryTypes.includes(targetType);
-            const shouldShow = (this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter) &&
-                               matchesCategory;
+            const matchesCategory = this.selectedCategoryType === 'all'
+                                   || categoryTypes.includes(targetType);
+            const shouldShow = (this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter)
+                               && matchesCategory;
 
             if (!this.map) {
                 entry.visible = shouldShow;
@@ -1057,8 +997,8 @@ export default {
 
                         // 根据页面类型选择不同的标记样式
                         let customIcon;
-                        let markerLat = fieldData.center[0];
-                        let markerLng = fieldData.center[1];
+                        const markerLat = fieldData.center[0];
+                        const markerLng = fieldData.center[1];
                         if (this.isPlotDetailPage) {
                             // 三级地图：使用简单的图片标记
                             customIcon = L.divIcon({
