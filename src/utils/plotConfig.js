@@ -14,11 +14,60 @@ export const PLOT_REGISTRY = {
         description: '烘干示范工厂所在地块',
         mockPlots: [
             {
+                key: 'mock-star-anise-1',
+                displayName: '八角种植基地',
+                routeName: '雷哥',
+                type: 'star-anise',
+                offset: { lat: 0.008, lng: -0.015 }
+            },
+            {
                 key: 'mock-drying-1',
                 displayName: '烘干示范工厂',
                 routeName: '雷哥',
                 type: 'drying-facility',
                 offset: { lat: -0.012, lng: 0.02 }
+            },
+            {
+                key: 'mock-warehouse-1',
+                displayName: '八角产品仓库',
+                routeName: '八角产品仓库',
+                type: '产地仓',
+                offset: { lat: -0.015, lng: -0.01 }
+            },
+            {
+                key: 'mock-central-factory-1',
+                displayName: '中心加工厂',
+                routeName: '中心加工厂',
+                type: '中心工厂',
+                offset: { lat: 0.025, lng: 0.035 }
+            },
+            {
+                key: 'mock-supply-1',
+                displayName: '农资销售店',
+                routeName: '农资销售店',
+                type: '农资商店',
+                offset: { lat: 0.02, lng: -0.025 }
+            },
+            {
+                key: 'mock-cloud-warehouse-1',
+                displayName: '智能云仓储',
+                routeName: '智能云仓储',
+                type: '云仓',
+                offset: { lat: -0.008, lng: 0.028 }
+            },
+            {
+                key: 'mock-trading-warehouse-1',
+                displayName: '交易收购仓',
+                routeName: '交易收购仓',
+                type: '交收仓',
+                offset: { lat: -0.022, lng: 0.005 }
+            },
+            {
+                key: 'mock-drying-yard-1',
+                displayName: '晒干晾晒场',
+                routeName: '晒干晾晒场',
+                type: '晒场',
+                offset: { lat: 0.032, lng: -0.008 }
             }
         ]
     },
@@ -37,6 +86,55 @@ export const PLOT_REGISTRY = {
                 routeName: '油茶示范基地',
                 type: 'tea-oil',
                 offset: { lat: 0.015, lng: 0.018 }
+            },
+            {
+                key: 'mock-drying-2',
+                displayName: '油茶加工厂',
+                routeName: '油茶加工厂',
+                type: 'drying-facility',
+                offset: { lat: 0.01, lng: -0.02 }
+            },
+            {
+                key: 'mock-warehouse-2',
+                displayName: '油茶产品仓库',
+                routeName: '油茶产品仓库',
+                type: '产地仓',
+                offset: { lat: -0.01, lng: 0.025 }
+            },
+            {
+                key: 'mock-supply-2',
+                displayName: '农资销售点',
+                routeName: '农资销售点',
+                type: '农资商店',
+                offset: { lat: 0.025, lng: -0.008 }
+            },
+            {
+                key: 'mock-central-factory-2',
+                displayName: '油茶中心工厂',
+                routeName: '油茶中心工厂',
+                type: '中心工厂',
+                offset: { lat: -0.02, lng: -0.015 }
+            },
+            {
+                key: 'mock-cloud-warehouse-2',
+                displayName: '云仓智储',
+                routeName: '云仓智储',
+                type: '云仓',
+                offset: { lat: 0.028, lng: 0.032 }
+            },
+            {
+                key: 'mock-trading-warehouse-2',
+                displayName: '交易收购中心',
+                routeName: '交易收购中心',
+                type: '交收仓',
+                offset: { lat: -0.025, lng: 0.01 }
+            },
+            {
+                key: 'mock-drying-yard-2',
+                displayName: '油茶晒场',
+                routeName: '油茶晒场',
+                type: '晒场',
+                offset: { lat: 0.022, lng: -0.03 }
             }
         ]
     },
@@ -55,6 +153,62 @@ export const PLOT_REGISTRY = {
                 routeName: '油茶精品园',
                 type: 'tea-oil',
                 offset: { lat: 0.02, lng: -0.015 }
+            },
+            {
+                key: 'mock-drying-3',
+                displayName: '精品油茶加工厂',
+                routeName: '精品油茶加工厂',
+                type: 'drying-facility',
+                offset: { lat: -0.018, lng: 0.015 }
+            },
+            {
+                key: 'mock-star-anise-2',
+                displayName: '八角示范林',
+                routeName: '八角示范林',
+                type: 'star-anise',
+                offset: { lat: 0.025, lng: 0.025 }
+            },
+            {
+                key: 'mock-supply-3',
+                displayName: '农资直销站',
+                routeName: '农资直销站',
+                type: '农资商店',
+                offset: { lat: -0.012, lng: -0.02 }
+            },
+            {
+                key: 'mock-central-factory-3',
+                displayName: '巴塘中心工厂',
+                routeName: '巴塘中心工厂',
+                type: '中心工厂',
+                offset: { lat: 0.032, lng: 0.01 }
+            },
+            {
+                key: 'mock-warehouse-3',
+                displayName: '产地仓储中心',
+                routeName: '产地仓储中心',
+                type: '产地仓',
+                offset: { lat: -0.008, lng: -0.025 }
+            },
+            {
+                key: 'mock-trading-warehouse-3',
+                displayName: '交收仓库',
+                routeName: '交收仓库',
+                type: '交收仓',
+                offset: { lat: 0.015, lng: 0.028 }
+            },
+            {
+                key: 'mock-drying-yard-3',
+                displayName: '大型晒场',
+                routeName: '大型晒场',
+                type: '晒场',
+                offset: { lat: -0.028, lng: 0.018 }
+            },
+            {
+                key: 'mock-cloud-warehouse-3',
+                displayName: '精品云仓',
+                routeName: '精品云仓',
+                type: '云仓',
+                offset: { lat: 0.01, lng: -0.032 }
             }
         ]
     },

@@ -7,7 +7,7 @@
         :weather="weather"
         :user="user"
         :show-back-button="showBackButton"
-        :page-title="'数据驾驶舱'"
+        :page-title="pageTitle"
         @back="$emit('back')"
       />
 

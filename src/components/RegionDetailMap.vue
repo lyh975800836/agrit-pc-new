@@ -449,6 +449,13 @@ export default {
                 case 'drying-facility':
                 case 'average':
                     return 'drying-facility';
+                case '产地仓':
+                case '中心工厂':
+                case '农资商店':
+                case '交收仓':
+                case '云仓':
+                case '晒场':
+                    return plotType;
                 default:
                     return DEFAULT_PLOT_TYPE;
             }
@@ -484,6 +491,20 @@ export default {
                         anchorYOffset: 8,
                         positionOffset: { lat: -0.05, lng: -0.08 }
                     };
+                case '产地仓':
+                case '中心工厂':
+                case '农资商店':
+                case '交收仓':
+                case '云仓':
+                case '晒场':
+                    return {
+                        backgroundImage: '/images/drying-facility.png',
+                        typeClass: `plot-type-${normalizedType}`,
+                        width: 174,
+                        height: 82,
+                        anchorYOffset: 8,
+                        positionOffset: { lat: 0.02, lng: -0.02 }
+                    };
                 case 'star-anise':
                 case 'premium':
                 default:
@@ -495,10 +516,16 @@ export default {
         getCategoryIcon(plotType) {
             const normalizedType = this.normalizePlotType(plotType);
             const categoryMap = {
-                'star-anise': '/images/map-filter1.png',     // 八角基地
-                'tea-oil': '/images/map-filter2.png',        // 茶油基地
-                'drying-facility': '/images/map-filter3.png', // 烘干工厂
-                'average': '/images/map-filter3.png'         // 烘干工厂（备选）
+                'star-anise': '/images/map-filter1.png',
+                'tea-oil': '/images/map-filter2.png',
+                'drying-facility': '/images/map-filter3.png',
+                '农资商店': '/images/map-filter4.png',
+                '中心工厂': '/images/map-filter5.png',
+                '产地仓': '/images/map-filter6.png',
+                '交收仓': '/images/map-filter7.png',
+                '云仓': '/images/map-filter8.png',
+                '晒场': '/images/map-filter9.png',
+                'average': '/images/map-filter3.png'
             };
             return categoryMap[normalizedType] || '/images/map-filter1.png';
         },
