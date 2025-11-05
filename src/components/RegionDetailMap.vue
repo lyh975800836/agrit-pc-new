@@ -167,16 +167,17 @@ export default {
             selectedCategoryType: 'all',  // 当前选中的分类类型
             categories: [
                 { id: 0, name: '全部', icon: '', description: '查看所有地块', count: 85, type: 'all', isAllOption: true },
-                { id: 1, name: '八角基地', icon: '/images/map-filter1.png', description: '八角种植基地', count: 12, type: 'star-anise' },
-                { id: 2, name: '茶油基地', icon: '/images/map-filter2.png', description: '茶油种植基地', count: 8, type: 'tea-oil' },
-                { id: 3, name: '烘干工厂', icon: '/images/map-filter3.png', description: '八角烘干工厂', count: 6, type: 'drying-facility' },
-                { id: 4, name: '农资商店', icon: '/images/map-filter4.png', description: '农资销售商店', count: 15, type: '农资商店' },
-                { id: 5, name: '中心工厂', icon: '/images/map-filter5.png', description: '中心加工工厂', count: 4, type: '中心工厂' },
-                { id: 6, name: '产地仓', icon: '/images/map-filter6.png', description: '产地仓储设施', count: 10, type: '产地仓' },
-                { id: 7, name: '交收仓', icon: '/images/map-filter7.png', description: '交易收购仓', count: 7, type: '交收仓' },
-                { id: 8, name: '云仓', icon: '/images/map-filter8.png', description: '智能云仓储', count: 3, type: '云仓' },
-                { id: 9, name: '晒场', icon: '/images/map-filter9.png', description: '晒干晾晒场地', count: 20, type: '晒场' }
+                { id: 1, name: '林（八角林）', icon: '/images/map-filter1.png', description: '林业基地', count: 20, type: 'forest', subtypes: ['star-anise', 'tea-oil'] },
+                { id: 2, name: '厂（加工厂）', icon: '/images/map-filter3.png', description: '加工厂设施', count: 16, type: 'factory', subtypes: ['drying-facility', '中心工厂', '晒场'] },
+                { id: 3, name: '仓（交收仓）', icon: '/images/map-filter6.png', description: '仓储设施', count: 20, type: 'warehouse', subtypes: ['产地仓', '交收仓', '云仓'] }
             ],
+            // 分类与具体类型的映射关系
+            categoryTypeMapping: {
+                'all': ['star-anise', 'tea-oil', 'drying-facility', '中心工厂', '晒场', '产地仓', '交收仓', '云仓'],
+                'forest': ['star-anise', 'tea-oil'],
+                'factory': ['drying-facility', '中心工厂', '晒场'],
+                'warehouse': ['产地仓', '交收仓', '云仓']
+            },
             // 区域中心坐标
             regionCoordinates: {
                 百色市: [23.9, 106.6],
@@ -234,6 +235,7 @@ export default {
             try {
 
                 if (!window.L) {
+                    console.warn('Leaflet库未加载');
                     this.isLoading = false;
                     return;
                 }
@@ -241,6 +243,7 @@ export default {
                 // 确保DOM元素存在
                 const mapElement = document.getElementById('leaflet-map');
                 if (!mapElement) {
+                    console.warn('地图容器不存在，重试中...');
                     setTimeout(() => this.initializeMapComponent(), 200);
                     return;
                 }
@@ -267,10 +270,19 @@ export default {
                     await this.loadRegionData();
                 }
 
+                this.isLoading = false;
 
             }
             catch (error) {
+                console.error('RegionDetailMap初始化失败:', error);
                 this.isLoading = false;
+                // 即使出错也不阻止用户交互
+                this.$notify({
+                    title: '加载提示',
+                    message: '地图加载可能不完整，请刷新页面',
+                    type: 'warning',
+                    duration: 3000
+                });
             }
         },
 
@@ -359,14 +371,29 @@ export default {
                             .catch(error => {
                                 console.error('PNG图片加载失败，回退到卫星底图:', error);
                                 // 如果PNG加载失败，回退到正常的卫星底图
-                                this.addSatelliteLayer().then(resolve)
-                                    .catch(reject);
+                                this.loadingText = '使用卫星地图...';
+                                this.addSatelliteLayer().then(() => {
+                                    this.isLoading = false;
+                                    resolve();
+                                })
+                                    .catch((fallbackError) => {
+                                        console.error('卫星底图加载失败:', fallbackError);
+                                        this.isLoading = false;
+                                        reject(fallbackError);
+                                    });
                             });
                     }
                     else {
                         // 正常情况：使用卫星底图
-                        this.addSatelliteLayer().then(resolve)
-                            .catch(reject);
+                        this.addSatelliteLayer().then(() => {
+                            this.isLoading = false;
+                            resolve();
+                        })
+                            .catch(error => {
+                                console.error('卫星底图加载失败:', error);
+                                this.isLoading = false;
+                                reject(error);
+                            });
                     }
 
 
@@ -585,8 +612,12 @@ export default {
             }
 
             const targetType = entry.type || DEFAULT_PLOT_TYPE;
+            // Check if targetType matches selected category (using mapping)
+            const categoryTypes = this.categoryTypeMapping[this.selectedCategoryType] || [];
+            const matchesCategory = this.selectedCategoryType === 'all' ||
+                                   categoryTypes.includes(targetType);
             const shouldShow = (this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter) &&
-                               (this.selectedCategoryType === 'all' || targetType === this.selectedCategoryType);
+                               matchesCategory;
 
             if (!this.map) {
                 entry.visible = shouldShow;
@@ -775,6 +806,7 @@ export default {
             try {
                 // 防重复加载同一个区域
                 if (this.currentLoadedRegion === this.regionName) {
+                    this.isLoading = false;
                     return;
                 }
 
@@ -794,7 +826,6 @@ export default {
                 const regionFeature = baiseData.features.find(feature =>
                     feature.properties.name === this.regionName);
 
-
                 if (regionFeature) {
                     this.addRegionBoundary(regionFeature);
                 }
@@ -808,11 +839,14 @@ export default {
                 }
 
                 this.isLoading = false;
+                this.loadingText = '';
 
             }
             catch (error) {
                 console.error('加载区域轮廓失败:', error);
                 this.isLoading = false;
+                this.loadingText = '加载失败，请刷新重试';
+                console.warn('错误详情:', error.message);
             }
         },
 
