@@ -358,7 +358,8 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@bottom-nav-height: 50px;@import "@/styles/abstracts/index.less";
+@bottom-nav-height: 50px;
+@import "@/styles/abstracts/index.less";
 
 .page {
     position: relative;

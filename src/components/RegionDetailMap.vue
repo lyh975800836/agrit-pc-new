@@ -773,11 +773,6 @@ export default {
                     console.warn('未找到区域轮廓数据，区域名称:', this.regionName);
                 }
 
-                // 添加地块标记（仅在二级地图页面显示）
-                if (!this.showPlotDetails) {
-                    await this.addPlotMarkers();
-                }
-
                 this.isLoading = false;
                 this.loadingText = '';
 
@@ -819,10 +814,8 @@ export default {
                     });
                 }
 
-
-                // 只有当showPlotMarkers为true时才添加地块标注
+                // 添加地块标记
                 if (this.showPlotMarkers) {
-                    // 添加真实坐标地块标注
                     this.addRealPlotMarkers();
                 }
 
@@ -975,7 +968,9 @@ export default {
                     return;
                 }
 
-                const allEntries = this.extendCoordinateEntries(coordinateData);
+                // 只使用coordinates.json中的基础地块数据，不使用mock扩展
+                // mock地块仅用于三级地图详情展示，不在二级地图显示
+                const allEntries = Object.entries(coordinateData);
 
                 allEntries.forEach(([key, fieldData]) => {
                     const plotName = fieldData.displayName || fieldData.name || key;
@@ -3238,8 +3233,8 @@ export default {
     background: none !important;
 }
 
-// 二级地图marker icon - 只显示分类图标
-// Leaflet marker容器样式调整
+/* 二级地图marker icon - 只显示分类图标 */ - 只显示分类图标
+/* Leaflet marker容器样式调整 */
 .leaflet-marker-icon.custom-plot-marker.preview-mark-container {
     background: transparent !important;
     border: none !important;
@@ -3584,7 +3579,7 @@ export default {
     overflow: hidden;
     border-radius: 6px;
     transition: all .3s ease;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 1.6;
     margin: 2px 0;
 }
 

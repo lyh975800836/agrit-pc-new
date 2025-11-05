@@ -15,115 +15,10 @@ export const PLOT_REGISTRY = {
         mockPlots: [
             {
                 key: 'mock-star-anise-1',
-                displayName: '八角种植基地A',
+                displayName: '八角种植基地',
                 routeName: '雷哥',
                 type: 'star-anise',
                 offset: { lat: 0.008, lng: -0.015 }
-            },
-            {
-                key: 'mock-star-anise-2',
-                displayName: '八角种植基地B',
-                routeName: '雷哥',
-                type: 'star-anise',
-                offset: { lat: -0.028, lng: 0.032 }
-            },
-            {
-                key: 'mock-star-anise-3',
-                displayName: '八角种植基地C',
-                routeName: '雷哥',
-                type: 'star-anise',
-                offset: { lat: 0.035, lng: 0.01 }
-            },
-            {
-                key: 'mock-drying-1',
-                displayName: '烘干示范工厂',
-                routeName: '雷哥',
-                type: 'drying-facility',
-                offset: { lat: -0.012, lng: 0.02 }
-            },
-            {
-                key: 'mock-drying-2',
-                displayName: '八角加工厂',
-                routeName: '八角加工厂',
-                type: 'drying-facility',
-                offset: { lat: 0.018, lng: -0.035 }
-            },
-            {
-                key: 'mock-warehouse-1',
-                displayName: '八角产品仓库A',
-                routeName: '八角产品仓库',
-                type: '产地仓',
-                offset: { lat: -0.015, lng: -0.01 }
-            },
-            {
-                key: 'mock-warehouse-2',
-                displayName: '八角产品仓库B',
-                routeName: '八角产品仓库',
-                type: '产地仓',
-                offset: { lat: 0.032, lng: 0.015 }
-            },
-            {
-                key: 'mock-central-factory-1',
-                displayName: '中心加工厂',
-                routeName: '中心加工厂',
-                type: '中心工厂',
-                offset: { lat: 0.025, lng: 0.035 }
-            },
-            {
-                key: 'mock-supply-1',
-                displayName: '农资销售店A',
-                routeName: '农资销售店',
-                type: '农资商店',
-                offset: { lat: 0.02, lng: -0.025 }
-            },
-            {
-                key: 'mock-supply-2',
-                displayName: '农资销售店B',
-                routeName: '农资销售店',
-                type: '农资商店',
-                offset: { lat: -0.032, lng: -0.018 }
-            },
-            {
-                key: 'mock-cloud-warehouse-1',
-                displayName: '智能云仓储A',
-                routeName: '智能云仓储',
-                type: '云仓',
-                offset: { lat: -0.008, lng: 0.028 }
-            },
-            {
-                key: 'mock-cloud-warehouse-2',
-                displayName: '智能云仓储B',
-                routeName: '智能云仓储',
-                type: '云仓',
-                offset: { lat: 0.028, lng: -0.032 }
-            },
-            {
-                key: 'mock-trading-warehouse-1',
-                displayName: '交易收购仓A',
-                routeName: '交易收购仓',
-                type: '交收仓',
-                offset: { lat: -0.022, lng: 0.005 }
-            },
-            {
-                key: 'mock-trading-warehouse-2',
-                displayName: '交易收购仓B',
-                routeName: '交易收购仓',
-                type: '交收仓',
-                offset: { lat: 0.01, lng: -0.038 }
-            },
-            {
-                key: 'mock-drying-yard-1',
-                displayName: '晒干晾晒场A',
-                routeName: '晒干晾晒场',
-                type: '晒场',
-                offset: { lat: 0.032, lng: -0.008 }
-            },
-            {
-                key: 'mock-drying-yard-2',
-                displayName: '晒干晾晒场B',
-                routeName: '晒干晾晒场',
-                type: '晒场',
-                offset: { lat: -0.035, lng: 0.025 }
             }
         ]
     },
@@ -138,115 +33,10 @@ export const PLOT_REGISTRY = {
         mockPlots: [
             {
                 key: 'mock-tea-oil-1',
-                displayName: '油茶示范基地A',
+                displayName: '油茶示范基地',
                 routeName: '油茶示范基地',
                 type: 'tea-oil',
                 offset: { lat: 0.015, lng: 0.018 }
-            },
-            {
-                key: 'mock-tea-oil-2',
-                displayName: '油茶示范基地B',
-                routeName: '油茶示范基地',
-                type: 'tea-oil',
-                offset: { lat: -0.025, lng: -0.03 }
-            },
-            {
-                key: 'mock-tea-oil-3',
-                displayName: '油茶示范基地C',
-                routeName: '油茶示范基地',
-                type: 'tea-oil',
-                offset: { lat: 0.032, lng: -0.015 }
-            },
-            {
-                key: 'mock-drying-2',
-                displayName: '油茶加工厂A',
-                routeName: '油茶加工厂',
-                type: 'drying-facility',
-                offset: { lat: 0.01, lng: -0.02 }
-            },
-            {
-                key: 'mock-drying-3',
-                displayName: '油茶加工厂B',
-                routeName: '油茶加工厂',
-                type: 'drying-facility',
-                offset: { lat: -0.028, lng: 0.035 }
-            },
-            {
-                key: 'mock-warehouse-2',
-                displayName: '油茶产品仓库A',
-                routeName: '油茶产品仓库',
-                type: '产地仓',
-                offset: { lat: -0.01, lng: 0.025 }
-            },
-            {
-                key: 'mock-warehouse-3',
-                displayName: '油茶产品仓库B',
-                routeName: '油茶产品仓库',
-                type: '产地仓',
-                offset: { lat: 0.035, lng: 0.008 }
-            },
-            {
-                key: 'mock-supply-2',
-                displayName: '农资销售点A',
-                routeName: '农资销售点',
-                type: '农资商店',
-                offset: { lat: 0.025, lng: -0.008 }
-            },
-            {
-                key: 'mock-supply-3',
-                displayName: '农资销售点B',
-                routeName: '农资销售点',
-                type: '农资商店',
-                offset: { lat: -0.032, lng: -0.028 }
-            },
-            {
-                key: 'mock-central-factory-2',
-                displayName: '油茶中心工厂',
-                routeName: '油茶中心工厂',
-                type: '中心工厂',
-                offset: { lat: -0.02, lng: -0.015 }
-            },
-            {
-                key: 'mock-cloud-warehouse-2',
-                displayName: '云仓智储A',
-                routeName: '云仓智储',
-                type: '云仓',
-                offset: { lat: 0.028, lng: 0.032 }
-            },
-            {
-                key: 'mock-cloud-warehouse-3',
-                displayName: '云仓智储B',
-                routeName: '云仓智储',
-                type: '云仓',
-                offset: { lat: -0.015, lng: 0.038 }
-            },
-            {
-                key: 'mock-trading-warehouse-2',
-                displayName: '交易收购中心A',
-                routeName: '交易收购中心',
-                type: '交收仓',
-                offset: { lat: -0.025, lng: 0.01 }
-            },
-            {
-                key: 'mock-trading-warehouse-3',
-                displayName: '交易收购中心B',
-                routeName: '交易收购中心',
-                type: '交收仓',
-                offset: { lat: 0.018, lng: -0.038 }
-            },
-            {
-                key: 'mock-drying-yard-2',
-                displayName: '油茶晒场A',
-                routeName: '油茶晒场',
-                type: '晒场',
-                offset: { lat: 0.022, lng: -0.03 }
-            },
-            {
-                key: 'mock-drying-yard-3',
-                displayName: '油茶晒场B',
-                routeName: '油茶晒场',
-                type: '晒场',
-                offset: { lat: -0.035, lng: 0.022 }
             }
         ]
     },
@@ -261,122 +51,10 @@ export const PLOT_REGISTRY = {
         mockPlots: [
             {
                 key: 'mock-tea-oil-2',
-                displayName: '油茶精品园A',
+                displayName: '油茶精品园',
                 routeName: '油茶精品园',
                 type: 'tea-oil',
                 offset: { lat: 0.02, lng: -0.015 }
-            },
-            {
-                key: 'mock-tea-oil-3',
-                displayName: '油茶精品园B',
-                routeName: '油茶精品园',
-                type: 'tea-oil',
-                offset: { lat: -0.032, lng: 0.028 }
-            },
-            {
-                key: 'mock-drying-3',
-                displayName: '精品油茶加工厂A',
-                routeName: '精品油茶加工厂',
-                type: 'drying-facility',
-                offset: { lat: -0.018, lng: 0.015 }
-            },
-            {
-                key: 'mock-drying-4',
-                displayName: '精品油茶加工厂B',
-                routeName: '精品油茶加工厂',
-                type: 'drying-facility',
-                offset: { lat: 0.028, lng: -0.032 }
-            },
-            {
-                key: 'mock-star-anise-2',
-                displayName: '八角示范林A',
-                routeName: '八角示范林',
-                type: 'star-anise',
-                offset: { lat: 0.025, lng: 0.025 }
-            },
-            {
-                key: 'mock-star-anise-3',
-                displayName: '八角示范林B',
-                routeName: '八角示范林',
-                type: 'star-anise',
-                offset: { lat: -0.035, lng: -0.01 }
-            },
-            {
-                key: 'mock-supply-3',
-                displayName: '农资直销站A',
-                routeName: '农资直销站',
-                type: '农资商店',
-                offset: { lat: -0.012, lng: -0.02 }
-            },
-            {
-                key: 'mock-supply-4',
-                displayName: '农资直销站B',
-                routeName: '农资直销站',
-                type: '农资商店',
-                offset: { lat: 0.035, lng: 0.015 }
-            },
-            {
-                key: 'mock-central-factory-3',
-                displayName: '巴塘中心工厂',
-                routeName: '巴塘中心工厂',
-                type: '中心工厂',
-                offset: { lat: 0.032, lng: 0.01 }
-            },
-            {
-                key: 'mock-warehouse-3',
-                displayName: '产地仓储中心A',
-                routeName: '产地仓储中心',
-                type: '产地仓',
-                offset: { lat: -0.008, lng: -0.025 }
-            },
-            {
-                key: 'mock-warehouse-4',
-                displayName: '产地仓储中心B',
-                routeName: '产地仓储中心',
-                type: '产地仓',
-                offset: { lat: 0.018, lng: 0.035 }
-            },
-            {
-                key: 'mock-trading-warehouse-3',
-                displayName: '交收仓库A',
-                routeName: '交收仓库',
-                type: '交收仓',
-                offset: { lat: 0.015, lng: 0.028 }
-            },
-            {
-                key: 'mock-trading-warehouse-4',
-                displayName: '交收仓库B',
-                routeName: '交收仓库',
-                type: '交收仓',
-                offset: { lat: -0.028, lng: -0.035 }
-            },
-            {
-                key: 'mock-drying-yard-3',
-                displayName: '大型晒场A',
-                routeName: '大型晒场',
-                type: '晒场',
-                offset: { lat: -0.028, lng: 0.018 }
-            },
-            {
-                key: 'mock-drying-yard-4',
-                displayName: '大型晒场B',
-                routeName: '大型晒场',
-                type: '晒场',
-                offset: { lat: 0.032, lng: -0.025 }
-            },
-            {
-                key: 'mock-cloud-warehouse-3',
-                displayName: '精品云仓A',
-                routeName: '精品云仓',
-                type: '云仓',
-                offset: { lat: 0.01, lng: -0.032 }
-            },
-            {
-                key: 'mock-cloud-warehouse-4',
-                displayName: '精品云仓B',
-                routeName: '精品云仓',
-                type: '云仓',
-                offset: { lat: -0.022, lng: 0.038 }
             }
         ]
     },
@@ -390,6 +68,86 @@ export const PLOT_REGISTRY = {
         defaultZoomLevel: 2,
         description: '独立的油茶精品园地块',
         tileLayerName: 'plot_1039_田林县'
+    },
+
+    // 024 林业产业智能园区
+    '林业产业智能园区': {
+        id: 1024,
+        displayName: '林业产业智能园区',
+        aliases: ['1024'],
+        tilePreset: { cols: 13, rows: 10, offsetX: -17, offsetY: -6 },
+        description: '林业产业智能园区',
+        defaultZoomLevel: 5,
+        tileLayerName: 'plot_1024_晒场0',
+        mockPlots: [
+            {
+                key: 'mock-forestry-park-1',
+                displayName: '林业产业智能园区',
+                routeName: '林业产业智能园区',
+                type: '中心工厂',
+                owner: '香源科技',
+                offset: { lat: 0.01, lng: 0.01 }
+            }
+        ]
+    },
+
+    // 1025 潘总八角晒场
+    '潘总八角晒场': {
+        id: 1025,
+        displayName: '潘总八角晒场',
+        aliases: ['1025'],
+        tilePreset: { cols: 12, rows: 6, offsetX: 0, offsetY: 0 },
+        description: '潘总八角晒场',
+        mockPlots: [
+            {
+                key: 'mock-drying-yard-1',
+                displayName: '潘总八角晒场',
+                routeName: '潘总八角晒场',
+                type: '晒场',
+                owner: '潘总',
+                offset: { lat: 0.01, lng: 0.01 }
+            }
+        ]
+    },
+
+    // 1026 海南国际商品交易所香辛料指定交收仓
+    '海南国际商品交易所香辛料指定交收仓': {
+        id: 1026,
+        displayName: '海南国际商品交易所香辛料指定交收仓',
+        aliases: ['1026', '交收仓'],
+        tilePreset: { cols: 15, rows: 11, offsetX: -17, offsetY: -6 },
+        description: '海南国际商品交易所香辛料指定交收仓',
+        defaultZoomLevel: 5,
+        tileLayerName: 'plot_1026_晒场2',
+        mockPlots: [
+            {
+                key: 'mock-trading-warehouse-1',
+                displayName: '海南国际商品交易所香辛料指定交收仓',
+                routeName: '海南国际商品交易所香辛料指定交收仓',
+                type: '交收仓',
+                owner: '百色一号',
+                offset: { lat: 0.01, lng: 0.01 }
+            }
+        ]
+    },
+
+    // 1027 八角智能烘干工厂
+    '八角智能烘干工厂': {
+        id: 1027,
+        displayName: '八角智能烘干工厂',
+        aliases: ['1027'],
+        tilePreset: { cols: 12, rows: 6, offsetX: 0, offsetY: 0 },
+        description: '八角智能烘干工厂',
+        mockPlots: [
+            {
+                key: 'mock-drying-factory-1',
+                displayName: '八角智能烘干工厂',
+                routeName: '八角智能烘干工厂',
+                type: 'drying-facility',
+                owner: '香源科技',
+                offset: { lat: 0.01, lng: 0.01 }
+            }
+        ]
     }
 };
 
@@ -800,12 +558,12 @@ export const SUPPLY_CHAIN_NODES = [
         stage: SUPPLY_CHAIN_STAGES.SUPPLY.id,
         stageName: SUPPLY_CHAIN_STAGES.SUPPLY.name,
         name: '农资销售点（巴塘）',
-        description: '油茶种植农资销售',
+        description: '八角种植农资销售',
         icon: SUPPLY_CHAIN_STAGES.SUPPLY.icon,
         color: SUPPLY_CHAIN_STAGES.SUPPLY.color,
         plotId: 1002,
-        lat: 24.420,
-        lng: 106.480,
+        lat: 23.850,
+        lng: 106.150,
         flowStep: 1
     },
 
@@ -815,12 +573,12 @@ export const SUPPLY_CHAIN_NODES = [
         stage: SUPPLY_CHAIN_STAGES.EDGE_PROCESSING.id,
         stageName: SUPPLY_CHAIN_STAGES.EDGE_PROCESSING.name,
         name: '边端初加工点（巴塘）',
-        description: '油茶初步榨油处理',
+        description: '初步干制处理',
         icon: SUPPLY_CHAIN_STAGES.EDGE_PROCESSING.icon,
         color: SUPPLY_CHAIN_STAGES.EDGE_PROCESSING.color,
         plotId: 1002,
-        lat: 24.430,
-        lng: 106.490,
+        lat: 23.855,
+        lng: 106.160,
         flowStep: 3
     },
 
@@ -830,12 +588,12 @@ export const SUPPLY_CHAIN_NODES = [
         stage: SUPPLY_CHAIN_STAGES.EDGE_WAREHOUSE.id,
         stageName: SUPPLY_CHAIN_STAGES.EDGE_WAREHOUSE.name,
         name: '边端仓库（巴塘）',
-        description: '油茶产品临时存储',
+        description: '干制产品临时存储',
         icon: SUPPLY_CHAIN_STAGES.EDGE_WAREHOUSE.icon,
         color: SUPPLY_CHAIN_STAGES.EDGE_WAREHOUSE.color,
         plotId: 1002,
-        lat: 24.435,
-        lng: 106.495,
+        lat: 23.860,
+        lng: 106.170,
         flowStep: 4
     }
 ];
