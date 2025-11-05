@@ -3012,4 +3012,16 @@ export default {
     box-sizing: border-box;
 }
 
+/* ===== 工厂面板特定样式 ===== */
+.factory-panel {
+    background-color: #0d2a28;
+    background-image: linear-gradient(135deg, #0d2a28f2 0%, #041f1df2 100%);
+}
+
+/* ===== 仓库面板特定样式 ===== */
+.warehouse-panel {
+    background-color: #0d2a28;
+    background-image: linear-gradient(135deg, #0d2a28f2 0%, #041f1df2 100%);
+}
+
 </style>

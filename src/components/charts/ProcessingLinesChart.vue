@@ -90,7 +90,7 @@ export default {
                     }
                 },
                 legend: {
-                    data: ['烘场数量', '烘干线数量'],
+                    data: ['晒场数量', '烘干线数量'],
                     textStyle: {
                         color: '#C69C6D',
                         fontSize: 12,
@@ -102,7 +102,7 @@ export default {
                 },
                 series: [
                     {
-                        name: '烘场数量',
+                        name: '晒场数量',
                         type: 'bar',
                         data: lines,
                         barWidth: '40%',

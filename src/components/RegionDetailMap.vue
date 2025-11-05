@@ -8,42 +8,41 @@
       </div>
     </div>
 
-    <!-- 二级地图过滤器 -->
-    <div v-if="!isPlotDetailPage" class="plot-filter-container">
-      <div v-if="showPlotFilterBar" class="plot-filter-bar" aria-label="地块筛选">
-        <div class="plot-filter-bar__header">
-          <button
-            class="plot-filter-close"
-            type="button"
-            aria-label="关闭筛选"
-            @click="closePlotFilterBar"
-          >
-            ×
-          </button>
+    <!-- 二级地图分类右侧栏 -->
+    <div v-if="!isPlotDetailPage" class="category-sidebar">
+      <div class="category-sidebar-title">分类</div>
+      <div class="category-sidebar-list">
+        <button
+          v-for="(category, index) in categories"
+          :key="index"
+          class="category-sidebar-btn"
+          :class="{ 'all-option': category.isAllOption, 'active': selectedCategoryType === category.type }"
+          :title="category.name"
+          @click="filterMapByCategory(category)"
+        >
+          <img v-if="category.icon" :src="category.icon" :alt="category.name" />
+          <span class="category-name">{{ category.name }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 分类弹窗 -->
+    <div v-if="selectedCategory" class="category-popup" @click.self="closeCategoryPopup">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h3>{{ selectedCategory.name }}</h3>
+          <button class="popup-close-btn" @click="closeCategoryPopup">✕</button>
         </div>
-        <div class="plot-filter-list">
-          <button
-            v-for="option in plotFilterOptions"
-            :key="option.value"
-            class="plot-filter-button"
-            :class="{ 'is-active': selectedPlotFilter === option.value }"
-            :aria-pressed="selectedPlotFilter === option.value"
-            type="button"
-            @click="changePlotFilter(option.value)"
-          >
-            {{ option.label }}
-          </button>
+        <div class="popup-body">
+          <p>{{ selectedCategory.description }}</p>
+          <div class="popup-stats" v-if="selectedCategory.count">
+            <span>共 {{ selectedCategory.count }} 个</span>
+          </div>
+        </div>
+        <div class="popup-footer">
+          <button class="navigate-btn" @click="navigateToTertiaryMap">查看详情</button>
         </div>
       </div>
-      <button
-        v-else
-        class="plot-filter-toggle"
-        type="button"
-        aria-label="打开筛选"
-        @click="openPlotFilterBar"
-      >
-        筛选
-      </button>
     </div>
 
     <!-- Leaflet地图容器 -->
@@ -60,14 +59,47 @@
         <span class="close-icon">×</span>
       </button>
 
-      <!-- 弹窗内容 - 只展示图片 -->
+      <!-- 弹窗内容 -->
       <div class="popup-content">
-        <div class="popup-image-container" @click="goToPlotDetail">
+        <!-- 信息展示区域 -->
+        <div class="popup-info-section">
+          <!-- 地块/设施名称 -->
+          <h3 class="popup-title">{{ popupData.name }}</h3>
+
+          <!-- 分隔线 -->
+          <div class="popup-divider"></div>
+
+          <!-- 地块信息 -->
+          <div class="popup-info-item">
+            <span class="info-label">区域：</span>
+            <span class="info-value">{{ popupData.district || regionName }}</span>
+          </div>
+
+          <!-- 面积信息 -->
+          <div class="popup-info-item">
+            <span class="info-label">面积：</span>
+            <span class="info-value">{{ popupData.area || '100' }}亩</span>
+          </div>
+
+          <!-- 农户/所有人信息 -->
+          <div class="popup-info-item" v-if="popupData.farmerName">
+            <span class="info-label">{{ popupData.type === 'warehouse' ? '所有人' : '农户' }}：</span>
+            <span class="info-value">{{ popupData.farmerName }}</span>
+          </div>
+        </div>
+
+        <!-- 图片容器 -->
+        <div class="popup-image-container">
           <img
             class="popup-image"
             :src="popupData.photo || '/images/pop-banner.png'"
             :alt="popupData.name"
           />
+        </div>
+
+        <!-- 按钮区域 -->
+        <div class="popup-button-section">
+          <button class="detail-button" @click="goToPlotDetail">查看详情</button>
         </div>
       </div>
     </div>
@@ -131,6 +163,20 @@ export default {
             ],
             selectedPlotFilter: 'all',
             showPlotFilterBar: true,
+            selectedCategory: null,
+            selectedCategoryType: 'all',  // 当前选中的分类类型
+            categories: [
+                { id: 0, name: '全部', icon: '', description: '查看所有地块', count: 85, type: 'all', isAllOption: true },
+                { id: 1, name: '八角基地', icon: '/images/map-filter1.png', description: '八角种植基地', count: 12, type: 'star-anise' },
+                { id: 2, name: '茶油基地', icon: '/images/map-filter2.png', description: '茶油种植基地', count: 8, type: 'tea-oil' },
+                { id: 3, name: '烘干工厂', icon: '/images/map-filter3.png', description: '八角烘干工厂', count: 6, type: 'drying-facility' },
+                { id: 4, name: '农资商店', icon: '/images/map-filter4.png', description: '农资销售商店', count: 15, type: '农资商店' },
+                { id: 5, name: '中心工厂', icon: '/images/map-filter5.png', description: '中心加工工厂', count: 4, type: '中心工厂' },
+                { id: 6, name: '产地仓', icon: '/images/map-filter6.png', description: '产地仓储设施', count: 10, type: '产地仓' },
+                { id: 7, name: '交收仓', icon: '/images/map-filter7.png', description: '交易收购仓', count: 7, type: '交收仓' },
+                { id: 8, name: '云仓', icon: '/images/map-filter8.png', description: '智能云仓储', count: 3, type: '云仓' },
+                { id: 9, name: '晒场', icon: '/images/map-filter9.png', description: '晒干晾晒场地', count: 20, type: '晒场' }
+            ],
             // 区域中心坐标
             regionCoordinates: {
                 百色市: [23.9, 106.6],
@@ -445,6 +491,18 @@ export default {
             }
         },
 
+        // 获取分类图标
+        getCategoryIcon(plotType) {
+            const normalizedType = this.normalizePlotType(plotType);
+            const categoryMap = {
+                'star-anise': '/images/map-filter1.png',     // 八角基地
+                'tea-oil': '/images/map-filter2.png',        // 茶油基地
+                'drying-facility': '/images/map-filter3.png', // 烘干工厂
+                'average': '/images/map-filter3.png'         // 烘干工厂（备选）
+            };
+            return categoryMap[normalizedType] || '/images/map-filter1.png';
+        },
+
         changePlotFilter(filterValue) {
             if (this.selectedPlotFilter === filterValue) {
                 return;
@@ -500,7 +558,8 @@ export default {
             }
 
             const targetType = entry.type || DEFAULT_PLOT_TYPE;
-            const shouldShow = this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter;
+            const shouldShow = (this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter) &&
+                               (this.selectedCategoryType === 'all' || targetType === this.selectedCategoryType);
 
             if (!this.map) {
                 entry.visible = shouldShow;
@@ -848,10 +907,11 @@ export default {
 
             plots.forEach(plot => {
                 const visualConfig = this.getPlotMarkerVisualConfig(plot.type);
-                const { width, height, anchorYOffset, positionOffset } = visualConfig;
-                const markerHtml = this.createPlotMarkerHtml(plot, visualConfig);
+                const { positionOffset } = visualConfig;
+                const markerHtml = this.createPlotMarkerHtml(plot);
 
-                const anchorY = Math.max(height - (anchorYOffset || 0), 0);
+                // icon尺寸：48x48
+                const iconSize = 48;
                 const offsetLat = positionOffset?.lat || 0;
                 const offsetLng = positionOffset?.lng || 0;
                 const markerLat = plot.lat + offsetLat;
@@ -860,16 +920,24 @@ export default {
                 const customIcon = L.divIcon({
                     className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
                     html: markerHtml,
-                    iconSize: [width, height],
-                    iconAnchor: [width / 2, anchorY]
+                    iconSize: [iconSize, iconSize],
+                    iconAnchor: [iconSize / 2, iconSize / 2]
                 });
 
                 // 添加标记到地图
                 const marker = L.marker([markerLat, markerLng], { icon: customIcon });
 
-                // 添加点击事件，跳转到三级地块详情页
+                // 添加点击事件，显示地块详情弹窗
                 marker.on('click', () => {
-                    this.navigateToPlotDetail(plot);
+                    // 构建完整的plotData对象
+                    const plotData = {
+                        ...plot,
+                        type: plot.type || 'star-anise',
+                        displayName: plot.displayName || plot.name,
+                        district: this.regionName
+                    };
+                    // 先显示弹窗，不直接跳转
+                    this.showPlotDetailPopup([markerLat, markerLng], plotData);
                 });
 
                 marker.addTo(this.map);
@@ -940,22 +1008,15 @@ export default {
                             });
                         }
                         else {
-                            // 二级地图：使用HTML地块标记
-                            const visualConfig = this.getPlotMarkerVisualConfig(plotData.type);
-                            const { width, height, anchorYOffset, positionOffset } = visualConfig;
-                            const markerHtml = this.createPlotMarkerHtml(plotData, visualConfig);
-
-                            const anchorY = Math.max(height - (anchorYOffset || 0), 0);
-                            const offsetLat = positionOffset?.lat || 0;
-                            const offsetLng = positionOffset?.lng || 0;
-                            markerLat += offsetLat;
-                            markerLng += offsetLng;
+                            // 二级地图：使用icon标记
+                            const markerHtml = this.createPlotMarkerHtml(plotData);
+                            const iconSize = 48;
 
                             customIcon = L.divIcon({
                                 className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
                                 html: markerHtml,
-                                iconSize: [width, height],
-                                iconAnchor: [width / 2, anchorY]
+                                iconSize: [iconSize, iconSize],
+                                iconAnchor: [iconSize / 2, iconSize / 2]
                             });
                         }
 
@@ -966,28 +1027,10 @@ export default {
                             icon: customIcon
                         }).addTo(this.map);
 
-                        // 添加点击事件：三级页面显示预览弹窗，二级页面跳转到三级页面
+                        // 添加点击事件：显示弹窗，然后通过弹窗内的按钮跳转
                         plotMarker.on('click', () => {
-                            if (this.isPlotDetailPage) {
-                                // 三级地图页面：显示预览弹窗
-                                this.showPlotDetailPopup(fieldData.center, plotData);
-                            }
-                            else {
-                                // 二级地图页面：跳转到三级地图页面
-                                const typeMap = {
-                                    'drying-facility': 'factory',
-                                    'tea-oil': 'warehouse',
-                                    'star-anise': '八角'
-                                };
-                                const plotType = typeMap[assignedType] || '八角';
-                                this.$router.push({
-                                    path: `/plot/${ encodeURIComponent(plotData.name) }`,
-                                    query: {
-                                        type: plotType,
-                                        region: this.regionName
-                                    }
-                                });
-                            }
+                            // 无论二级还是三级页面，都先显示弹窗
+                            this.showPlotDetailPopup(fieldData.center, plotData);
                         });
 
                         // 将标记添加到图层数组，用于地图视野调整
@@ -1230,32 +1273,11 @@ export default {
         },
 
         // 创建地块标记HTML
-        createPlotMarkerHtml(plot, visualConfig = null) {
-            const { backgroundImage, typeClass } = visualConfig || this.getPlotMarkerVisualConfig(plot.type);
-            const displayName = plot.displayName || plot.name;
-            const showArea = plot.type !== 'drying-facility' && plot.type !== 'average';
-
-            const infoParts = [];
-            if (showArea) {
-                infoParts.push('<span class="info-label">面积</span>');
-                infoParts.push(`<span class="info-value">${ plot.area }</span>`);
-                infoParts.push('<span class="info-unit">亩</span>');
-            }
-
-            infoParts.push('<span class="info-label">产量</span>');
-            infoParts.push(`<span class="info-value">${ plot.output }</span>`);
-            infoParts.push('<span class="info-unit">吨</span>');
-
-            if (showArea) {
-                infoParts.splice(3, 0, '<span class="info-separator">|</span>');
-            }
-
-            return `<div class="plot-marker ${ typeClass }" style="background-image: url('${ backgroundImage }')">
-              <div class="plot-content">
-                <div class="plot-name">${ displayName }</div>
-                <div class="plot-info">${ infoParts.join('') }</div>
-              </div>
-            </div>`;
+        createPlotMarkerHtml(plot) {
+            // 只显示分类图标，点击时弹出详细信息
+            const categoryIcon = this.getCategoryIcon(plot.type);
+            console.log('Plot:', plot.name, 'Type:', plot.type, 'Icon:', categoryIcon);
+            return `<div class="plot-marker-icon" style="background-image: url('${ categoryIcon }'); width: 48px; height: 48px;"></div>`;
         },
 
         // 清除现有地块图层
@@ -2664,6 +2686,47 @@ export default {
             ret += (20.0 * Math.sin(lng * Math.PI) + 40.0 * Math.sin(lng / 3.0 * Math.PI)) * 2.0 / 3.0;
             ret += (150.0 * Math.sin(lng / 12.0 * Math.PI) + 300.0 * Math.sin(lng / 30.0 * Math.PI)) * 2.0 / 3.0;
             return ret;
+        },
+
+        // 分类过滤相关方法
+        // 筛选地图上的icon显示
+        filterMapByCategory(category) {
+            this.selectedCategoryType = category.type;
+            console.log('筛选分类:', category.name, '类型:', category.type);
+            // 应用分类筛选
+            this.applyPlotFilter();
+        },
+
+        showCategoryPopup(category) {
+            this.selectedCategory = category;
+        },
+
+        closeCategoryPopup() {
+            this.selectedCategory = null;
+        },
+
+        navigateToTertiaryMap() {
+            if (this.selectedCategory) {
+                // 全部选项只是关闭弹窗，显示所有地块
+                if (this.selectedCategory.isAllOption) {
+                    this.closeCategoryPopup();
+                    return;
+                }
+
+                this.$emit('category-navigate', {
+                    categoryType: this.selectedCategory.type,
+                    categoryName: this.selectedCategory.name
+                });
+                this.$router.push({
+                    path: '/plot/烘干示范工厂',
+                    query: {
+                        type: 'factory',
+                        region: '右江区',
+                        category: this.selectedCategory.type
+                    }
+                });
+                this.closeCategoryPopup();
+            }
         }
     }
 };
@@ -3174,6 +3237,38 @@ export default {
     background: none !important;
 }
 
+// 二级地图marker icon - 只显示分类图标
+// Leaflet marker容器样式调整
+.leaflet-marker-icon.custom-plot-marker.preview-mark-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 48px !important;
+    height: 48px !important;
+}
+
+.plot-marker-icon {
+    width: 48px !important;
+    height: 48px !important;
+    display: block !important;
+    background-repeat: no-repeat !important;
+    background-size: contain !important;
+    background-position: center !important;
+    cursor: pointer;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.plot-marker-icon:hover {
+    transform: scale(1.2);
+    filter: drop-shadow(0 4px 8px rgba(76, 252, 234, 0.6));
+}
+
 .plot-marker {
     position: relative;
     display: flex !important;
@@ -3399,74 +3494,140 @@ export default {
 .plot-detail-popup {
     position: fixed;
     z-index: 10000;
-    width: 400px;
-    border: 2px solid #4cfceacc;
-
+    width: 360px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #0a1420f2 0%, #0f1e2df2 100%);
-    box-shadow:
-        0 0 30px #4cfcea66,
-        inset 0 1px 0 #ffffff1a;
     animation: popup-fade-in .4s cubic-bezier(.34, 1.56, .64, 1);
-
-    backdrop-filter: blur(10px);
 }
 
 .popup-close-button {
     position: absolute;
     z-index: 10001;
-    top: -10px;
-    right: -10px;
+    top: 8px;
+    right: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: 2px solid #0a1420;
-
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid #4cfcea;
     border-radius: 50%;
-    background: linear-gradient(135deg, #c69c6d 0%, #00bcd4 100%);
-    box-shadow: 0 0 10px #4cfcea80;
+    background: transparent;
     transition: all .3s ease;
     cursor: pointer;
 }
 
 .popup-close-button:hover {
-    background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%);
-    box-shadow: 0 0 15px #ffd70099;
-    transform: scale(1.1);
+    background: #4cfcea1a;
+    box-shadow: 0 0 8px #4cfcea66;
+    transform: rotate(90deg);
 }
 
 .close-icon {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     line-height: 1;
-    color: #0a1420;
+    color: #4cfcea;
 }
 
 .popup-content {
-    padding: 15px;
+    padding: 16px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.popup-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.popup-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #c69c6d;
+    font-family: SourceHanSansCN-Medium, sans-serif;
+    line-height: 1.4;
+}
+
+.popup-divider {
+    height: 1px;
+    background: linear-gradient(90deg, #4cfcea 0%, transparent 100%);
+    margin: 2px 0 4px 0;
+}
+
+.popup-info-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    align-items: center;
+    min-height: 20px;
+}
+
+.info-label {
+    color: #999;
+    font-family: SourceHanSansCN-Regular, sans-serif;
+    font-weight: 400;
+}
+
+.info-value {
+    color: #4cfcea;
+    font-family: SourceHanSansCN-Light, sans-serif;
+    text-align: right;
+    flex: 1;
+    margin-left: 8px;
 }
 
 .popup-image-container {
     overflow: hidden;
-    border: 1px solid #4cfcea4d;
-
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all .3s ease;
-    cursor: pointer;
+    aspect-ratio: 16 / 10;
+    margin: 2px 0;
 }
 
 .popup-image-container:hover {
     border-color: #c69c6d;
-    box-shadow: 0 0 10px #4cfdeb80;
+    box-shadow: 0 0 8px #4cfcea4d;
 }
 
 .popup-image {
     display: block;
     width: 100%;
-    height: 220px;
+    height: 100%;
     object-fit: cover;
+}
+
+.popup-button-section {
+    display: flex;
+    gap: 0;
+    justify-content: stretch;
+    margin-top: 2px;
+}
+
+.detail-button {
+    flex: 1;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0a1420;
+    border: none;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #4cfcea 0%, #39b44a 100%);
+    cursor: pointer;
+    transition: all .3s ease;
+    font-family: SourceHanSansCN-Medium, sans-serif;
+}
+
+.detail-button:hover {
+    background: linear-gradient(135deg, #6effff 0%, #5ec968 100%);
+    box-shadow: 0 0 12px #4cfcea66;
+    transform: translateY(-1px);
+}
+
+.detail-button:active {
+    transform: translateY(0);
 }
 
 /* 自定义Leaflet缩放控件样式 */
@@ -3608,6 +3769,259 @@ export default {
     border-left: 6px solid transparent;
 
     transform: translateX(-50%);
+}
+
+/* 分类右侧栏 */
+.category-sidebar {
+    position: absolute;
+    top: 0;
+    right: 375px;
+    z-index: 1000;
+    background: rgba(15, 35, 52, 0.9);
+    border: 1px solid rgba(76, 252, 234, 0.4);
+    border-radius: 12px;
+    padding: 15px 12px;
+    max-width: 180px;
+    max-height: 80vh;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+}
+
+.category-sidebar-title {
+    color: #C69C6D;
+    font-size: 14px;
+    font-weight: 600;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(76, 252, 234, 0.2);
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.category-sidebar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(76, 252, 234, 0.08);
+    border: 1px solid rgba(76, 252, 234, 0.2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: rgba(76, 252, 234, 0.9);
+    font-size: 12px;
+}
+
+.category-sidebar-btn:hover {
+    background: rgba(76, 252, 234, 0.15);
+    border-color: rgba(76, 252, 234, 0.5);
+}
+
+.category-sidebar-btn img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.category-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 全部选项按钮特殊样式 */
+.category-sidebar-btn.all-option {
+    background: rgba(198, 156, 109, 0.15);
+    border-color: rgba(198, 156, 109, 0.4);
+    color: rgba(198, 156, 109, 0.95);
+    font-weight: 600;
+}
+
+.category-sidebar-btn.all-option:hover {
+    background: rgba(198, 156, 109, 0.25);
+    border-color: rgba(198, 156, 109, 0.6);
+}
+
+/* 选中状态样式 */
+.category-sidebar-btn.active {
+    background: rgba(76, 252, 234, 0.25);
+    border-color: rgba(76, 252, 234, 0.8);
+    box-shadow: 0 0 12px rgba(76, 252, 234, 0.4);
+}
+
+.category-sidebar-btn.all-option.active {
+    background: rgba(198, 156, 109, 0.35);
+    border-color: rgba(198, 156, 109, 0.8);
+    box-shadow: 0 0 12px rgba(198, 156, 109, 0.4);
+}
+
+/* 分类弹窗 */
+.category-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease;
+}
+
+.popup-content {
+    background: rgba(15, 35, 52, 0.95);
+    border: 1px solid rgba(76, 252, 234, 0.4);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(76, 252, 234, 0.2);
+}
+
+.popup-header h3 {
+    margin: 0;
+    color: #C69C6D;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.popup-close-btn {
+    background: none;
+    border: none;
+    color: rgba(76, 252, 234, 0.8);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+    font-weight: 600;
+}
+
+.popup-close-btn:hover {
+    color: rgba(76, 252, 234, 1);
+}
+
+.popup-body {
+    padding: 20px;
+    color: rgba(76, 252, 234, 0.9);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.popup-stats {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(76, 252, 234, 0.05);
+    border-left: 3px solid rgba(76, 252, 234, 0.4);
+    border-radius: 4px;
+}
+
+.popup-stats span {
+    color: #C69C6D;
+    font-weight: 600;
+}
+
+.popup-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(76, 252, 234, 0.2);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.navigate-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.navigate-btn:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 响应式调整 - 分类右侧栏 */
+@media (max-width: 768px) {
+    .category-sidebar {
+        top: 10px;
+        right: 10px;
+        max-width: 160px;
+        padding: 12px 10px;
+    }
+
+    .category-sidebar-btn {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .category-sidebar-btn img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .popup-content {
+        width: 95%;
+        max-width: 350px;
+    }
+
+    .popup-header h3 {
+        font-size: 16px;
+    }
+
+    .popup-body {
+        font-size: 13px;
+    }
+
+    .navigate-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
 }
 
 </style>

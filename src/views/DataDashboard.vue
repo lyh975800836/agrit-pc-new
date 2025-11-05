@@ -15,52 +15,52 @@
       <div class="stats-grid">
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard1})` }">
           <div class="stat-content">
-            <div class="stat-number">135</div>
+            <div class="stat-number"><span class="stat-value">135</span><span class="stat-unit">亩</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.downArrow" class="trend-icon" />
                 <span class="trend-text">-1.5%</span>
               </div>
-              <div class="stat-label">种植面积（万亩）</div>
+              <div class="stat-label">百燕AI监测面积</div>
             </div>
           </div>
         </div>
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard2})` }">
           <div class="stat-content">
-            <div class="stat-number">28</div>
+            <div class="stat-number"><span class="stat-value">28</span><span class="stat-unit">亩</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
                 <span class="trend-text">+7.7%</span>
               </div>
-              <div class="stat-label">丰产林面积（万亩）</div>
+              <div class="stat-label">百燕AI监测丰产林面积</div>
             </div>
           </div>
         </div>
-
+ 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard3})` }">
           <div class="stat-content">
-            <div class="stat-number">62</div>
+            <div class="stat-number"><span class="stat-value">62</span><span class="stat-unit">万元</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
                 <span class="trend-text">+4.8%</span>
               </div>
-              <div class="stat-label">烘场数量</div>
+              <div class="stat-label">农户收入增加总量</div>
             </div>
           </div>
         </div>
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard4})` }">
           <div class="stat-content">
-            <div class="stat-number">22</div>
+            <div class="stat-number"><span class="stat-value">22</span><span class="stat-unit">吨</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
                 <span class="trend-text">+10.0%</span>
               </div>
-              <div class="stat-label">烘干线数量</div>
+              <div class="stat-label">化肥和农药减少总量</div>
             </div>
           </div>
         </div>
@@ -195,7 +195,7 @@
         <div class="chart-panel sulfur-comparison-panel" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
           <div class="chart-header">
             <h3>无硫与有硫八角占比</h3>
-            <p class="chart-subtitle">种植面积（万亩）</p>
+            <p class="chart-subtitle">产量（吨）</p>
           </div>
           <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">
             <SulfurComparisonChart />
@@ -525,8 +525,12 @@ export default {
         gap: 15px;
     }
 
-    .stat-number {
+    .stat-value {
         font-size: 36px;
+    }
+
+    .stat-unit {
+        font-size: 16px;
     }
 
     .chart-header h3 {
@@ -594,11 +598,22 @@ export default {
 }
 
 .stat-number {
+    display: flex;
+    align-items: baseline;
     max-width: 45%;
-    font-family: BebasNeueRegular;
-    font-size: 58px;
-    font-weight: bold;
+    font-family: BebasNeueRegular, sans-serif;
+    font-weight: 700;
+    line-height: 1.1;
     word-break: break-word;
+}
+
+.stat-value {
+    font-size: 58px;
+}
+
+.stat-unit {
+    margin-left: 2px;
+    font-size: 24px;
 }
 
 .stat-right {
@@ -634,7 +649,7 @@ export default {
 
 .stat-label {
     font-family: SourceHanSansCN-Medium;
-    font-size: 17px;
+    font-size: 15px;
     color: #c69c6d;
 }
 
