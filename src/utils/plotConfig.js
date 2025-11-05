@@ -96,7 +96,8 @@ export const PLOT_REGISTRY = {
         id: 1025,
         displayName: '潘总八角晒场',
         aliases: ['1025'],
-        tilePreset: { cols: 12, rows: 6, offsetX: 0, offsetY: 0 },
+        tilePreset: { cols: 11, rows: 8, offsetX: -3, offsetY: -4 },
+        tilematrix: 4,
         description: '潘总八角晒场',
         mockPlots: [
             {
