@@ -141,17 +141,17 @@
         <!-- 种植面积分布 -->
         <div class="distribution-panel" :style="{ backgroundImage: `url(${images.distributionBg})` }">
           <div class="panel-header-simple">
-            <h3>各县区种植面积分布</h3>
+            <h3>{{ showProductiveForestChart ? '各区县丰产林占比' : '各县区种植面积分布' }}</h3>
           </div>
           <div class="panel-controls-bottom">
-            <button class="control-btn" :style="{ backgroundImage: `url(${images.backBtn})` }">
-              返回上一级
+            <button class="control-btn" :style="{ backgroundImage: `url(${images.backBtn})` }" @click="toggleProductiveForestChart">
+              {{ showProductiveForestChart ? '查看面积分布' : '各区县丰产林占比' }}
             </button>
-            <button class="control-btn" :style="{ backgroundImage: `url(${images.resetBtn})` }">
+            <button class="control-btn" :style="{ backgroundImage: `url(${images.resetBtn})` }" @click="resetDistributionChart">
               重置视图
             </button>
           </div>
-          <div class="distribution-content-new">
+          <div class="distribution-content-new" v-if="!showProductiveForestChart">
             <div class="legend-section-vertical">
               <div class="legend-item">
                 <div class="legend-color" style="background: #22c55e;"></div>
@@ -177,6 +177,9 @@
             <div class="pie-chart-container-large">
               <RegionalDistributionChart />
             </div>
+          </div>
+          <div class="productive-forest-chart-container" v-if="showProductiveForestChart">
+            <ProductiveForestChart />
           </div>
         </div>
 
@@ -393,6 +396,7 @@ import RegionalDistributionChart from '@/components/charts/RegionalDistributionC
 import DiseaseDistributionChart from '@/components/charts/DiseaseDistributionChart.vue';
 import ProcessingLinesChart from '@/components/charts/ProcessingLinesChart.vue';
 import SulfurComparisonChart from '@/components/charts/SulfurComparisonChart.vue';
+import ProductiveForestChart from '@/components/charts/ProductiveForestChart.vue';
 
 // 图片资源定义 - 使用从demo下载的正确背景图片
 const images = {
@@ -454,12 +458,14 @@ export default {
         RegionalDistributionChart,
         DiseaseDistributionChart,
         ProcessingLinesChart,
-        SulfurComparisonChart
+        SulfurComparisonChart,
+        ProductiveForestChart
     },
     data() {
         return {
             images,
             selectedPeriod: '12', // 默认选择12个月
+            showProductiveForestChart: false, // 控制是否显示丰产林对比图
             regionName: '百色农林大数据中心',
             weather: {
                 temperature: '26.8°C',
@@ -485,6 +491,14 @@ export default {
             rankingData: {},
             qualityData: {}
         };
+    },
+    methods: {
+        toggleProductiveForestChart() {
+            this.showProductiveForestChart = !this.showProductiveForestChart;
+        },
+        resetDistributionChart() {
+            this.showProductiveForestChart = false;
+        }
     }
 };
 </script>
@@ -1177,6 +1191,16 @@ export default {
     align-items: center;
     justify-content: center;
     min-height: 280px;
+}
+
+.productive-forest-chart-container {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 280px;
+    width: 100%;
 }
 
 /* 数据表格 */

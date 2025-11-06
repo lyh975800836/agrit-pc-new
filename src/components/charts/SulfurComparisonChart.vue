@@ -13,12 +13,12 @@ export default {
         return {
             chart: null,
             sulfurData: [
-                { year: '2019', sulfurFree: 850, sulfured: 120 },
-                { year: '2020', sulfurFree: 780, sulfured: 180 },
-                { year: '2021', sulfurFree: 680, sulfured: 260 },
-                { year: '2022', sulfurFree: 560, sulfured: 380 },
-                { year: '2023', sulfurFree: 420, sulfured: 520 },
-                { year: '2024', sulfurFree: 280, sulfured: 680 }
+                { year: '2019', sulfurFree: 7904, sulfured: 16796 },
+                { year: '2020', sulfurFree: 7890, sulfured: 18410 },
+                { year: '2021', sulfurFree: 7588, sulfured: 19512 },
+                { year: '2022', sulfurFree: 7436, sulfured: 21164 },
+                { year: '2023', sulfurFree: 7824, sulfured: 24776 },
+                { year: '2024', sulfurFree: 9746, sulfured: 34554 }
             ]
         };
     },
@@ -69,7 +69,7 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 1400,
+                    max: 40000,
                     splitNumber: 4,
                     axisLine: {
                         show: false
