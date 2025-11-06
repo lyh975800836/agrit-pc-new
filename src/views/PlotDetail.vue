@@ -128,17 +128,6 @@
             </div>
           </div>
         </div>
-
-        <!-- 无硫与有硫八角占比饼图 -->
-        <div class="sulfur-ratio-section">
-          <div class="sulfur-ratio-header">
-            <span class="sulfur-ratio-title">八角产品质量分布</span>
-          </div>
-          <img class="section-divider" src="/images/decoration-2.png" />
-          <div class="sulfur-ratio-chart-container">
-            <SulfurRatioPieChart />
-          </div>
-        </div>
       </div>
 
       <!-- 烘干厂生产概况面板 -->
@@ -708,7 +697,6 @@ import DashboardLayout from '@/components/DashboardLayout.vue';
 import WMTSTileMap from '@/components/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
 import FarmingDetailDialog from '@/components/FarmingDetailDialog.vue';
-import SulfurRatioPieChart from '@/components/charts/SulfurRatioPieChart.vue';
 import { getAllPlotNames } from '@/utils/plotConfig';
 
 export default {
@@ -717,8 +705,7 @@ export default {
         DashboardLayout,
         WMTSTileMap,
         HealthIndicatorModal,
-        FarmingDetailDialog,
-        SulfurRatioPieChart
+        FarmingDetailDialog
     },
     props: {
         plotId: {

@@ -13,12 +13,12 @@ export default {
         return {
             chart: null,
             chartData: [
-                { district: '田林', productiveForest: 21, generalForest: 9 },
-                { district: '右江区', productiveForest: 23.6, generalForest: 5 },
-                { district: '德保', productiveForest: 38, generalForest: 2 },
-                { district: '那坡', productiveForest: 30, generalForest: 3 },
-                { district: '凌云', productiveForest: 17, generalForest: 5 },
-                { district: '乐业', productiveForest: 10, generalForest: 4 }
+                { district: '田林', productiveForest: 9, generalForest: 12 },
+                { district: '右江区', productiveForest: 5, generalForest: 18.6 },
+                { district: '德保', productiveForest: 2, generalForest: 38 },
+                { district: '那坡', productiveForest: 3, generalForest: 27 },
+                { district: '凌云', productiveForest: 5, generalForest: 12 },
+                { district: '乐业', productiveForest: 4, generalForest: 6 }
             ]
         };
     },

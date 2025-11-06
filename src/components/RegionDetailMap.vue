@@ -1876,6 +1876,22 @@ export default {
             console.log('跳转到地块详情页:', plot.name);
 
             const encodedPlotId = encodeURIComponent(plot.id);
+
+            // 确定地块类型 - 根据plot.type映射到正确的type值
+            let queryType = 'star-anise'; // 默认为八角
+            const factoryTypes = ['drying-facility', '中心工厂', '晒场'];
+            const warehouseTypes = ['产地仓', '交收仓', '云仓'];
+
+            if (factoryTypes.includes(plot.type) || plot.displayName === '烘干示范工厂') {
+                queryType = 'factory';
+            } else if (warehouseTypes.includes(plot.type) || plot.displayName === '仓库') {
+                queryType = 'warehouse';
+            } else if (plot.type === 'tea-oil') {
+                queryType = 'tea-oil';
+            } else if (plot.type === 'star-anise') {
+                queryType = 'star-anise';
+            }
+
             this.$router.push({
                 name: 'PlotDetail',
                 params: {
@@ -1885,7 +1901,8 @@ export default {
                     region: this.regionName,
                     plotName: plot.name,
                     area: plot.area,
-                    output: plot.output
+                    output: plot.output,
+                    type: queryType
                 }
             }).then(() => {
                 console.log('路由跳转成功');
@@ -2561,16 +2578,16 @@ export default {
                 };
 
                 // 根据弹窗类型添加对应的 type 参数
-                if (popupDataSnapshot.type === 'drying-facility' || popupDataSnapshot.displayName === '烘干示范工厂') {
+                const factoryTypes = ['drying-facility', '中心工厂', '晒场'];
+                const warehouseTypes = ['产地仓', '交收仓', '云仓'];
+
+                if (factoryTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '烘干示范工厂') {
                     query.type = 'factory';
-                }
-                else if (popupDataSnapshot.type === 'warehouse' || popupDataSnapshot.displayName === '仓库') {
+                } else if (warehouseTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '仓库') {
                     query.type = 'warehouse';
-                }
-                else if (popupDataSnapshot.type === 'tea-oil') {
+                } else if (popupDataSnapshot.type === 'tea-oil') {
                     query.type = 'tea-oil';
-                }
-                else if (popupDataSnapshot.type === 'star-anise') {
+                } else if (popupDataSnapshot.type === 'star-anise') {
                     query.type = 'star-anise';
                 }
 
