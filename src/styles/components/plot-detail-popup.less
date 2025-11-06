@@ -1,0 +1,135 @@
+// 地块详情弹窗样式 (pdp = plot-detail-popup)
+.pdp-wrapper {
+    position: absolute;
+    z-index: 300;
+    min-width: 280px;
+    max-width: 380px;
+    padding: 20px;
+    border-radius: 8px;
+    background: #0f2334f2;
+    box-shadow: 0 8px 24px #0009;
+    animation: pdpSlideIn .3s ease;
+}
+
+@keyframes pdpSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.pdp-close-button {
+    position: absolute;
+    z-index: 10;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+
+    transition: all .2s ease;
+    cursor: pointer;
+
+    &:hover {
+        opacity: .8;
+        transform: scale(1.1);
+    }
+}
+
+.pdp-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pdp-info-section {
+    padding-right: 20px;
+}
+
+.pdp-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 500;
+    word-break: break-word;
+
+    color: #c69c6d;
+}
+
+.pdp-divider {
+    height: 1px;
+    margin: 8px 0;
+    background: #c69c6d4d;
+}
+
+.pdp-info-item {
+    display: flex;
+    margin-bottom: 6px;
+    font-size: 12px;
+
+    .pdp-info-label {
+        flex-shrink: 0;
+        min-width: 60px;
+        color: #c69c6db3;
+    }
+
+    .pdp-info-value {
+        word-break: break-word;
+        color: #c69c6d;
+    }
+}
+
+.pdp-image-container {
+    overflow: hidden;
+    width: 100%;
+    height: 140px;
+
+    border-radius: 4px;
+    background: #0000004d;
+}
+
+.pdp-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.pdp-button-section {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.pdp-detail-button {
+    padding: 8px 20px;
+    border: 1px solid #c69c6d;
+    font-family: SourceHanSansCN-Regular, sans-serif;
+    font-size: 12px;
+
+    color: #c69c6d;
+    border-radius: 3px;
+    background: #c69c6d4d;
+    transition: all .3s ease;
+    cursor: pointer;
+
+    &:hover {
+        color: #fff;
+        background: #c69c6d80;
+    }
+}
+
+// 响应式调整 - 移动端
+@media (max-width: 768px) {
+    .pdp-wrapper {
+        top: 10px !important;
+        left: 10px !important;
+        width: 300px;
+    }
+
+    .pdp-image {
+        height: 160px;
+    }
+}

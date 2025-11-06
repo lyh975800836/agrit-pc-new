@@ -146,6 +146,13 @@ export default {
                 田林县: '451029',
                 西林县: '451030',
                 隆林各族自治县: '451031'
+            },
+
+            // 农户配置映射表 - 根据地块名称获取对应的农户头像
+            farmerConfig: {
+                宏哥: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                1001: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
             }
         };
     },
@@ -904,8 +911,9 @@ export default {
                 const { positionOffset } = visualConfig;
                 const markerHtml = this.createPlotMarkerHtml(plot);
 
-                // icon尺寸：48x48
-                const iconSize = 48;
+                // icon尺寸：大幅增加宽度容纳名称，高度严格控制
+                const iconWidth = 180; // 大幅增加宽度
+                const iconHeight = 70; // 48px icon + 2px gap + 20px label
                 const offsetLat = positionOffset?.lat || 0;
                 const offsetLng = positionOffset?.lng || 0;
                 const markerLat = plot.lat + offsetLat;
@@ -914,8 +922,8 @@ export default {
                 const customIcon = L.divIcon({
                     className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
                     html: markerHtml,
-                    iconSize: [iconSize, iconSize],
-                    iconAnchor: [iconSize / 2, iconSize / 2]
+                    iconSize: [iconWidth, iconHeight],
+                    iconAnchor: [iconWidth / 2, iconHeight / 2]
                 });
 
                 // 添加标记到地图
@@ -1270,10 +1278,14 @@ export default {
 
         // 创建地块标记HTML
         createPlotMarkerHtml(plot) {
-            // 只显示分类图标，点击时弹出详细信息
+            // 显示分类图标和地块名称
             const categoryIcon = this.getCategoryIcon(plot.type);
+            const plotName = plot.name || plot.displayName || '';
             console.log('Plot:', plot.name, 'Type:', plot.type, 'Icon:', categoryIcon);
-            return `<div class="plot-marker-icon" style="background-image: url('${ categoryIcon }'); width: 48px; height: 48px;"></div>`;
+            return `<div class="plot-marker-wrapper">
+                <div class="plot-marker-icon" style="background-image: url('${ categoryIcon }'); width: 48px; height: 48px;"></div>
+                <div class="plot-marker-label">${ plotName }</div>
+            </div>`;
         },
 
         // 清除现有地块图层
@@ -2451,30 +2463,69 @@ export default {
                 const mapContainer = document.getElementById('leaflet-map');
                 const mapRect = mapContainer.getBoundingClientRect();
 
-                // 计算弹窗位置（在地图右上角区域）
-                this.popupPosition = {
-                    top: mapRect.top + 20, // 距离地图顶部20px
-                    left: mapRect.right - 420 // 距离地图右边420px（弹窗宽度400px + 20px边距）
-                };
+                // 将地理坐标转换为屏幕坐标
+                const point = this.map.latLngToContainerPoint(plotCenter);
+                const screenX = mapRect.left + point.x;
+                const screenY = mapRect.top + point.y;
+
+                // 计算弹窗位置（在icon的上方）
+                // 弹窗宽度约380px，高度约350px
+                const popupWidth = 380;
+                const popupHeight = 350;
+                const offsetAbove = 20; // icon上方距离
+                const margin = 10; // 与屏幕边界的最小距离
+
+                // 获取窗口尺寸
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+
+                // 计算垂直位置：优先在上方，如果空间不足则在下方
+                let top = screenY - popupHeight - offsetAbove;
+                if (top < margin) {
+                    // 如果上方空间不足，显示在icon下方
+                    top = screenY + offsetAbove;
+                }
+                // 确保不超出窗口底部
+                if (top + popupHeight > windowHeight - margin) {
+                    top = windowHeight - popupHeight - margin;
+                }
+                top = Math.max(margin, top);
+
+                // 计算水平位置：优先居中，确保不超出左右边界
+                let left = screenX - popupWidth / 2;
+                if (left < margin) {
+                    // 左边界检查
+                    left = margin;
+                } else if (left + popupWidth > windowWidth - margin) {
+                    // 右边界检查
+                    left = windowWidth - popupWidth - margin;
+                }
+
+                this.popupPosition = { top, left };
+
+                // 根据地块名称从农户配置中获取对应的头像
+                const plotName = plotData?.name;
+                let farmerAvatar = '/images/pop-banner.png'; // 默认图片
+                if (plotName && this.farmerConfig[plotName]) {
+                    farmerAvatar = this.farmerConfig[plotName].avatar;
+                } else {
+                    farmerAvatar = this.farmerConfig.default.avatar;
+                }
 
                 // 设置弹窗数据
                 this.popupData = {
                     ...plotData,
-                    photo: '/images/pop-banner.png' // 地块实景照片 - 八角植物
+                    photo: farmerAvatar // 使用对应农户的头像作为弹窗图片
                 };
 
                 // 显示弹窗
                 this.showDetailPopup = true;
 
-                // 创建连接线
-                this.createConnectorLine(plotCenter, {
-                    x: this.popupPosition.left + 20, // 弹窗左边缘 + 20px
-                    y: this.popupPosition.top + 200 // 弹窗中部
-                });
-
                 console.log('地块详情弹窗已显示', {
                     plotCenter,
+                    screenPosition: { x: screenX, y: screenY },
                     popupPosition: this.popupPosition,
+                    windowSize: { width: windowWidth, height: windowHeight },
                     plotData
                 });
 
@@ -2488,12 +2539,6 @@ export default {
         closePlotDetailPopup() {
             this.showDetailPopup = false;
             this.popupData = null;
-
-            // 移除连接线
-            if (this.connectorLine) {
-                this.map.removeLayer(this.connectorLine);
-                this.connectorLine = null;
-            }
         },
 
         // 跳转到地块详情页面
@@ -3105,19 +3150,6 @@ export default {
     }
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .plot-detail-popup {
-        top: 10px !important;
-        left: 10px !important;
-        width: 300px;
-    }
-
-    .popup-image {
-        height: 160px;
-    }
-}
-
 /* 移动端缩放控件调整 */
 @media (max-width: 768px) {
     .leaflet-control-zoom {
@@ -3243,6 +3275,14 @@ export default {
     height: 48px !important;
 }
 
+.plot-marker-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+}
+
 .plot-marker-icon {
     width: 48px !important;
     height: 48px !important;
@@ -3258,11 +3298,30 @@ export default {
     box-sizing: border-box !important;
     border: none !important;
     outline: none !important;
+    flex-shrink: 0;
 }
 
 .plot-marker-icon:hover {
     transform: scale(1.2);
     filter: drop-shadow(0 4px 8px rgba(76, 252, 234, 0.6));
+}
+
+.plot-marker-label {
+    font-size: 11px;
+    color: #c69c6d;
+    background: rgba(15, 35, 52, 0.95);
+    padding: 1px 4px;
+    border-radius: 3px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid rgba(198, 156, 109, 0.4);
+    font-weight: 500;
+    text-align: center;
+    word-break: break-word;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .plot-marker {
@@ -3484,146 +3543,6 @@ export default {
 .plot-area {
     font-size: 11px;
     opacity: .9;
-}
-
-/* 地块详情弹窗样式 */
-.plot-detail-popup {
-    position: fixed;
-    z-index: 10000;
-    width: 360px;
-    border-radius: 12px;
-    animation: popup-fade-in .4s cubic-bezier(.34, 1.56, .64, 1);
-}
-
-.popup-close-button {
-    position: absolute;
-    z-index: 10001;
-    top: 8px;
-    right: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: 1.5px solid #4cfcea;
-    border-radius: 50%;
-    background: transparent;
-    transition: all .3s ease;
-    cursor: pointer;
-}
-
-.popup-close-button:hover {
-    background: #4cfcea1a;
-    box-shadow: 0 0 8px #4cfcea66;
-    transform: rotate(90deg);
-}
-
-.close-icon {
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1;
-    color: #4cfcea;
-}
-
-.popup-content {
-    padding: 16px 18px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.popup-info-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.popup-title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #c69c6d;
-    font-family: SourceHanSansCN-Medium, sans-serif;
-    line-height: 1.4;
-}
-
-.popup-divider {
-    height: 1px;
-    background: linear-gradient(90deg, #4cfcea 0%, transparent 100%);
-    margin: 2px 0 4px 0;
-}
-
-.popup-info-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    align-items: center;
-    min-height: 20px;
-}
-
-.info-label {
-    color: #999;
-    font-family: SourceHanSansCN-Regular, sans-serif;
-    font-weight: 400;
-}
-
-.info-value {
-    color: #4cfcea;
-    font-family: SourceHanSansCN-Light, sans-serif;
-    text-align: right;
-    flex: 1;
-    margin-left: 8px;
-}
-
-.popup-image-container {
-    overflow: hidden;
-    border-radius: 6px;
-    transition: all .3s ease;
-    aspect-ratio: 1.6;
-    margin: 2px 0;
-}
-
-.popup-image-container:hover {
-    border-color: #c69c6d;
-    box-shadow: 0 0 8px #4cfcea4d;
-}
-
-.popup-image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.popup-button-section {
-    display: flex;
-    gap: 0;
-    justify-content: stretch;
-    margin-top: 2px;
-}
-
-.detail-button {
-    flex: 1;
-    padding: 9px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #0a1420;
-    border: none;
-    border-radius: 4px;
-    background: linear-gradient(135deg, #4cfcea 0%, #39b44a 100%);
-    cursor: pointer;
-    transition: all .3s ease;
-    font-family: SourceHanSansCN-Medium, sans-serif;
-}
-
-.detail-button:hover {
-    background: linear-gradient(135deg, #6effff 0%, #5ec968 100%);
-    box-shadow: 0 0 12px #4cfcea66;
-    transform: translateY(-1px);
-}
-
-.detail-button:active {
-    transform: translateY(0);
 }
 
 /* 自定义Leaflet缩放控件样式 */
