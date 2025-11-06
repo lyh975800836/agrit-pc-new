@@ -71,7 +71,7 @@ export const PLOT_REGISTRY = {
     },
 
     // 024 林业产业智能园区
-    '林业产业智能园区': {
+    林业产业智能园区: {
         id: 1024,
         displayName: '林业产业智能园区',
         aliases: ['1024'],
@@ -92,7 +92,7 @@ export const PLOT_REGISTRY = {
     },
 
     // 1025 潘总八角晒场
-    '潘总八角晒场': {
+    潘总八角晒场: {
         id: 1025,
         displayName: '潘总八角晒场',
         aliases: ['1025'],
@@ -112,7 +112,7 @@ export const PLOT_REGISTRY = {
     },
 
     // 1026 海南国际商品交易所香辛料指定交收仓
-    '海南国际商品交易所香辛料指定交收仓': {
+    海南国际商品交易所香辛料指定交收仓: {
         id: 1026,
         displayName: '海南国际商品交易所香辛料指定交收仓',
         aliases: ['1026', '交收仓'],
@@ -133,12 +133,14 @@ export const PLOT_REGISTRY = {
     },
 
     // 1027 八角智能烘干工厂
-    '八角智能烘干工厂': {
+    八角智能烘干工厂: {
         id: 1027,
         displayName: '八角智能烘干工厂',
         aliases: ['1027'],
-        tilePreset: { cols: 12, rows: 6, offsetX: 0, offsetY: 0 },
+        tilePreset: { cols: 3, rows: 3, offsetX: 0, offsetY: 0 },
+        defaultZoomLevel: 2,
         description: '八角智能烘干工厂',
+        tileLayerName: 'plot_1027_晒场3',
         mockPlots: [
             {
                 key: 'mock-drying-factory-1',
@@ -606,8 +608,7 @@ export const SUPPLY_CHAIN_NODES = [
  */
 export function getSupplyChainNodesForPlot(plotId) {
     return SUPPLY_CHAIN_NODES.filter(node =>
-        node.plotId === plotId || node.plotId === null
-    );
+        node.plotId === plotId || node.plotId === null);
 }
 
 /**
