@@ -13,11 +13,12 @@ export default {
     return {
       chart: null,
       distributionData: [
-        { name: '右江区', value: 320, color: '#22C55E' },
-        { name: '田阳区', value: 280, color: '#3B82F6' },
-        { name: '田东县', value: 260, color: '#FFD700' },
-        { name: '德保县', value: 200, color: '#A855F7' },
-        { name: '靖西市', value: 198, color: '#FF6B4A' }
+        { name: '德保县', value: 38, color: '#22C55E' },
+        { name: '那坡县', value: 30, color: '#3B82F6' },
+        { name: '右江区', value: 23.6, color: '#FFD700' },
+        { name: '田林县', value: 21, color: '#A855F7' },
+        { name: '凌云县', value: 17, color: '#FF6B4A' },
+        { name: '乐业县', value: 10, color: '#FF9500' }
       ]
     }
   },

@@ -719,6 +719,7 @@ export default {
             farmerConfig: {
                 宏哥: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
                 1001: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                八角智能烘干工厂: { name: '烘干厂', age: '经营', avatar: '/images/honggan.png' },
                 // 其他地块保持原样
                 default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
             },

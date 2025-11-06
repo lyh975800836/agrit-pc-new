@@ -152,6 +152,7 @@ export default {
             farmerConfig: {
                 宏哥: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
                 1001: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
+                八角智能烘干工厂: { name: '烘干厂', age: '经营', avatar: '/images/honggan.png' },
                 default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
             }
         };
@@ -1882,7 +1883,7 @@ export default {
             const factoryTypes = ['drying-facility', '中心工厂', '晒场'];
             const warehouseTypes = ['产地仓', '交收仓', '云仓'];
 
-            if (factoryTypes.includes(plot.type) || plot.displayName === '烘干示范工厂') {
+            if (factoryTypes.includes(plot.type) || plot.displayName === '八角智能烘干工厂') {
                 queryType = 'factory';
             } else if (warehouseTypes.includes(plot.type) || plot.displayName === '仓库') {
                 queryType = 'warehouse';
@@ -2581,7 +2582,7 @@ export default {
                 const factoryTypes = ['drying-facility', '中心工厂', '晒场'];
                 const warehouseTypes = ['产地仓', '交收仓', '云仓'];
 
-                if (factoryTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '烘干示范工厂') {
+                if (factoryTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '八角智能烘干工厂') {
                     query.type = 'factory';
                 } else if (warehouseTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '仓库') {
                     query.type = 'warehouse';
@@ -2776,7 +2777,7 @@ export default {
                     categoryName: this.selectedCategory.name
                 });
                 this.$router.push({
-                    path: '/plot/烘干示范工厂',
+                    path: '/plot/八角智能烘干工厂',
                     query: {
                         type: 'factory',
                         region: '右江区',

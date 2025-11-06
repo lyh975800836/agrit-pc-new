@@ -88,7 +88,7 @@ export default {
                     }
                 },
                 legend: {
-                    data: ['鲜果产量', '干果产量'],
+                    data: ['干果产量', '鲜果产量'],
                     textStyle: {
                         color: '#C69C6D',
                         fontSize: 12,
@@ -100,7 +100,7 @@ export default {
                 },
                 series: [
                     {
-                        name: '鲜果产量',
+                        name: '干果产量',
                         type: 'line',
                         data: dryFruitProductions,
                         smooth: true,
@@ -120,7 +120,7 @@ export default {
                         }
                     },
                     {
-                        name: '干果产量',
+                        name: '鲜果产量',
                         type: 'bar',
                         data: productions,
                         barWidth: '40%',

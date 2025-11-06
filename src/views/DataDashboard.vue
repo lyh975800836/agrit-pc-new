@@ -15,7 +15,7 @@
       <div class="stats-grid">
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard1})` }">
           <div class="stat-content">
-            <div class="stat-number"><span class="stat-value">135</span><span class="stat-unit">亩</span></div>
+            <div class="stat-number"><span class="stat-value">10,273</span><span class="stat-unit">亩</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.downArrow" class="trend-icon" />
@@ -28,7 +28,7 @@
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard2})` }">
           <div class="stat-content">
-            <div class="stat-number"><span class="stat-value">28</span><span class="stat-unit">亩</span></div>
+            <div class="stat-number"><span class="stat-value">3,850</span><span class="stat-unit">亩</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
@@ -41,7 +41,7 @@
  
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard3})` }">
           <div class="stat-content">
-            <div class="stat-number"><span class="stat-value">62</span><span class="stat-unit">万元</span></div>
+            <div class="stat-number"><span class="stat-value">3000</span><span class="stat-unit">万元</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
@@ -54,7 +54,7 @@
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard4})` }">
           <div class="stat-content">
-            <div class="stat-number"><span class="stat-value">22</span><span class="stat-unit">吨</span></div>
+            <div class="stat-number"><span class="stat-value">1000</span><span class="stat-unit">吨</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
@@ -113,7 +113,7 @@
         <div class="chart-panel production-chart" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
           <div class="chart-header">
             <h3>历年八角产量统计</h3>
-            <p class="chart-subtitle">产量（斤）</p>
+            <p class="chart-subtitle">产量（万吨）</p>
           </div>
           <div class="chart-tabs">
             <button class="tab-btn active">总产量</button>
