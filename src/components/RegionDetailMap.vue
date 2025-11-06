@@ -3767,96 +3767,6 @@ export default {
     transform: translateX(-50%);
 }
 
-/* 分类右侧栏 */
-.category-sidebar {
-    position: absolute;
-    top: 0;
-    right: 375px;
-    z-index: 1000;
-    background: rgba(15, 35, 52, 0.9);
-    border: 1px solid rgba(76, 252, 234, 0.4);
-    border-radius: 12px;
-    padding: 15px 12px;
-    max-width: 180px;
-    max-height: 80vh;
-    overflow-y: auto;
-    backdrop-filter: blur(10px);
-}
-
-.category-sidebar-title {
-    color: #C69C6D;
-    font-size: 14px;
-    font-weight: 600;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(76, 252, 234, 0.2);
-    margin-bottom: 12px;
-    text-align: center;
-}
-
-.category-sidebar-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.category-sidebar-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(76, 252, 234, 0.08);
-    border: 1px solid rgba(76, 252, 234, 0.2);
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: rgba(76, 252, 234, 0.9);
-    font-size: 12px;
-}
-
-.category-sidebar-btn:hover {
-    background: rgba(76, 252, 234, 0.15);
-    border-color: rgba(76, 252, 234, 0.5);
-}
-
-.category-sidebar-btn img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-.category-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* 全部选项按钮特殊样式 */
-.category-sidebar-btn.all-option {
-    background: rgba(198, 156, 109, 0.15);
-    border-color: rgba(198, 156, 109, 0.4);
-    color: rgba(198, 156, 109, 0.95);
-    font-weight: 600;
-}
-
-.category-sidebar-btn.all-option:hover {
-    background: rgba(198, 156, 109, 0.25);
-    border-color: rgba(198, 156, 109, 0.6);
-}
-
-/* 选中状态样式 */
-.category-sidebar-btn.active {
-    background: rgba(76, 252, 234, 0.25);
-    border-color: rgba(76, 252, 234, 0.8);
-    box-shadow: 0 0 12px rgba(76, 252, 234, 0.4);
-}
-
-.category-sidebar-btn.all-option.active {
-    background: rgba(198, 156, 109, 0.35);
-    border-color: rgba(198, 156, 109, 0.8);
-    box-shadow: 0 0 12px rgba(198, 156, 109, 0.4);
-}
-
 /* 分类弹窗 */
 .category-popup {
     position: fixed;
@@ -3982,25 +3892,8 @@ export default {
     }
 }
 
-/* 响应式调整 - 分类右侧栏 */
+/* 响应式调整 - 分类弹窗 */
 @media (max-width: 768px) {
-    .category-sidebar {
-        top: 10px;
-        right: 10px;
-        max-width: 160px;
-        padding: 12px 10px;
-    }
-
-    .category-sidebar-btn {
-        padding: 6px 8px;
-        font-size: 11px;
-    }
-
-    .category-sidebar-btn img {
-        width: 24px;
-        height: 24px;
-    }
-
     .popup-content {
         width: 95%;
         max-width: 350px;
