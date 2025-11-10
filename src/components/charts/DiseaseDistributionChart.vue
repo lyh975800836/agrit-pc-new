@@ -13,10 +13,10 @@ export default {
     return {
       chart: null,
       diseaseData: [
-        { name: '健康地块', value: 88.8, color: '#C69C6D' },
-        { name: '轻度病虫害', value: 6.5, color: '#FFD700' },
-        { name: '中度病虫害', value: 3.83, color: '#FF9500' },
-        { name: '重度病虫害', value: 0.87, color: '#FF6B4A' }
+        { name: '健康', value: 16.3, color: '#C69C6D' },
+        { name: '轻度病虫害', value: 34.6, color: '#FFD700' },
+        { name: '中度病虫害', value: 22.4, color: '#FF9500' },
+        { name: '重度病虫害', value: 26.7, color: '#FF6B4A' }
       ]
     }
   },

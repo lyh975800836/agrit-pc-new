@@ -59,30 +59,30 @@ export default {
             rankingData: [
                 {
                     manager: '隆起雷',
-                    location: '千户十亩-大楞乡巴平村',
-                    area: 30,
+                    location: '隆起雷八角林',
+                    area: 10,
                     district: '右江区',
                     yield: 1970
                 },
                 {
                     manager: '李子顺',
-                    location: '千户十亩-大楞乡巴平村',
-                    area: 30,
+                    location: '李子顺八角林',
+                    area: 10,
                     district: '右江区',
-                    yield: 1970
+                    yield: 1680
                 },
                 {
-                    manager: '李子顺',
-                    location: '千户十亩-大楞乡巴平村',
-                    area: 30,
+                    manager: '周建华',
+                    location: '周建华八角林',
+                    area: 100,
                     district: '右江区',
-                    yield: 1970
+                    yield: 800
                 }
             ],
             qualityData: {
-                good: '20%',
-                average: '30%',
-                poor: '50%'
+                good: '50.9',
+                average: '22.4',
+                poor: '26.7'
             }
         };
     },

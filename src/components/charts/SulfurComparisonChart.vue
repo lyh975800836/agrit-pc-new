@@ -13,12 +13,11 @@ export default {
         return {
             chart: null,
             sulfurData: [
-                { year: '2019', sulfurFree: 7904, sulfured: 16796 },
-                { year: '2020', sulfurFree: 7890, sulfured: 18410 },
-                { year: '2021', sulfurFree: 7588, sulfured: 19512 },
-                { year: '2022', sulfurFree: 7436, sulfured: 21164 },
-                { year: '2023', sulfurFree: 7824, sulfured: 24776 },
-                { year: '2024', sulfurFree: 9746, sulfured: 34554 }
+                { year: '2021', sulfurFree: 1.1, sulfured: 4.4 },
+                { year: '2022', sulfurFree: 1.625, sulfured: 4.875 },
+                { year: '2023', sulfurFree: 1.4, sulfured: 3.6 },
+                { year: '2024', sulfurFree: 1.86, sulfured: 4.14 },
+                { year: '2025', sulfurFree: 0.6, sulfured: 2.4 }
             ]
         };
     },
@@ -69,7 +68,7 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 40000,
+                    max: 6,
                     splitNumber: 4,
                     axisLine: {
                         show: false
@@ -182,7 +181,7 @@ export default {
                     formatter(params) {
                         let result = `${ params[0].name }年<br/>`;
                         params.forEach(item => {
-                            result += `${ item.seriesName }: ${ item.value }吨<br/>`;
+                            result += `${ item.seriesName }: ${ item.value }万吨<br/>`;
                         });
                         return result;
                     }

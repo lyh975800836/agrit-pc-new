@@ -98,22 +98,22 @@
           <div class="health-indicators">
             <!-- 郁闭度 -->
             <div class="health-indicator">
-              <div class="circular-progress" data-percentage="20">
+              <div class="circular-progress" data-percentage="60">
                 <div class="circle-bg"></div>
-                <div class="circle" style="--percentage: 20;
+                <div class="circle" style="--percentage: 60;
 --color: #c69c6d;"></div>
-                <div class="percentage">20%</div>
+                <div class="percentage">60%</div>
               </div>
               <div class="indicator-label">郁闭度</div>
             </div>
 
             <!-- 生长匹配度 -->
             <div class="health-indicator">
-              <div class="circular-progress" data-percentage="30">
+              <div class="circular-progress" data-percentage="75">
                 <div class="circle-bg"></div>
-                <div class="circle" style="--percentage: 30;
+                <div class="circle" style="--percentage: 75;
 --color: #ffa500;"></div>
-                <div class="percentage">30%</div>
+                <div class="percentage">75%</div>
               </div>
               <div class="indicator-label">生长匹配度</div>
             </div>
@@ -137,7 +137,7 @@
 
         <!-- 地块标题信息 -->
         <div class="plot-title-section">
-          <h2 class="left-plot-name">烘干示范工厂</h2>
+          <h2 class="left-plot-name">{{ plotData.name || '六塘晒场' }}</h2>
           <img class="region-label" src="/images/region-label.jpg" />
           <span class="region-name">{{ regionName }}</span>
         </div>
@@ -167,17 +167,27 @@
         <div class="plot-statistics">
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">总面积(亩)：</span>
-            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
+            <span class="stat-value stat-value-large">60</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">今年累计产量(万斤)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.yield || '48' }}</span>
+            <span class="stat-label">年度加工产能(吨)：</span>
+            <span class="stat-value stat-value-large">6000</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">每日产能(斤)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.unitYield || '1200' }}</span>
+            <span class="stat-label">今年累计产量(吨)：</span>
+            <span class="stat-value stat-value-large">2000</span>
+          </div>
+        </div>
+
+        <!-- 鲜果收购价信息 -->
+        <div class="price-info" :style="{ backgroundImage: `url(${images.priceInfo})` }">
+          <div class="price-display">
+            <span class="price-label">鲜果收购价：</span>
+            <img class="down-arrow" src="/images/down-arrow.png">
+            <span class="price-value">4.1</span>
+            <span class="price-unit">&nbsp;&nbsp;元/斤</span>
           </div>
         </div>
 
@@ -186,8 +196,8 @@
           <div class="price-display">
             <span class="price-label">加工价格：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">{{ plotData.price || '4.10' }}</span>
-            <span class="price-unit">&nbsp;&nbsp;元/斤</span>
+            <span class="price-value">600</span>
+            <span class="price-unit">&nbsp;&nbsp;元/吨</span>
           </div>
         </div>
 
@@ -195,10 +205,6 @@
         <div class="health-section">
           <div class="health-header">
             <span class="health-title">施工计划</span>
-            <div class="health-link" @click="showHealthModal">
-              <span class="link-text">查看详情</span>
-              <span class="link-arrow">>></span>
-            </div>
           </div>
           <img class="third-divider" src="/images/decoration-2.png" />
           <!-- 施工计划日历 -->
@@ -207,7 +213,7 @@
               <span class="calendar-month">11月</span>
             </div>
             <div class="calendar-grid">
-              <div v-for="day in 30" :key="day" class="calendar-day" :class="{ 'has-schedule': [5, 10, 15, 20, 25].includes(day) }">
+              <div v-for="day in 30" :key="day" class="calendar-day" :class="{ 'has-schedule': [5, 12, 18, 23, 28].includes(day) }">
                 <span class="day-number">{{ day }}</span>
               </div>
             </div>
@@ -246,18 +252,13 @@
         <!-- 仓库统计数据 -->
         <div class="plot-statistics">
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">总面积(亩)：</span>
-            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
+            <span class="stat-label">总面积(平方米)：</span>
+            <span class="stat-value stat-value-large">10000</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">总存储量(吨)：</span>
             <span class="stat-value stat-value-large">{{ plotData.yield || '250' }}</span>
-          </div>
-
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">总容积(吨)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.unitYield || '320' }}</span>
           </div>
         </div>
 
@@ -266,8 +267,8 @@
           <div class="price-display">
             <span class="price-label">存储价格：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">{{ plotData.price || '0.50' }}</span>
-            <span class="price-unit">&nbsp;&nbsp;元/吨</span>
+            <span class="price-value">3</span>
+            <span class="price-unit">&nbsp;&nbsp;元/吨/天</span>
           </div>
         </div>
 
@@ -783,32 +784,32 @@ export default {
             // 排名数据
             rankingData: [
                 {
-                    manager: '张三',
-                    location: '东岗农业地块',
-                    area: 45,
-                    yield: 1200,
-                    district: '田林县'
+                    manager: '隆起雷',
+                    location: '隆起雷八角林',
+                    area: 10,
+                    yield: 1970,
+                    district: '右江区'
                 },
                 {
-                    manager: '李四',
-                    location: '西岭林地块',
-                    area: 38,
-                    yield: 1150,
-                    district: '田阳区'
+                    manager: '李子顺',
+                    location: '李子顺八角林',
+                    area: 10,
+                    yield: 1680,
+                    district: '右江区'
                 },
                 {
-                    manager: '王五',
-                    location: '南坡种植地块',
-                    area: 42,
-                    yield: 1180,
-                    district: '德保县'
+                    manager: '周建华',
+                    location: '周建华八角林',
+                    area: 100,
+                    yield: 800,
+                    district: '右江区'
                 }
             ],
             // 质量数据
             qualityData: {
-                good: '60%',
-                average: '25%',
-                poor: '15%'
+                good: '50.9',
+                average: '22.4',
+                poor: '26.7'
             },
             regionName: '',
             plotData: {
@@ -831,7 +832,7 @@ export default {
     },
     computed: {
         displayedPlotArea() {
-            return '100.00';
+            return '101';
         },
         // 标准农事项目 - 使用集中管理的图片常量
         standardFarmingItems() {
@@ -1454,6 +1455,12 @@ export default {
     justify-content: space-between;
 }
 
+/* 仓库页面的统计区域特殊样式 */
+.warehouse-panel .plot-statistics {
+    justify-content: center;
+    gap: 40px;
+}
+
 .stat-item {
     display: flex;
     flex-direction: column;
@@ -1469,7 +1476,7 @@ export default {
 .stat-label {
     margin-bottom: 10px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
 
     color: #c69c6d;

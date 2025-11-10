@@ -28,7 +28,7 @@
 
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard2})` }">
           <div class="stat-content">
-            <div class="stat-number"><span class="stat-value">3,850</span><span class="stat-unit">亩</span></div>
+            <div class="stat-number"><span class="stat-value">1,136</span><span class="stat-unit">亩</span></div>
             <div class="stat-right">
               <div class="stat-trend">
                 <img :src="images.upArrow" class="trend-icon" />
@@ -57,8 +57,8 @@
             <div class="stat-number"><span class="stat-value">1000</span><span class="stat-unit">吨</span></div>
             <div class="stat-right">
               <div class="stat-trend">
-                <img :src="images.upArrow" class="trend-icon" />
-                <span class="trend-text">+10.0%</span>
+                <img :src="images.downArrow" class="trend-icon" />
+                <span class="trend-text">-28%</span>
               </div>
               <div class="stat-label">化肥和农药减少总量</div>
             </div>
@@ -198,7 +198,7 @@
         <div class="chart-panel sulfur-comparison-panel" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
           <div class="chart-header">
             <h3>无硫与有硫八角占比</h3>
-            <p class="chart-subtitle">产量（吨）</p>
+            <p class="chart-subtitle">产量（万吨）</p>
           </div>
           <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">
             <SulfurComparisonChart />
@@ -259,19 +259,19 @@
             </div>
             <div class="table-row table-row-finance">
               <span>农业银行百色分行</span>
-              <span>5000</span>
+              <span>--</span>
             </div>
             <div class="table-row table-row-finance">
               <span>百色市商业银行</span>
-              <span>3800</span>
+              <span>--</span>
             </div>
             <div class="table-row table-row-finance">
               <span>邮储银行百色支行</span>
-              <span>2500</span>
+              <span>--</span>
             </div>
             <div class="table-row table-row-finance">
               <span>农村信用合作社</span>
-              <span>1800</span>
+              <span>--</span>
             </div>
           </div>
         </div>
@@ -316,35 +316,36 @@
               <span>负责人</span>
               <span>服务范围</span>
               <span>人数</span>
-              <span>评分</span>
             </div>
             <div class="table-row">
-              <span>西林服务队</span>
-              <span>王林</span>
-              <span>西林县</span>
-              <span>12</span>
-              <span class="star-rating">★★★★☆</span>
+              <span>顺达农林</span>
+              <span>李子顺</span>
+              <span>田林</span>
+              <span>50人</span>
             </div>
             <div class="table-row">
-              <span>隆林服务队</span>
-              <span>李明</span>
-              <span>隆林县</span>
-              <span>15</span>
-              <span class="star-rating">★★★★★</span>
+              <span>梁油农林</span>
+              <span>李丽</span>
+              <span>右江区</span>
+              <span>30人</span>
             </div>
             <div class="table-row">
-              <span>德保服务队</span>
-              <span>张华</span>
-              <span>德保县</span>
-              <span>10</span>
-              <span class="star-rating">★★★☆☆</span>
+              <span>龙少坤劳务</span>
+              <span>龙少坤</span>
+              <span>田林</span>
+              <span>30人</span>
             </div>
             <div class="table-row">
-              <span>靖西服务队</span>
-              <span>陈刚</span>
-              <span>靖西市</span>
-              <span>18</span>
-              <span class="star-rating">★★★★☆</span>
+              <span>韦仕德劳务</span>
+              <span>韦仕德</span>
+              <span>德保</span>
+              <span>30人</span>
+            </div>
+            <div class="table-row">
+              <span>杨瑞红劳务</span>
+              <span>杨瑞红</span>
+              <span>右江区</span>
+              <span>30人</span>
             </div>
           </div>
         </div>
@@ -487,9 +488,7 @@ export default {
                 totalProduction: 28,
                 farmersIncome: 62,
                 herbicideReduction: 22
-            },
-            rankingData: {},
-            qualityData: {}
+            }
         };
     },
     methods: {
@@ -1370,6 +1369,8 @@ export default {
         font-family: SourceHanSansCN-Medium;
         font-weight: bold;
         color: #c69c6d;
+        border-bottom: 1px solid #4cfcea4d;
+        padding-bottom: 12px;
     }
 
     &:not(.table-head) {
@@ -1391,10 +1392,10 @@ export default {
     position: relative;
     display: grid;
     align-items: center;
-    grid-template-columns: repeat(5, 1fr);
-    padding: 10px 4px;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     text-align: center;
 
@@ -1414,8 +1415,10 @@ export default {
     &.table-head {
         padding: 12px 4px;
         font-family: SourceHanSansCN-Medium;
-        font-size: 13px;
+        font-size: 16px;
         font-weight: bold;
+        border-bottom: 1px solid #4cfcea4d;
+        padding-bottom: 12px;
 
         color: #c69c6d;
     }
@@ -1440,9 +1443,9 @@ export default {
     display: grid;
     align-items: center;
     grid-template-columns: repeat(3, 1fr);
-    padding: 10px 4px;
+    padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     text-align: center;
 
@@ -1457,8 +1460,10 @@ export default {
     &.table-head {
         padding: 12px 4px;
         font-family: SourceHanSansCN-Medium;
-        font-size: 13px;
+        font-size: 16px;
         font-weight: bold;
+        border-bottom: 1px solid #4cfcea4d;
+        padding-bottom: 12px;
 
         color: #c69c6d;
     }
