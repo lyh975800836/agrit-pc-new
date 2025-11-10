@@ -159,6 +159,7 @@ export const PLOT_REGISTRY = {
         displayName: '新寨八角',
         aliases: ['1003', '新寨'],
         tilePreset: { cols: 17, rows: 13, offsetX: -8, offsetY: -6 },
+        defaultZoomLevel: 5,
         description: '新寨八角林地',
         tileLayerName: 'plot_1003_新寨',
         mockPlots: [
@@ -178,6 +179,7 @@ export const PLOT_REGISTRY = {
         displayName: '上泮八角',
         aliases: ['1004', '上泮'],
         tilePreset: { cols: 19, rows: 16, offsetX: -9, offsetY: -8 },
+        defaultZoomLevel: 5,
         description: '上泮八角林地',
         tileLayerName: 'plot_1004_上泮',
         mockPlots: [
@@ -197,6 +199,7 @@ export const PLOT_REGISTRY = {
         displayName: '大楞乡龙洪屯八角',
         aliases: ['1005', '龙洪屯', '大楞乡龙洪屯'],
         tilePreset: { cols: 19, rows: 18, offsetX: -9, offsetY: -9 },
+        defaultZoomLevel: 5,
         description: '大楞乡龙洪屯八角林地',
         tileLayerName: 'plot_1005_大楞乡龙洪屯八角',
         mockPlots: [
