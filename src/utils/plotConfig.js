@@ -151,6 +151,63 @@ export const PLOT_REGISTRY = {
                 offset: { lat: 0.01, lng: 0.01 }
             }
         ]
+    },
+
+    // 1003 新寨八角（林类型）
+    新寨八角: {
+        id: 1003,
+        displayName: '新寨八角',
+        aliases: ['1003', '新寨'],
+        tilePreset: { cols: 17, rows: 13, offsetX: -8, offsetY: -6 },
+        description: '新寨八角林地',
+        tileLayerName: 'plot_1003_新寨',
+        mockPlots: [
+            {
+                key: 'mock-forestland-xinzhai',
+                displayName: '新寨八角',
+                routeName: '新寨八角',
+                type: '林',
+                offset: { lat: 0.008, lng: -0.015 }
+            }
+        ]
+    },
+
+    // 1004 上泮八角（林类型）
+    上泮八角: {
+        id: 1004,
+        displayName: '上泮八角',
+        aliases: ['1004', '上泮'],
+        tilePreset: { cols: 19, rows: 16, offsetX: -9, offsetY: -8 },
+        description: '上泮八角林地',
+        tileLayerName: 'plot_1004_上泮',
+        mockPlots: [
+            {
+                key: 'mock-forestland-shangpan',
+                displayName: '上泮八角',
+                routeName: '上泮八角',
+                type: '林',
+                offset: { lat: 0.008, lng: -0.015 }
+            }
+        ]
+    },
+
+    // 1005 大楞乡龙洪屯八角（林类型）
+    大楞乡龙洪屯八角: {
+        id: 1005,
+        displayName: '大楞乡龙洪屯八角',
+        aliases: ['1005', '龙洪屯', '大楞乡龙洪屯'],
+        tilePreset: { cols: 19, rows: 18, offsetX: -9, offsetY: -9 },
+        description: '大楞乡龙洪屯八角林地',
+        tileLayerName: 'plot_1005_大楞乡龙洪屯八角',
+        mockPlots: [
+            {
+                key: 'mock-forestland-longhongdun',
+                displayName: '大楞乡龙洪屯八角',
+                routeName: '大楞乡龙洪屯八角',
+                type: '林',
+                offset: { lat: 0.008, lng: -0.015 }
+            }
+        ]
     }
 };
 

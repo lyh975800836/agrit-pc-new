@@ -397,6 +397,7 @@ export default {
 
             return {
                 ...baseClone,
+                id: config.displayName, // 使用displayName作为地块ID，便于后续路由传递
                 name: config.displayName,
                 displayName: config.displayName,
                 routeName: config.routeName || basePlot.name,
