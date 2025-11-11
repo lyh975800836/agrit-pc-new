@@ -52,8 +52,8 @@ export default {
           {
             name: '种植面积分布',
             type: 'pie',
-            radius: ['25%', '90%'],
-            center: ['55%', '50%'],
+            radius: ['25%', '75%'],
+            center: ['50%', '50%'],
             data: pieData,
             itemStyle: {
               borderColor: 'rgba(0,0,0,0.1)',
@@ -61,35 +61,32 @@ export default {
             },
             label: {
               show: true,
-              position: 'inside',
+              position: 'outside',
               formatter: function(params) {
-                return `${params.name}\n${params.value}亩\n${params.data.percentage}%`
+                return `${params.name}${params.data.percentage}%`
               },
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: 11,
-              fontFamily: 'SourceHanSansCN-Medium',
-              fontWeight: 'bold',
-              lineHeight: 14,
-              textStyle: {
-                align: 'center'
-              }
+              color: 'rgba(76, 252, 234, 1)',
+              fontSize: 12,
+              fontFamily: 'SourceHanSansCN-Medium'
             },
             labelLine: {
-              show: false
+              show: true,
+              lineStyle: {
+                color: 'rgba(76, 252, 234, 0.6)'
+              }
             },
             emphasis: {
               itemStyle: {
                 shadowBlur: 10,
                 shadowOffsetX: 0,
                 shadowColor: 'rgba(0, 0, 0, 0.5)'
-              },
-              label: {
-                fontSize: 12,
-                fontWeight: 'bold'
               }
             }
           }
         ],
+        legend: {
+          show: false
+        },
         tooltip: {
           trigger: 'item',
           backgroundColor: 'rgba(15, 55, 52, 0.9)',
@@ -100,7 +97,7 @@ export default {
             fontSize: 12
           },
           formatter: function(params) {
-            return `${params.name}<br/>面积: ${params.value}亩<br/>占比: ${params.data.percentage}%`
+            return `${params.name}<br/>占比: ${params.data.percentage}%`
           }
         }
       }
@@ -125,6 +122,6 @@ export default {
 
 .chart-container {
   width: 100%;
-  height: 300px;
+  height: 100%;
 }
 </style>

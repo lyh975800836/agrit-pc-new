@@ -151,31 +151,31 @@
               重置视图
             </button>
           </div>
-          <div class="distribution-content-new" v-if="!showProductiveForestChart">
-            <div class="legend-section-vertical">
+          <div class="distribution-content-optimized" v-if="!showProductiveForestChart">
+            <div class="pie-chart-container-large">
+              <RegionalDistributionChart />
+            </div>
+            <div class="distribution-legend-bottom">
               <div class="legend-item">
-                <div class="legend-color" style="background: #22c55e;"></div>
+                <div class="legend-color-small" style="background: #22c55e;"></div>
                 <span>右江区</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #3b82f6;"></div>
+                <div class="legend-color-small" style="background: #3b82f6;"></div>
                 <span>田阳区</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #ffd700;"></div>
+                <div class="legend-color-small" style="background: #ffd700;"></div>
                 <span>田东县</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #a855f7;"></div>
+                <div class="legend-color-small" style="background: #a855f7;"></div>
                 <span>德保县</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #ff6b4a;"></div>
+                <div class="legend-color-small" style="background: #ff6b4a;"></div>
                 <span>靖西市</span>
               </div>
-            </div>
-            <div class="pie-chart-container-large">
-              <RegionalDistributionChart />
             </div>
           </div>
           <div class="productive-forest-chart-container" v-if="showProductiveForestChart">
@@ -1174,6 +1174,14 @@ export default {
     padding: 0 10px;
 }
 
+.distribution-legend-bottom {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
 .pie-chart-container {
     position: relative;
     display: flex;
@@ -1183,13 +1191,18 @@ export default {
     padding: 10px;
 }
 
-.pie-chart-container-large {
-    position: relative;
+.distribution-content-optimized {
     display: flex;
     flex: 1;
-    align-items: center;
-    justify-content: center;
-    min-height: 280px;
+    flex-direction: column;
+    min-height: 0;
+    gap: 8px;
+}
+
+.pie-chart-container-large {
+    position: relative;
+    flex: 1;
+    min-height: 0;
 }
 
 .productive-forest-chart-container {
@@ -1353,7 +1366,7 @@ export default {
     grid-template-columns: repeat(2, 1fr);
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     text-align: center;
 
@@ -1367,8 +1380,9 @@ export default {
 
     &.table-head {
         font-family: SourceHanSansCN-Medium;
-        font-weight: bold;
-        color: #c69c6d;
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
         border-bottom: 1px solid #4cfcea4d;
         padding-bottom: 12px;
     }
@@ -1395,7 +1409,7 @@ export default {
     grid-template-columns: repeat(4, 1fr);
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     text-align: center;
 
@@ -1415,12 +1429,12 @@ export default {
     &.table-head {
         padding: 12px 4px;
         font-family: SourceHanSansCN-Medium;
-        font-size: 16px;
-        font-weight: bold;
+        font-size: 14px;
+        font-weight: 600;
         border-bottom: 1px solid #4cfcea4d;
         padding-bottom: 12px;
 
-        color: #c69c6d;
+        color: rgba(255, 255, 255, 0.9);
     }
 
     &:not(.table-head) {
@@ -1445,7 +1459,7 @@ export default {
     grid-template-columns: repeat(3, 1fr);
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     text-align: center;
 
@@ -1460,12 +1474,12 @@ export default {
     &.table-head {
         padding: 12px 4px;
         font-family: SourceHanSansCN-Medium;
-        font-size: 16px;
-        font-weight: bold;
+        font-size: 14px;
+        font-weight: 600;
         border-bottom: 1px solid #4cfcea4d;
         padding-bottom: 12px;
 
-        color: #c69c6d;
+        color: rgba(255, 255, 255, 0.9);
     }
 
     &:not(.table-head) {
