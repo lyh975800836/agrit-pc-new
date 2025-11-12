@@ -1370,7 +1370,7 @@ export default {
     font-weight: bold;
     text-align: center;
 
-    color: #c69c6d;
+    color: rgba(255, 255, 255, 0.9);
 
     > span {
         overflow: hidden;
@@ -1382,7 +1382,7 @@ export default {
         font-family: SourceHanSansCN-Medium;
         font-size: 14px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
+        color: #c69c6d;
         border-bottom: 1px solid #4cfcea4d;
         padding-bottom: 12px;
     }
@@ -1413,7 +1413,7 @@ export default {
     font-weight: bold;
     text-align: center;
 
-    color: #c69c6d;
+    color: rgba(255, 255, 255, 0.9);
 
     > span {
         overflow: hidden;
@@ -1434,7 +1434,7 @@ export default {
         border-bottom: 1px solid #4cfcea4d;
         padding-bottom: 12px;
 
-        color: rgba(255, 255, 255, 0.9);
+        color: #c69c6d;
     }
 
     &:not(.table-head) {
@@ -1463,7 +1463,7 @@ export default {
     font-weight: bold;
     text-align: center;
 
-    color: #c69c6d;
+    color: rgba(255, 255, 255, 0.9);
 
     > span {
         overflow: hidden;
@@ -1479,7 +1479,7 @@ export default {
         border-bottom: 1px solid #4cfcea4d;
         padding-bottom: 12px;
 
-        color: rgba(255, 255, 255, 0.9);
+        color: #c69c6d;
     }
 
     &:not(.table-head) {

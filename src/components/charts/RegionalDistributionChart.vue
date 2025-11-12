@@ -63,7 +63,7 @@ export default {
               show: true,
               position: 'outside',
               formatter: function(params) {
-                return `${params.name}${params.data.percentage}%`
+                return `${params.name}${params.data.value}万亩`
               },
               color: 'rgba(76, 252, 234, 1)',
               fontSize: 12,
@@ -97,7 +97,7 @@ export default {
             fontSize: 12
           },
           formatter: function(params) {
-            return `${params.name}<br/>占比: ${params.data.percentage}%`
+            return `${params.name}<br/>面积: ${params.data.value}万亩<br/>占比: ${params.data.percentage}%`
           }
         }
       }
