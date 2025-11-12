@@ -1367,7 +1367,7 @@ export default {
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: normal;
     text-align: center;
 
     color: #4cfcea;
@@ -1411,7 +1411,7 @@ export default {
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: normal;
     text-align: center;
 
     color: #4cfcea;
@@ -1462,7 +1462,7 @@ export default {
     padding: 12px 4px;
     font-family: SourceHanSansCN-Medium;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: normal;
     text-align: center;
 
     color: #4cfcea;
