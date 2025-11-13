@@ -47,7 +47,7 @@
       <div class="pdp-image-container">
         <img
           class="pdp-image"
-          :src="popupData.photo || '/images/pop-banner.png'"
+          :src="getImageSource()"
           :alt="popupData.name"
         />
       </div>
@@ -83,6 +83,14 @@ export default {
         },
         handleNavigate() {
             this.$emit('navigate', this.popupData);
+        },
+        getImageSource() {
+            // 如果是雷哥的点，使用原有的photo图片
+            if (this.popupData && this.popupData.name && this.popupData.name.includes('雷哥')) {
+                return this.popupData.photo || '/images/default-cover.png';
+            }
+            // 其他点都使用默认八角图片
+            return '/images/default-cover.png';
         }
     }
 };

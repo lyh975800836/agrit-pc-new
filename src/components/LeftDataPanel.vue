@@ -20,7 +20,7 @@
       <!-- 总面积卡片 -->
       <div class="data-card total-area-card" :style="getLeftPanelImageStyle('TOTAL_AREA_CARD')">
         <div class="card-label" :style="getLeftPanelImageStyle('CARD_LABEL_AREA')"></div>
-          <div class="label-text">-总面积（万亩）-</div>
+          <div class="label-text">-总面积（亩）-</div>
           <div class="card-data">{{ projectData.totalArea }}</div>
           <div class="data-details">{{ projectData.areaDetails }}</div>
       </div>

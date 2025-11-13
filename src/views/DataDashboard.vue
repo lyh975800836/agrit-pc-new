@@ -155,26 +155,30 @@
             <div class="pie-chart-container-large">
               <RegionalDistributionChart />
             </div>
-            <div class="distribution-legend-bottom">
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #22c55e;"></div>
-                <span>右江区</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #3b82f6;"></div>
-                <span>田阳区</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #ffd700;"></div>
-                <span>田东县</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #a855f7;"></div>
+            <div class="distribution-legend-horizontal">
+              <div class="legend-item-horizontal">
+                <div class="legend-color-bar" style="background: #22C55E;"></div>
                 <span>德保县</span>
               </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #ff6b4a;"></div>
-                <span>靖西市</span>
+              <div class="legend-item-horizontal">
+                <div class="legend-color-bar" style="background: #3B82F6;"></div>
+                <span>那坡县</span>
+              </div>
+              <div class="legend-item-horizontal">
+                <div class="legend-color-bar" style="background: #FFD700;"></div>
+                <span>右江区</span>
+              </div>
+              <div class="legend-item-horizontal">
+                <div class="legend-color-bar" style="background: #A855F7;"></div>
+                <span>田林县</span>
+              </div>
+              <div class="legend-item-horizontal">
+                <div class="legend-color-bar" style="background: #FF6B4A;"></div>
+                <span>凌云县</span>
+              </div>
+              <div class="legend-item-horizontal">
+                <div class="legend-color-bar" style="background: #FF9500;"></div>
+                <span>乐业县</span>
               </div>
             </div>
           </div>
@@ -223,21 +227,21 @@
             <div class="disease-chart-wrapper">
               <DiseaseDistributionChart />
             </div>
-            <div class="disease-legend-compact">
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #c69c6d;"></div>
+            <div class="disease-legend-horizontal">
+              <div class="legend-item-vertical">
+                <div class="legend-color-bar" style="background: #c69c6d;"></div>
                 <span>健康地块</span>
               </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #90ee90;"></div>
+              <div class="legend-item-vertical">
+                <div class="legend-color-bar" style="background: #90ee90;"></div>
                 <span>轻度病虫害</span>
               </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #ffd700;"></div>
+              <div class="legend-item-vertical">
+                <div class="legend-color-bar" style="background: #ffd700;"></div>
                 <span>中度病虫害</span>
               </div>
-              <div class="legend-item">
-                <div class="legend-color-small" style="background: #ff6b4a;"></div>
+              <div class="legend-item-vertical">
+                <div class="legend-color-bar" style="background: #ff6b4a;"></div>
                 <span>重度病虫害</span>
               </div>
             </div>
@@ -1156,8 +1160,7 @@ export default {
     flex: 1;
     flex-direction: column;
     min-height: 0;
-
-    gap: 8px;
+    gap: 0;
 }
 
 .disease-chart-wrapper {
@@ -1174,12 +1177,60 @@ export default {
     padding: 0 10px;
 }
 
+.disease-legend-horizontal {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 10px 0;
+    gap: 10px;
+}
+
 .distribution-legend-bottom {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     justify-content: space-between;
     padding: 0 10px;
+}
+
+.distribution-legend-horizontal {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 10px 0;
+    gap: 15px;
+}
+
+.legend-item-horizontal {
+    display: flex;
+    align-items: center;
+    font-family: SourceHanSansCN-Light;
+    font-size: 13px;
+    color: #c69c6d;
+    gap: 6px;
+}
+
+.legend-item-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: SourceHanSansCN-Light;
+    font-size: 12px;
+    color: #c69c6d;
+    gap: 4px;
+}
+
+.legend-color-bar {
+    width: 60px;
+    height: 16px;
+    border-radius: 2px;
+    flex-shrink: 0;
 }
 
 .pie-chart-container {
@@ -1196,7 +1247,7 @@ export default {
     flex: 1;
     flex-direction: column;
     min-height: 0;
-    gap: 8px;
+    gap: 0;
 }
 
 .pie-chart-container-large {

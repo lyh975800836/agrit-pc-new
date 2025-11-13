@@ -13,11 +13,11 @@ export default {
         return {
             chart: null,
             sulfurData: [
-                { year: '2021', sulfurFree: 1.1, sulfured: 4.4 },
-                { year: '2022', sulfurFree: 1.625, sulfured: 4.875 },
-                { year: '2023', sulfurFree: 1.4, sulfured: 3.6 },
-                { year: '2024', sulfurFree: 1.86, sulfured: 4.14 },
-                { year: '2025', sulfurFree: 0.6, sulfured: 2.4 }
+                { year: '2021', sulfurPercent: 64.1 },
+                { year: '2022', sulfurPercent: 67.5 },
+                { year: '2023', sulfurPercent: 70.1 },
+                { year: '2024', sulfurPercent: 73.5 },
+                { year: '2025', sulfurPercent: 74.9 }
             ]
         };
     },
@@ -36,17 +36,17 @@ export default {
             this.chart = echarts.init(this.$refs.chartContainer);
 
             const years = this.sulfurData.map(item => item.year);
-            const sulfurFreeData = this.sulfurData.map(item => item.sulfurFree);
-            const sulfuredData = this.sulfurData.map(item => item.sulfured);
+            const sulfuredData = this.sulfurData.map(item => item.sulfurPercent);
+            const sulfurFreeData = this.sulfurData.map(item => (100 - item.sulfurPercent).toFixed(1));
 
             const option = {
                 backgroundColor: 'transparent',
                 grid: {
-                    left: '15%',
-                    right: '10%',
+                    left: '8%',
+                    right: '8%',
                     top: '35px',
                     bottom: '40px',
-                    containLabel: true
+                    containLabel: false
                 },
                 xAxis: {
                     type: 'category',
@@ -58,7 +58,7 @@ export default {
                     },
                     axisLabel: {
                         color: 'rgba(76, 252, 234, 0.8)',
-                        fontSize: 11,
+                        fontSize: 12,
                         fontFamily: 'SourceHanSansCN-Light'
                     },
                     axisTick: {
@@ -68,8 +68,8 @@ export default {
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    max: 6,
-                    splitNumber: 4,
+                    max: 100,
+                    splitNumber: 5,
                     axisLine: {
                         show: false
                     },
@@ -79,7 +79,8 @@ export default {
                     axisLabel: {
                         color: 'rgba(76, 252, 234, 0.8)',
                         fontSize: 11,
-                        fontFamily: 'SourceHanSansCN-Light'
+                        fontFamily: 'SourceHanSansCN-Light',
+                        formatter: '{value}%'
                     },
                     splitLine: {
                         lineStyle: {
@@ -104,68 +105,44 @@ export default {
                         name: '无硫八角',
                         type: 'bar',
                         data: sulfurFreeData,
-                        barWidth: '35%',
+                        barWidth: '50%',
+                        stack: 'total',
                         itemStyle: {
-                            color: {
-                                type: 'linear',
-                                x: 0,
-                                y: 0,
-                                x2: 0,
-                                y2: 1,
-                                colorStops: [
-                                    {
-                                        offset: 0,
-                                        color: '#22c55e'
-                                    },
-                                    {
-                                        offset: 1,
-                                        color: 'rgba(34, 197, 94, 0.3)'
-                                    }
-                                ]
-                            },
-                            borderRadius: [4, 4, 0, 0]
+                            color: '#22C55E',
+                            borderRadius: [4, 0, 0, 4]
                         },
                         label: {
                             show: true,
-                            position: 'top',
-                            color: 'rgba(76, 252, 234, 1)',
-                            fontSize: 11,
-                            fontFamily: 'SourceHanSansCN-Light',
-                            formatter: '{c}'
+                            position: 'inside',
+                            color: '#ffffff',
+                            fontSize: 13,
+                            fontFamily: 'SourceHanSansCN-Medium',
+                            fontWeight: 'bold',
+                            formatter: function(params) {
+                                return params.value + '%';
+                            }
                         }
                     },
                     {
                         name: '有硫八角',
                         type: 'bar',
                         data: sulfuredData,
-                        barWidth: '35%',
+                        barWidth: '50%',
+                        stack: 'total',
                         itemStyle: {
-                            color: {
-                                type: 'linear',
-                                x: 0,
-                                y: 0,
-                                x2: 0,
-                                y2: 1,
-                                colorStops: [
-                                    {
-                                        offset: 0,
-                                        color: '#ff6b4a'
-                                    },
-                                    {
-                                        offset: 1,
-                                        color: 'rgba(255, 107, 74, 0.3)'
-                                    }
-                                ]
-                            },
-                            borderRadius: [4, 4, 0, 0]
+                            color: '#FF6B4A',
+                            borderRadius: [0, 4, 4, 0]
                         },
                         label: {
                             show: true,
-                            position: 'top',
-                            color: 'rgba(76, 252, 234, 1)',
-                            fontSize: 11,
-                            fontFamily: 'SourceHanSansCN-Light',
-                            formatter: '{c}'
+                            position: 'inside',
+                            color: '#ffffff',
+                            fontSize: 13,
+                            fontFamily: 'SourceHanSansCN-Medium',
+                            fontWeight: 'bold',
+                            formatter: function(params) {
+                                return params.value + '%';
+                            }
                         }
                     }
                 ],
@@ -181,7 +158,7 @@ export default {
                     formatter(params) {
                         let result = `${ params[0].name }年<br/>`;
                         params.forEach(item => {
-                            result += `${ item.seriesName }: ${ item.value }万吨<br/>`;
+                            result += `${ item.seriesName }: ${ item.value }%<br/>`;
                         });
                         return result;
                     }
