@@ -1,172 +1,90 @@
 /**
  * 地块标记管理器
- * 处理地块标记的创建、配置、可见性管理等
+ * 基于后端的 property_category_code（林/厂/仓）和 property_type_name（二级属性）进行分类和过滤
  */
 
-const DEFAULT_PLOT_TYPE = 'star-anise';
+// 一级分类映射：property_category_code -> 显示信息
+const CATEGORY_MAP = {
+    forest: {
+        code: 'forest',
+        name: '林',
+        icon: '/images/map-filter1.png'
+    },
+    factory: {
+        code: 'factory',
+        name: '厂',
+        icon: '/images/map-filter3.png'
+    },
+    warehouse: {
+        code: 'warehouse',
+        name: '仓',
+        icon: '/images/map-filter7.png'
+    }
+};
+
+// 二级属性映射：property_type_name -> 图标和配置
+const TYPE_ICON_MAP = {
+    '八角基地': '/images/map-filter1.png',        // 林
+    '晒场': '/images/map-filter9.png',            // 厂
+    '烘干工厂': '/images/map-filter3.png',        // 厂
+    '林业产业智能园区': '/images/map-filter5.png', // 厂
+    '交收仓': '/images/map-filter7.png'           // 仓
+};
 
 /**
- * 规范化地块类型
- * @param {string} plotType - 原始地块类型
- * @returns {string} 规范化后的地块类型
+ * 获取一级分类（林/厂/仓）的信息
+ * @param {string} categoryCode - property_category_code (forest/factory/warehouse)
+ * @returns {object} 分类信息
  */
-export function normalizePlotType(plotType) {
-    const typeMap = {
-        'star-anise': 'star-anise',
-        'premium': 'star-anise',
-        'tea-oil': 'tea-oil',
-        'normal': 'tea-oil',
-        'drying-facility': 'drying-facility',
-        'average': 'drying-facility',
-        '产地仓': '产地仓',
-        '中心工厂': '中心工厂',
-        '农资商店': '农资商店',
-        '交收仓': '交收仓',
-        '云仓': '云仓',
-        '晒场': '晒场'
-    };
+export function getCategoryInfo(categoryCode) {
+    return CATEGORY_MAP[categoryCode] || CATEGORY_MAP.forest;
+}
 
-    return typeMap[plotType] || DEFAULT_PLOT_TYPE;
+/**
+ * 获取二级属性（property_type_name）的图标
+ * @param {string} typeName - property_type_name
+ * @returns {string} 图标路径
+ */
+export function getTypeIcon(typeName) {
+    return TYPE_ICON_MAP[typeName] || '/images/map-filter1.png';
 }
 
 /**
  * 获取地块标记的视觉配置
- * @param {string} plotType - 地块类型
+ * @param {object} plotData - 地块数据（包含后端返回的字段）
  * @returns {object} 视觉配置对象
  */
-export function getPlotMarkerVisualConfig(plotType) {
-    const normalizedType = normalizePlotType(plotType);
+export function getPlotMarkerVisualConfig(plotData) {
+    const categoryCode = plotData.property_category_code || 'forest';
+    const typeName = plotData.property_type_name || '';
+    const icon = getTypeIcon(typeName);
 
-    const visualConfigMap = {
-        'star-anise': {
-            backgroundImage: '/images/map-filter1.png',
-            typeClass: 'plot-type-star-anise',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        'tea-oil': {
-            backgroundImage: '/images/map-filter2.png',
-            typeClass: 'plot-type-tea-oil',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        'drying-facility': {
-            backgroundImage: '/images/map-filter3.png',
-            typeClass: 'plot-type-drying-facility',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        '产地仓': {
-            backgroundImage: '/images/map-filter6.png',
-            typeClass: 'plot-type-产地仓',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        '中心工厂': {
-            backgroundImage: '/images/map-filter5.png',
-            typeClass: 'plot-type-中心工厂',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        '农资商店': {
-            backgroundImage: '/images/map-filter4.png',
-            typeClass: 'plot-type-农资商店',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        '交收仓': {
-            backgroundImage: '/images/map-filter7.png',
-            typeClass: 'plot-type-交收仓',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        '云仓': {
-            backgroundImage: '/images/map-filter8.png',
-            typeClass: 'plot-type-云仓',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        },
-        '晒场': {
-            backgroundImage: '/images/map-filter9.png',
-            typeClass: 'plot-type-晒场',
-            width: 174,
-            height: 82,
-            anchorYOffset: 8,
-            positionOffset: { lat: 0.02, lng: -0.02 }
-        }
+    return {
+        backgroundImage: icon,
+        typeClass: `plot-type-${categoryCode}`,
+        width: 174,
+        height: 82,
+        anchorYOffset: 8,
+        positionOffset: { lat: 0.02, lng: -0.02 },
+        categoryCode,
+        typeName
     };
-
-    return visualConfigMap[normalizedType] || visualConfigMap['star-anise'];
-}
-
-/**
- * 获取分类图标
- * @param {string} plotType - 地块类型
- * @returns {string} 图标路径
- */
-export function getCategoryIcon(plotType) {
-    const normalizedType = normalizePlotType(plotType);
-
-    const categoryMap = {
-        'star-anise': '/images/map-filter1.png',
-        'tea-oil': '/images/map-filter2.png',
-        'drying-facility': '/images/map-filter3.png',
-        '农资商店': '/images/map-filter4.png',
-        '中心工厂': '/images/map-filter5.png',
-        '产地仓': '/images/map-filter6.png',
-        '交收仓': '/images/map-filter7.png',
-        '云仓': '/images/map-filter8.png',
-        '晒场': '/images/map-filter9.png'
-    };
-
-    return categoryMap[normalizedType] || categoryMap['star-anise'];
-}
-
-/**
- * 检查地块类型是否匹配分类
- * @param {string} plotType - 地块类型
- * @param {string} categoryType - 分类类型
- * @param {object} categoryTypeMapping - 分类映射表
- * @returns {boolean} 是否匹配
- */
-export function isPlotMatchCategory(plotType, categoryType, categoryTypeMapping) {
-    if (categoryType === 'all') {
-        return true;
-    }
-
-    const categoryTypes = categoryTypeMapping[categoryType] || [];
-    return categoryTypes.includes(plotType);
 }
 
 /**
  * 创建地块标记 HTML
  * @param {object} plot - 地块数据
- * @param {string} plotType - 地块类型
+ * @param {object} plotData - 包含后端分类信息的数据
  * @returns {string} HTML 字符串
  */
-export function createPlotMarkerHtml(plot, plotType) {
-    const visualConfig = getPlotMarkerVisualConfig(plotType);
+export function createPlotMarkerHtml(plot, plotData) {
+    const visualConfig = getPlotMarkerVisualConfig(plotData);
     const encodedName = (plot.displayName || plot.name || '').replace(/"/g, '&quot;');
 
     return `<div
         class="plot-marker ${visualConfig.typeClass}"
-        data-plot-type="${plotType}"
+        data-category-code="${visualConfig.categoryCode}"
+        data-type-name="${visualConfig.typeName}"
         data-plot-name="${encodedName}"
         style="
             background-image: url('${visualConfig.backgroundImage}');
@@ -196,58 +114,51 @@ export function createPlotMarkerHtml(plot, plotType) {
 }
 
 /**
+ * 检查地块是否匹配选中的分类
+ * @param {string} categoryCode - property_category_code
+ * @param {string} selectedCategory - 选中的分类 (all/forest/factory/warehouse)
+ * @returns {boolean}
+ */
+export function matchCategory(categoryCode, selectedCategory) {
+    return selectedCategory === 'all' || categoryCode === selectedCategory;
+}
+
+/**
  * 应用分类过滤
  * @param {array} plotMarkerLayers - 地块标记层数组
- * @param {string} selectedCategoryType - 选中的分类类型
- * @param {string} selectedPlotFilter - 选中的地块过滤类型
- * @param {object} categoryTypeMapping - 分类映射表
+ * @param {string} selectedCategory - 选中的一级分类 (all/forest/factory/warehouse)
+ * @param {string} selectedType - 选中的二级属性类型 (all/property_type_name)
  * @returns {void}
  */
-export function applyPlotFilter(
-    plotMarkerLayers,
-    selectedCategoryType,
-    selectedPlotFilter,
-    categoryTypeMapping
-) {
+export function applyPlotFilter(plotMarkerLayers, selectedCategory, selectedType) {
     if (!plotMarkerLayers || plotMarkerLayers.length === 0) {
         return;
     }
 
     plotMarkerLayers.forEach(entry => {
-        updateMarkerVisibility(entry, selectedCategoryType, selectedPlotFilter, categoryTypeMapping);
+        updateMarkerVisibility(entry, selectedCategory, selectedType);
     });
 }
 
 /**
  * 更新标记可见性
- * @param {object} entry - 标记层条目
- * @param {string} selectedCategoryType - 选中的分类类型
- * @param {string} selectedPlotFilter - 选中的地块过滤类型
- * @param {object} categoryTypeMapping - 分类映射表
+ * @param {object} entry - 标记层条目 {marker, layer, categoryCode, typeName, map}
+ * @param {string} selectedCategory - 选中的一级分类
+ * @param {string} selectedType - 选中的二级属性
  * @returns {void}
  */
-export function updateMarkerVisibility(
-    entry,
-    selectedCategoryType,
-    selectedPlotFilter,
-    categoryTypeMapping
-) {
+export function updateMarkerVisibility(entry, selectedCategory, selectedType) {
     if (!entry || !entry.layer) {
         return;
     }
 
-    const targetType = entry.type || DEFAULT_PLOT_TYPE;
-    const categoryTypes = categoryTypeMapping[selectedCategoryType] || [];
-    const matchesCategory = selectedCategoryType === 'all' || categoryTypes.includes(targetType);
-
-    const shouldShow = (
-        (selectedPlotFilter === 'all' || targetType === selectedPlotFilter) &&
-        matchesCategory
-    );
+    const categoryMatch = matchCategory(entry.categoryCode, selectedCategory);
+    const typeMatch = selectedType === 'all' || entry.typeName === selectedType;
+    const shouldShow = categoryMatch && typeMatch;
 
     entry.visible = shouldShow;
 
-    // 如果有map实例，处理显示/隐藏
+    // 处理 Leaflet 地图显示/隐藏
     if (entry.map) {
         if (shouldShow) {
             if (!entry.map.hasLayer(entry.layer)) {
@@ -262,4 +173,23 @@ export function updateMarkerVisibility(
             }
         }
     }
+}
+
+/**
+ * 获取所有可用的二级属性列表（根据选中的一级分类）
+ * @param {array} allPlots - 所有地块数据
+ * @param {string} selectedCategory - 选中的一级分类
+ * @returns {array} 二级属性名称列表
+ */
+export function getAvailableTypes(allPlots, selectedCategory) {
+    if (!allPlots || allPlots.length === 0) {
+        return [];
+    }
+
+    const filtered = selectedCategory === 'all'
+        ? allPlots
+        : allPlots.filter(p => p.property_category_code === selectedCategory);
+
+    const types = new Set(filtered.map(p => p.property_type_name).filter(Boolean));
+    return Array.from(types).sort();
 }

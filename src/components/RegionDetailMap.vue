@@ -41,6 +41,9 @@
 import {
     generateMockPlotConfig
 } from '@/utils/plotConfig';
+import {
+    getTypeIcon
+} from '@/utils/plotMarkerManager';
 import MapLoadingOverlay from '@/components/MapLoadingOverlay.vue';
 import CategorySidebar from '@/components/CategorySidebar.vue';
 import CategoryPopup from '@/components/CategoryPopup.vue';
@@ -48,8 +51,6 @@ import PlotDetailPopup from '@/components/PlotDetailPopup.vue';
 
 // 使用CDN引入的Leaflet (在index.html中已引入)
 const { L } = window;
-
-const DEFAULT_PLOT_TYPE = 'star-anise';
 
 export default {
     name: 'RegionDetailMap',
@@ -407,105 +408,6 @@ export default {
             };
         },
 
-        resolvePlotType(fieldData) {
-            if (fieldData && fieldData.type) {
-                return this.normalizePlotType(fieldData.type);
-            }
-            return DEFAULT_PLOT_TYPE;
-        },
-
-        normalizePlotType(plotType) {
-            switch (plotType) {
-                case 'star-anise':
-                case 'premium':
-                    return 'star-anise';
-                case 'tea-oil':
-                case 'normal':
-                    return 'tea-oil';
-                case 'drying-facility':
-                case 'average':
-                    return 'drying-facility';
-                case '产地仓':
-                case '中心工厂':
-                case '农资商店':
-                case '交收仓':
-                case '云仓':
-                case '晒场':
-                    return plotType;
-                default:
-                    return DEFAULT_PLOT_TYPE;
-            }
-        },
-
-        getPlotMarkerVisualConfig(plotType) {
-            const normalizedType = this.normalizePlotType(plotType);
-            const baseConfig = {
-                backgroundImage: '/images/star-anise.png',
-                typeClass: 'plot-type-star-anise',
-                width: 200,
-                height: 82,
-                anchorYOffset: 8,
-                positionOffset: { lat: 0, lng: 0 }
-            };
-
-            switch (normalizedType) {
-                case 'tea-oil':
-                case 'normal':
-                    return {
-                        ...baseConfig,
-                        backgroundImage: '/images/tea-oil.png',
-                        typeClass: 'plot-type-tea-oil',
-                        positionOffset: { lat: 0.05, lng: 0.08 }
-                    };
-                case 'drying-facility':
-                case 'average':
-                    return {
-                        backgroundImage: '/images/drying-facility.png',
-                        typeClass: 'plot-type-drying',
-                        width: 174,
-                        height: 82,
-                        anchorYOffset: 8,
-                        positionOffset: { lat: -0.05, lng: -0.08 }
-                    };
-                case '产地仓':
-                case '中心工厂':
-                case '农资商店':
-                case '交收仓':
-                case '云仓':
-                case '晒场':
-                    return {
-                        backgroundImage: '/images/drying-facility.png',
-                        typeClass: `plot-type-${ normalizedType }`,
-                        width: 174,
-                        height: 82,
-                        anchorYOffset: 8,
-                        positionOffset: { lat: 0.02, lng: -0.02 }
-                    };
-                case 'star-anise':
-                case 'premium':
-                default:
-                    return { ...baseConfig };
-            }
-        },
-
-        // 获取分类图标
-        getCategoryIcon(plotType) {
-            const normalizedType = this.normalizePlotType(plotType);
-            const categoryMap = {
-                'star-anise': '/images/map-filter1.png',
-                'tea-oil': '/images/map-filter2.png',
-                'drying-facility': '/images/map-filter3.png',
-                '农资商店': '/images/map-filter4.png',
-                '中心工厂': '/images/map-filter5.png',
-                '产地仓': '/images/map-filter6.png',
-                '交收仓': '/images/map-filter7.png',
-                '云仓': '/images/map-filter8.png',
-                '晒场': '/images/map-filter9.png',
-                'average': '/images/map-filter3.png'
-            };
-            return categoryMap[normalizedType] || '/images/map-filter1.png';
-        },
-
         changePlotFilter(filterValue) {
             if (this.selectedPlotFilter === filterValue) {
                 return;
@@ -523,14 +425,14 @@ export default {
             this.$nextTick(() => this.applyPlotFilter());
         },
 
-        registerPlotMarker(layer, plotType) {
+        registerPlotMarker(layer, categoryCode) {
             if (!layer) {
                 return;
             }
 
             const entry = {
                 layer,
-                type: this.normalizePlotType(plotType),
+                categoryCode: categoryCode || 'forest',
                 visible: true
             };
 
@@ -560,13 +462,11 @@ export default {
                 return;
             }
 
-            const targetType = entry.type || DEFAULT_PLOT_TYPE;
-            // Check if targetType matches selected category (using mapping)
-            const categoryTypes = this.categoryTypeMapping[this.selectedCategoryType] || [];
+            const categoryCode = entry.categoryCode || 'forest';
+            // Check if categoryCode matches selected category
             const matchesCategory = this.selectedCategoryType === 'all'
-                                   || categoryTypes.includes(targetType);
-            const shouldShow = (this.selectedPlotFilter === 'all' || targetType === this.selectedPlotFilter)
-                               && matchesCategory;
+                                   || categoryCode === this.selectedCategoryType;
+            const shouldShow = matchesCategory;
 
             if (!this.map) {
                 entry.visible = shouldShow;
@@ -897,74 +797,16 @@ export default {
             }
         },
 
-        // 添加地块标注
-        async addPlotMarkers() {
-
-            // 生成基于真实demo坐标的地块数据
-            const plots = await this.generatePlotData();
-
-            if (plots.length === 0) {
-                console.warn('没有地块数据可添加！');
-                return;
-            }
-
-            plots.forEach(plot => {
-                const visualConfig = this.getPlotMarkerVisualConfig(plot.type);
-                const { positionOffset } = visualConfig;
-                const markerHtml = this.createPlotMarkerHtml(plot);
-
-                // icon尺寸：大幅增加宽度容纳名称，高度严格控制
-                const iconWidth = 180; // 大幅增加宽度
-                const iconHeight = 70; // 48px icon + 2px gap + 20px label
-                const offsetLat = positionOffset?.lat || 0;
-                const offsetLng = positionOffset?.lng || 0;
-                const markerLat = plot.lat + offsetLat;
-                const markerLng = plot.lng + offsetLng;
-
-                const customIcon = L.divIcon({
-                    className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
-                    html: markerHtml,
-                    iconSize: [iconWidth, iconHeight],
-                    iconAnchor: [iconWidth / 2, iconHeight / 2]
-                });
-
-                // 添加标记到地图
-                const marker = L.marker([markerLat, markerLng], { icon: customIcon });
-
-                // 添加点击事件，显示地块详情弹窗
-                marker.on('click', () => {
-                    // 构建完整的plotData对象
-                    const plotData = {
-                        ...plot,
-                        type: plot.type || 'star-anise',
-                        displayName: plot.displayName || plot.name,
-                        district: this.regionName
-                    };
-                    // 先显示弹窗，不直接跳转
-                    this.showPlotDetailPopup([markerLat, markerLng], plotData);
-                });
-
-                marker.addTo(this.map);
-                this.plotLayers.push(marker);
-
-                if (!this.isPlotDetailPage) {
-                    this.registerPlotMarker(marker, plot.type);
-                }
-            });
-
-
-            // 调整地图视野以显示所有地块标记
-            console.log('正在调整地图视野以显示地块标记...');
-            this.fitMapToPlotMarkers();
-        },
-
-
         // 基于真实坐标数据添加地块标记
         async addRealPlotMarkers() {
 
             try {
-                const response = await fetch('/demo/coordinates.json');
-                const coordinateData = await response.json();
+                // 调用动态接口获取地块瓦片数据
+                const response = await fetch('http://43.136.169.150:8000/api/v1/geoprocessing/plot-tiles/list');
+                const tilesData = await response.json();
+
+                // 将瓦片数据转换为坐标格式
+                const coordinateData = this.transformTilesToCoordinates(tilesData);
 
                 // 如果是三级地图，只显示当前地块的标记
                 if (this.isPlotDetailPage && this.plotData && this.plotData.name) {
@@ -986,8 +828,7 @@ export default {
                     const plotName = fieldData.displayName || fieldData.name || key;
                     console.log(`处理地块: ${ plotName }`, fieldData);
 
-                    if (fieldData.center && fieldData.leaflet_polygon) {
-                        const assignedType = this.resolvePlotType(fieldData);
+                    if (fieldData.center && (fieldData.leaflet_polygon || fieldData.leafletPolygon)) {
                         const displayName = plotName;
 
                         const plotData = {
@@ -995,7 +836,8 @@ export default {
                             displayName,
                             area: fieldData.area || '30',
                             output: '1970', // 产量
-                            type: assignedType,
+                            property_category_code: fieldData.property_category_code || 'forest',
+                            property_type_name: fieldData.property_type_name || '八角基地',
                             lat: fieldData.center[0],
                             lng: fieldData.center[1]
                         };
@@ -1043,7 +885,7 @@ export default {
                         this.plotLayers.push(plotMarker);
 
                         if (!this.isPlotDetailPage) {
-                            this.registerPlotMarker(plotMarker, assignedType);
+                            this.registerPlotMarker(plotMarker, plotData.property_category_code);
                         }
 
                     }
@@ -1056,43 +898,53 @@ export default {
             }
             catch (error) {
                 console.error('加载坐标数据失败:', error);
-                // 如果失败，添加默认标记
-                this.addFallbackMarkers();
+                // API 加载失败，无法显示地块
             }
         },
 
-        // 添加备用标记
-        addFallbackMarkers() {
-            const plotLocations = [
-                { name: '示例地块1', lat: 23.75, lng: 106.28, color: '#c69c6d' },
-                { name: '示例地块2', lat: 23.76, lng: 106.29, color: '#FFD700' },
-                { name: '示例地块3', lat: 23.74, lng: 106.27, color: '#FF6B35' }
-            ];
+        // 将后端瓦片数据转换为坐标格式
+        transformTilesToCoordinates(tilesData) {
+            const result = {};
+            const margin = 0.002; // 边界边距
 
-            plotLocations.forEach(plot => {
-                const plotMarker = L.circleMarker([plot.lat, plot.lng], {
-                    color: plot.color,
-                    fillColor: plot.color,
-                    fillOpacity: 0.8,
-                    radius: 15,
-                    weight: 3
-                }).addTo(this.map);
+            if (!tilesData || !tilesData.data || !Array.isArray(tilesData.data)) {
+                console.warn('瓦片数据格式不正确');
+                return result;
+            }
 
-                plotMarker.bindPopup(`
-                    <div style="text-align: center;">
-                        <h4>${ plot.name }</h4>
-                        <p>面积: 30亩</p>
-                        <p>产量: 1970斤</p>
-                    </div>
-                `);
+            tilesData.data.forEach(tile => {
+                const name = tile.plot_name || tile.layer_name || `Plot_${tile.plot_id}`;
 
-                this.plotLayers.push(plotMarker);
+                // 创建矩形边界坐标
+                const leafletPolygon = [[
+                    [tile.min_lat - margin, tile.min_lon - margin],
+                    [tile.min_lat - margin, tile.max_lon + margin],
+                    [tile.max_lat + margin, tile.max_lon + margin],
+                    [tile.max_lat + margin, tile.min_lon - margin],
+                    [tile.min_lat - margin, tile.min_lon - margin]
+                ]];
 
-                if (!this.isPlotDetailPage) {
-                    this.registerPlotMarker(plotMarker, DEFAULT_PLOT_TYPE);
-                }
+                // 计算中心点
+                const center = [
+                    (tile.min_lat + tile.max_lat) / 2,
+                    (tile.min_lon + tile.max_lon) / 2
+                ];
 
+                result[name] = {
+                    name: name,
+                    displayName: tile.plot_name || name,
+                    center: center,
+                    leafletPolygon: leafletPolygon,
+                    area: tile.plot_area ? String(tile.plot_area) : '0',
+                    // 直接保留后端字段，不做转换
+                    property_category_code: tile.property_category_code,
+                    property_category_name: tile.property_category_name,
+                    property_type_name: tile.property_type_name,
+                    tileData: tile
+                };
             });
+
+            return result;
         },
 
         // 添加单个地块标记（用于三级地图）
@@ -1112,7 +964,8 @@ export default {
                     routeTarget,
                     area: fieldData.area || '30',
                     output: '1970',
-                    type: this.resolvePlotType(fieldData),
+                    property_category_code: fieldData.property_category_code || 'forest',
+                    property_type_name: fieldData.property_type_name || '八角基地',
                     lat: gcjLat,
                     lng: gcjLng
                 };
@@ -1216,7 +1069,8 @@ export default {
                             lng: center[0],
                             area: fieldData.area || '未知',
                             output: Math.floor(Math.random() * 20) + 5,
-                            type: this.resolvePlotType(fieldData),
+                            property_category_code: fieldData.property_category_code || 'forest',
+                            property_type_name: fieldData.property_type_name || '八角基地',
                             coordinates: fieldData.coordinates
                         };
 
@@ -1280,12 +1134,12 @@ export default {
 
         // 创建地块标记HTML
         createPlotMarkerHtml(plot) {
-            // 显示分类图标和地块名称
-            const categoryIcon = this.getCategoryIcon(plot.type);
+            // 使用新的 plotMarkerManager，基于后端字段创建标记
             const plotName = plot.name || plot.displayName || '';
-            console.log('Plot:', plot.name, 'Type:', plot.type, 'Icon:', categoryIcon);
+            const icon = getTypeIcon(plot.property_type_name || '');
+            console.log('Plot:', plotName, 'Category:', plot.property_category_code, 'Type:', plot.property_type_name, 'Icon:', icon);
             return `<div class="plot-marker-wrapper">
-                <div class="plot-marker-icon" style="background-image: url('${ categoryIcon }'); width: 48px; height: 48px;"></div>
+                <div class="plot-marker-icon" style="background-image: url('${ icon }'); width: 48px; height: 48px;"></div>
                 <div class="plot-marker-label">${ plotName }</div>
             </div>`;
         },
@@ -1627,13 +1481,14 @@ export default {
 
                 // 获取雷哥地块的边界信息
                 const plotData = this.coordinateData && this.coordinateData['雷哥'];
-                if (!plotData || !plotData.leaflet_polygon) {
+                const polygonData = plotData && (plotData.leafletPolygon || plotData.leaflet_polygon);
+                if (!plotData || !polygonData) {
                     console.error('未找到雷哥地块的坐标数据');
                     return;
                 }
 
                 // 计算地块的边界
-                const polygon = plotData.leaflet_polygon[0]; // 第一个多边形
+                const polygon = polygonData[0]; // 第一个多边形
                 const bounds = L.polygon(polygon).getBounds();
 
 
@@ -1775,25 +1630,23 @@ export default {
             console.log('地块轮廓绘制完成');
         },
 
-        // 从demo数据加载地块轮廓
+        // 从动态数据加载地块轮廓
         async loadPlotOutlineFromDemo(plot) {
             try {
-                console.log('从demo数据加载地块轮廓:', plot.name);
+                console.log('加载地块轮廓:', plot.name);
 
-                const response = await fetch('/demo/coordinates.json');
-                const coordinateData = await response.json();
-
-                // 参考mapshaper.org的理念，对坐标数据进行优化简化
-                this.optimizeCoordinateData(coordinateData);
+                // 使用已加载的坐标数据（来自动态API）
+                const coordinateData = this.coordinateData;
 
                 // 查找匹配的地块数据
                 const plotData = coordinateData[plot.name] || coordinateData[plot.id];
+                const polygonData = plotData && (plotData.leafletPolygon || plotData.leaflet_polygon);
 
-                if (plotData && plotData.leaflet_polygon) {
+                if (plotData && polygonData) {
                     console.log('找到demo地块数据，绘制轮廓');
 
                     // 创建地块轮廓
-                    const polygon = L.polygon(plotData.leaflet_polygon, {
+                    const polygon = L.polygon(polygonData, {
                         color: '#ff6b35',
                         weight: 3,
                         fillColor: '#ff6b35',
@@ -1810,7 +1663,7 @@ export default {
                     });
 
                     // 添加标签
-                    this.addPlotLabel(plot, plotData.leaflet_polygon[0]);
+                    this.addPlotLabel(plot, polygonData[0]);
 
                 }
                 else {
@@ -2080,14 +1933,15 @@ export default {
 
                 console.log('已加载地块坐标数据:', selectedPlotData);
 
-                // 使用selectedPlotData中的leaflet_polygon坐标数据
-                if (!selectedPlotData.leaflet_polygon || selectedPlotData.leaflet_polygon.length === 0) {
+                // 使用selectedPlotData中的leaflet_polygon或leafletPolygon坐标数据
+                const polygonData = selectedPlotData && (selectedPlotData.leafletPolygon || selectedPlotData.leaflet_polygon);
+                if (!polygonData || polygonData.length === 0) {
                     console.error('地块坐标数据不完整');
                     return;
                 }
 
-                // 直接使用leaflet_polygon格式的坐标（已经是Leaflet需要的[lat, lng]格式）
-                const plotCoordinates = selectedPlotData.leaflet_polygon;
+                // 直接使用leaflet_polygon或leafletPolygon格式的坐标（已经是Leaflet需要的[lat, lng]格式）
+                const plotCoordinates = polygonData;
 
                 console.log('地块坐标点数量:', plotCoordinates.length);
 
@@ -2568,7 +2422,9 @@ export default {
                     name: this.popupData.name,
                     routeTarget: this.popupData.routeTarget,
                     type: this.popupData.type,
-                    displayName: this.popupData.displayName
+                    displayName: this.popupData.displayName,
+                    property_category_code: this.popupData.property_category_code,
+                    property_type_name: this.popupData.property_type_name
                 };
 
                 this.closePlotDetailPopup();
@@ -2579,18 +2435,15 @@ export default {
                     plotName: popupDataSnapshot.name
                 };
 
-                // 根据弹窗类型添加对应的 type 参数
-                const factoryTypes = ['drying-facility', '中心工厂', '晒场'];
-                const warehouseTypes = ['产地仓', '交收仓', '云仓'];
-
-                if (factoryTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '八角智能烘干工厂') {
+                // 根据后端 property_category_code 决定 type 参数
+                const categoryCode = popupDataSnapshot.property_category_code;
+                if (categoryCode === 'factory') {
                     query.type = 'factory';
-                } else if (warehouseTypes.includes(popupDataSnapshot.type) || popupDataSnapshot.displayName === '仓库') {
+                } else if (categoryCode === 'warehouse') {
                     query.type = 'warehouse';
-                } else if (popupDataSnapshot.type === 'tea-oil') {
-                    query.type = 'tea-oil';
-                } else if (popupDataSnapshot.type === 'star-anise') {
-                    query.type = 'star-anise';
+                } else if (categoryCode === 'forest') {
+                    // 对于林业，使用 property_type_name 来进一步区分
+                    query.type = popupDataSnapshot.property_type_name || 'star-anise';
                 }
 
                 this.$router.push({
