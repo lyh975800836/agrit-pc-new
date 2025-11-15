@@ -13,11 +13,11 @@ export default {
         return {
             chart: null,
             sulfurData: [
-                { year: '2021', sulfurPercent: 64.1 },
-                { year: '2022', sulfurPercent: 67.5 },
+                { year: '2021', sulfurPercent: 74.9 },
+                { year: '2022', sulfurPercent: 73.5 },
                 { year: '2023', sulfurPercent: 70.1 },
-                { year: '2024', sulfurPercent: 73.5 },
-                { year: '2025', sulfurPercent: 74.9 }
+                { year: '2024', sulfurPercent: 67.5 },
+                { year: '2025', sulfurPercent: 64.1 }
             ]
         };
     },
@@ -90,7 +90,7 @@ export default {
                     }
                 },
                 legend: {
-                    data: ['无硫八角', '有硫八角'],
+                    data: ['有硫八角', '无硫八角'],
                     textStyle: {
                         color: '#C69C6D',
                         fontSize: 12,
@@ -102,13 +102,13 @@ export default {
                 },
                 series: [
                     {
-                        name: '无硫八角',
+                        name: '有硫八角',
                         type: 'bar',
-                        data: sulfurFreeData,
+                        data: sulfuredData,
                         barWidth: '50%',
                         stack: 'total',
                         itemStyle: {
-                            color: '#22C55E',
+                            color: '#FF6B4A',
                             borderRadius: [4, 0, 0, 4]
                         },
                         label: {
@@ -124,13 +124,13 @@ export default {
                         }
                     },
                     {
-                        name: '有硫八角',
+                        name: '无硫八角',
                         type: 'bar',
-                        data: sulfuredData,
+                        data: sulfurFreeData,
                         barWidth: '50%',
                         stack: 'total',
                         itemStyle: {
-                            color: '#FF6B4A',
+                            color: '#22C55E',
                             borderRadius: [0, 4, 4, 0]
                         },
                         label: {
