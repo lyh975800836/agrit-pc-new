@@ -89,18 +89,20 @@ export default {
     width: 100%;
     height: 100%;
 
-    background: rgba(0, 0, 0, 0.7);
+    background: #000000b3;
+
     backdrop-filter: blur(4px);
 }
 
 .farming-detail-dialog {
     position: relative;
+    overflow: hidden;
     width: 713px;
     height: 655px;
-    overflow: hidden;
     padding: 23px 50px 33px 44px;
-    scrollbar-width: none;
+
     -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 // 关闭按钮
@@ -115,14 +117,15 @@ export default {
     width: 32px;
     height: 32px;
     border: none;
+
     border-radius: 50%;
-    background: #C69C6D;
-    transition: all 0.3s ease;
+    background: #c69c6d;
+    transition: all .3s ease;
     cursor: pointer;
 
     &:hover {
         background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%);
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        box-shadow: 0 0 15px #ffd70099;
         transform: scale(1.1);
     }
 }
@@ -145,14 +148,14 @@ export default {
     font-size: 20px;
     font-weight: 500;
 
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .header-content {
     font-family: SourceHanSansCN-Regular;
     font-size: 14px;
     line-height: 21px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 // 施工安全事项标题
@@ -162,15 +165,15 @@ export default {
     font-size: 20px;
     font-weight: 500;
 
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 // 图片网格
 .images-grid {
     display: grid;
+    justify-content: space-between;
     grid-template-columns: repeat(2, 297px);
     gap: 20px;
-    justify-content: space-between;
 }
 
 .image-item {
@@ -180,13 +183,13 @@ export default {
     border: 1px solid #4ccfea4d;
 
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.3);
+    background: #0000004d;
 
     img {
         width: 100%;
         height: 100%;
+        transition: transform .3s ease;
         object-fit: cover;
-        transition: transform 0.3s ease;
     }
 
     &:hover img {

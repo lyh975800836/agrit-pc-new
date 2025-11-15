@@ -393,7 +393,7 @@
 </template>
 
 <script>
-import DashboardHeader from '@/components/DashboardHeader.vue';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import PriceTrendChart from '@/components/charts/PriceTrendChart.vue';
 import ProductionChart from '@/components/charts/ProductionChart.vue';
 import PlantingAreaChart from '@/components/charts/PlantingAreaChart.vue';

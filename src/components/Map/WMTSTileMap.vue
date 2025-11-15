@@ -41,145 +41,18 @@
     </div>
 
     <!-- 瓦片图片管理弹窗 -->
-    <div v-if="showTileImageModal" class="modal-overlay" @click="closeTileImageManager">
-      <div class="modal-content tile-image-modal" @click.stop>
-        <div class="modal-header">
-          <h3>
-            <span v-if="!showImagePreview">瓦片图片</span>
-            <span v-else>图片预览 ({{ currentPreviewIndex + 1 }}/{{ currentTileImages.length }})</span>
-            - {{ currentTilePosition.z }}/{{ currentTilePosition.x }}/{{ currentTilePosition.y }}
-          </h3>
-          <button class="close-btn" @click="closeTileImageManager">&times;</button>
-        </div>
-        <div class="modal-body">
-          <!-- 网格视图 -->
-          <div v-if="!showImagePreview">
-            <!-- 图片网格 -->
-            <div class="tile-images-grid">
-              <div
-                v-for="(image, index) in currentTileImages"
-                :key="image.id"
-                class="tile-image-item"
-                @click="openImagePreview(index)"
-              >
-                <img :src="image.image_url" :alt="`图片 ${image.id}`" />
-              </div>
-            </div>
-
-            <div v-if="currentTileImages.length === 0" class="empty-message">
-              该瓦片暂无图片
-            </div>
-          </div>
-
-          <!-- 预览视图 -->
-          <div v-else class="preview-view">
-            <div class="preview-navigation">
-              <button
-                class="nav-btn nav-prev"
-                @click.stop="previousImage"
-                :disabled="currentPreviewIndex === 0"
-                title="上一张 (←)"
-              >
-                ←
-              </button>
-
-              <div class="preview-image-container">
-                <img
-                  :src="currentPreviewImage.image_url"
-                  :alt="`图片 ${currentPreviewImage.id}`"
-                  class="marker-image"
-                  @click="openFullscreenPreview"
-                />
-              </div>
-
-              <button
-                class="nav-btn nav-next"
-                @click.stop="nextImage"
-                :disabled="currentPreviewIndex === currentTileImages.length - 1"
-                title="下一张 (→)"
-              >
-                →
-              </button>
-            </div>
-
-            <div class="marker-details">
-              <p><strong>上传时间:</strong> {{ currentPreviewImage.created_at || '未知' }}</p>
-              <p><strong>描述:</strong> {{ currentPreviewImage.description || '暂无描述' }}</p>
-            </div>
-
-            <!-- 农事建议 -->
-            <div class="farming-suggestion">
-              <div class="suggestion-header">
-                <strong class="suggestion-title">
-                  <span>智能</span>
-                  <span>农事</span>
-                  <span>建议</span>
-                </strong>
-              </div>
-              <div class="suggestion-content">
-                <p>1、该区域作物长势良好，叶色浓绿，整体健康状态优良</p>
-                <p>2、未发现明显病虫害迹象，无需进行病虫害防治</p>
-                <p>3、建议保持当前管理措施，继续观察作物生长动态</p>
-                <p>4、近期如遇连续阴雨天气，注意排水防涝工作</p>
-              </div>
-              <div class="suggestion-back">
-                返回列表
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      v-if="isFullscreenPreview"
-      class="fullscreen-image-overlay"
-      @click="closeFullscreenPreview"
-    >
-      <div class="fullscreen-image-wrapper" @click.stop>
-        <button
-          type="button"
-          class="fullscreen-close-btn"
-          @click.stop="closeFullscreenPreview"
-          aria-label="关闭全屏预览"
-          title="关闭 (Esc)"
-        >
-          ×
-        </button>
-
-        <button
-          type="button"
-          class="fullscreen-nav-btn fullscreen-nav-prev"
-          @click.stop="previousImage"
-          :disabled="currentPreviewIndex === 0"
-          aria-label="上一张"
-          title="上一张 (←)"
-        >
-          ←
-        </button>
-
-        <img
-          :src="currentPreviewImage.image_url"
-          :alt="currentPreviewImage.id ? `图片 ${currentPreviewImage.id}` : '图片预览'"
-        />
-
-        <button
-          type="button"
-          class="fullscreen-nav-btn fullscreen-nav-next"
-          @click.stop="nextImage"
-          :disabled="currentPreviewIndex === currentTileImages.length - 1"
-          aria-label="下一张"
-          title="下一张 (→)"
-        >
-          →
-        </button>
-      </div>
-    </div>
+    <TileImageManager
+      :visible="showTileImageModal"
+      :images="currentTileImages"
+      :tile-position="currentTilePosition"
+      @close="closeTileImageManager"
+    />
   </div>
 </template>
 
 <script>
 import { generatePlotIdMapping, getTilePreset, getDefaultZoomLevel, findPlotNameById, findPlotConfig } from '@/utils/plotConfig';
+import TileImageManager from '@/components/Map/TileImageManager.vue';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
 const EARTH_RADIUS_METERS = 6378137; // WGS84
@@ -187,6 +60,9 @@ const MU_IN_SQUARE_METERS = 666.6666667;
 
 export default {
     name: 'WMTSTileMap',
+    components: {
+        TileImageManager
+    },
     props: {
         regionName: {
             type: String,
@@ -219,10 +95,6 @@ export default {
             showTileImageModal: false,
             currentTilePosition: { x: 0, y: 0, z: 0 },
             currentTileImages: [],
-            // 图片预览相关
-            showImagePreview: false,
-            currentPreviewIndex: 0,
-            isFullscreenPreview: false,
             // 响应式瓦片尺寸
             tileSizePx: 120,
             resizeObserver: null
@@ -332,12 +204,6 @@ export default {
             }
             const containerHeight = this.$refs.tileGrid.clientHeight;
             return Math.ceil(containerHeight / this.tileSize) + 2;
-        },
-        currentPreviewImage() {
-            if (!this.currentTileImages.length || this.currentPreviewIndex < 0) {
-                return {};
-            }
-            return this.currentTileImages[this.currentPreviewIndex] || {};
         }
     },
     watch: {
@@ -966,22 +832,9 @@ export default {
                 z: this.zoomLevel
             };
             this.showTileImageModal = true;
-            this.currentPreviewIndex = 0;
-            this.isFullscreenPreview = false;
 
             // 加载该瓦片的图片列表
             await this.loadTileImages(x, y);
-
-            // 如果有图片，直接打开预览模式；否则显示网格视图
-            if (this.currentTileImages.length > 0) {
-                this.showImagePreview = true;
-            }
-            else {
-                this.showImagePreview = false;
-            }
-
-            // 添加键盘事件监听
-            document.addEventListener('keydown', this.handleKeyboardNavigation);
         },
 
         async loadTileImages(x, y) {
@@ -994,88 +847,7 @@ export default {
 
         closeTileImageManager() {
             this.showTileImageModal = false;
-            this.showImagePreview = false;
             this.currentTileImages = [];
-            this.currentPreviewIndex = 0;
-            this.isFullscreenPreview = false;
-            // 移除键盘事件监听
-            document.removeEventListener('keydown', this.handleKeyboardNavigation);
-        },
-
-        // 图片预览相关方法
-        openImagePreview(index) {
-            this.currentPreviewIndex = index;
-            this.showImagePreview = true;
-            this.isFullscreenPreview = false;
-        },
-
-        closeImagePreview() {
-            this.showImagePreview = false;
-            this.currentPreviewIndex = 0;
-            this.isFullscreenPreview = false;
-        },
-
-        openFullscreenPreview() {
-            if (!this.currentPreviewImage || !this.currentPreviewImage.image_url) {
-                return;
-            }
-            this.isFullscreenPreview = true;
-        },
-
-        closeFullscreenPreview() {
-            if (!this.isFullscreenPreview) {
-                return;
-            }
-            this.isFullscreenPreview = false;
-        },
-
-        previousImage() {
-            if (this.currentPreviewIndex > 0) {
-                this.currentPreviewIndex -= 1;
-            }
-        },
-
-        nextImage() {
-            if (this.currentPreviewIndex < this.currentTileImages.length - 1) {
-                this.currentPreviewIndex += 1;
-            }
-        },
-
-        handleKeyboardNavigation(event) {
-            if (!this.showTileImageModal) {
-                return;
-            }
-
-            if (this.isFullscreenPreview) {
-                if (event.key === 'Escape') {
-                    event.preventDefault();
-                    this.closeFullscreenPreview();
-                    return;
-                }
-            }
-
-            // 如果在预览模式
-            if (this.showImagePreview) {
-                switch (event.key) {
-                    case 'ArrowLeft':
-                        this.previousImage();
-                        break;
-                    case 'ArrowRight':
-                        this.nextImage();
-                        break;
-                    case 'Escape':
-                        this.closeImagePreview();
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else {
-                // 如果在网格模式，Esc 关闭整个弹窗
-                if (event.key === 'Escape') {
-                    this.closeTileImageManager();
-                }
-            }
         },
 
         observeTileGrid() {
@@ -1267,16 +1039,17 @@ export default {
     max-width: 100%;
     max-height: 50vh;
     border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 10px 24px #00000073;
 }
 
 .marker-details {
     margin-top: 12px;
     padding: 0 40px;
+    font-size: 17px;
     line-height: 1.6;
     text-align: left;
+
     color: #c7b299;
-    font-size: 17px;
 }
 
 .marker-details strong {
@@ -1298,43 +1071,47 @@ export default {
     font-weight: 700;
 
     color: #fff;
-    background: url('/public/images/mark-point.png') no-repeat center/contain;
-    filter: drop-shadow(0 2px 6px rgba(255, 71, 87, 0.45));
+    background: url("/public/images/mark-point.png") no-repeat center/contain;
     transition: transform .2s ease, filter .2s ease;
     cursor: pointer;
+
+    filter: drop-shadow(0 2px 6px #ff475773);
 }
 
 .tile-image-count:hover {
     transform: scale(1.08);
-    filter: drop-shadow(0 4px 10px rgba(255, 71, 87, 0.55));
+    filter: drop-shadow(0 4px 10px #ff47578c);
 }
 
 /* 瓦片图片管理弹窗样式 */
 .tile-image-modal {
     position: relative;
     display: flex;
+    overflow: hidden;
     flex-direction: column;
     box-sizing: border-box;
     width: 50%;
     max-width: 92vw;
     max-height: 88vh;
     padding: 26px 12px 32px;
-    border: 1px solid rgba(76, 252, 234, 0.25);
-    border-radius: 12px;
-    overflow: hidden;
-    background: linear-gradient(135deg, rgba(16, 40, 56, 0.95) 0%, rgba(8, 28, 36, 0.95) 100%);
-    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.72);
+    border: 1px solid #4cfcea40;
+
     color: #c7b299;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #102838f2 0%, #081c24f2 100%);
+    box-shadow: 0 18px 46px #000000b8;
+
     gap: 20px;
 }
 
 .tile-image-modal .modal-body {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: calc(88vh - 120px);
     display: flex;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1;
     flex-direction: column;
+    max-height: calc(88vh - 120px);
+
     gap: 20px;
     scrollbar-width: none;
 }
@@ -1346,30 +1123,33 @@ export default {
 .tile-images-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 18px;
     padding: 18px;
-    border: 1px solid rgba(76, 252, 234, 0.18);
+    border: 1px solid #4cfcea2e;
+
     border-radius: 12px;
-    background: rgba(12, 38, 54, 0.55);
+    background: #0c26368c;
+
     backdrop-filter: blur(2px);
+    gap: 18px;
 }
 
 .tile-image-item {
     position: relative;
     overflow: hidden;
     padding-top: 72%;
+    border: 1px solid #c7b2992e;
+
     border-radius: 10px;
-    border: 1px solid rgba(199, 178, 153, 0.18);
-    background: rgba(255, 255, 255, 0.04);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    background: #ffffff0a;
+    box-shadow: 0 2px 12px #00000059;
     transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     cursor: pointer;
 }
 
 .tile-image-item:hover {
+    border-color: #c7b29973;
+    box-shadow: 0 12px 24px #00000073;
     transform: translateY(-4px);
-    border-color: rgba(199, 178, 153, 0.45);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
 }
 
 .tile-image-item img {
@@ -1384,13 +1164,14 @@ export default {
 
 .empty-message {
     padding: 42px;
-    text-align: center;
+    border: 1px dashed #c7b29973;
     font-family: SourceHanSansCN-Regular;
     font-size: 16px;
+    text-align: center;
+
     color: #c7b299;
-    border: 1px dashed rgba(199, 178, 153, 0.45);
     border-radius: 12px;
-    background: rgba(12, 38, 54, 0.55);
+    background: #0c26368c;
 }
 
 /* 通用按钮样式 */
@@ -1444,6 +1225,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 20px;
     font-weight: 500;
+
     color: #c7b299;
 }
 
@@ -1454,19 +1236,20 @@ export default {
     width: 28px;
     height: 28px;
     padding: 0;
-    border: 1px solid rgba(199, 178, 153, 0.45);
-    border-radius: 50%;
-    background: rgba(8, 28, 36, 0.65);
-    color: #c7b299;
+    border: 1px solid #c7b29973;
     font-size: 18px;
     line-height: 26px;
     text-align: center;
+
+    color: #c7b299;
+    border-radius: 50%;
+    background: #081c24a6;
     transition: transform .2s ease, background .2s ease;
     cursor: pointer;
 }
 
 .close-btn:hover {
-    background: rgba(199, 178, 153, 0.18);
+    background: #c7b2992e;
     transform: scale(1.05);
 }
 
@@ -1474,9 +1257,11 @@ export default {
 .preview-view {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+
     border-radius: 12px;
-    background: rgba(12, 38, 54, 0.55);
+    background: #0c26368c;
+
+    gap: 18px;
 }
 
 .preview-navigation {
@@ -1496,22 +1281,24 @@ export default {
     justify-content: center;
     width: 100%;
     height: 100%;
+
     border-radius: 12px;
 }
 
 .preview-image-container img {
     width: 100%;
     height: 100%;
+
     border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 10px 24px #00000073;
     cursor: zoom-in;
 }
 
 .preview-navigation .nav-btn {
     position: absolute;
+    z-index: 10;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 10;
 }
 
 .preview-navigation .nav-prev {
@@ -1525,13 +1312,15 @@ export default {
 .fullscreen-image-overlay {
     position: fixed;
     z-index: 1500;
-    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 40px;
-    background: rgba(4, 12, 18, 0.1);
+
+    background: #040c121a;
+
     backdrop-filter: blur(2px);
+    inset: 0;
 }
 
 .fullscreen-image-wrapper {
@@ -1539,17 +1328,20 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 28px;
     max-width: 100%;
+
+    gap: 28px;
 }
 
 .fullscreen-image-overlay img {
     max-width: 88vw;
     max-height: 88vh;
-    object-fit: contain;
+
     border-radius: 12px;
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 18px 48px #0009;
     cursor: zoom-out;
+
+    object-fit: contain;
 }
 
 .fullscreen-nav-btn {
@@ -1558,23 +1350,24 @@ export default {
     justify-content: center;
     width: 56px;
     height: 56px;
-    border: 1px solid rgba(199, 178, 153, 0.45);
-    border-radius: 50%;
-    background: rgba(8, 28, 36, 0.7);
-    color: #c7b299;
+    border: 1px solid #c7b29973;
     font-size: 26px;
     line-height: 1;
-    cursor: pointer;
+
+    color: #c7b299;
+    border-radius: 50%;
+    background: #081c24b3;
     transition: transform .2s ease, background .2s ease;
+    cursor: pointer;
 }
 
 .fullscreen-nav-btn:hover:not(:disabled) {
-    background: rgba(199, 178, 153, 0.2);
+    background: #c7b29933;
     transform: scale(1.08);
 }
 
 .fullscreen-nav-btn:active:not(:disabled) {
-    transform: scale(0.95);
+    transform: scale(.95);
 }
 
 .fullscreen-nav-btn:disabled {
@@ -1596,35 +1389,36 @@ export default {
     justify-content: center;
     width: 40px;
     height: 40px;
-    border: 1px solid rgba(199, 178, 153, 0.45);
-    border-radius: 50%;
-    background: rgba(8, 28, 36, 0.7);
-    color: #c7b299;
+    border: 1px solid #c7b29973;
     font-size: 24px;
     line-height: 1;
-    cursor: pointer;
+
+    color: #c7b299;
+    border-radius: 50%;
+    background: #081c24b3;
     transition: transform .2s ease, background .2s ease;
+    cursor: pointer;
 }
 
 .fullscreen-close-btn:hover {
-    background: rgba(199, 178, 153, 0.2);
+    background: #c7b29933;
     transform: scale(1.05);
 }
 
 .fullscreen-close-btn:active {
-    transform: scale(0.92);
+    transform: scale(.92);
 }
-
 
 .nav-btn {
     flex-shrink: 0;
     width: 46px;
     height: 46px;
-    border: 1px solid rgba(199, 178, 153, 0.35);
-    border-radius: 50%;
-    background: rgba(8, 28, 36, 0.65);
-    color: #c7b299;
+    border: 1px solid #c7b29959;
     font-size: 20px;
+
+    color: #c7b299;
+    border-radius: 50%;
+    background: #081c24a6;
     cursor: pointer;
 }
 
@@ -1640,16 +1434,17 @@ export default {
 }
 
 .btn-secondary {
-    color: #c7b299;
-    background: rgba(8, 28, 36, 0.65);
-    border: 1px solid rgba(199, 178, 153, 0.35);
-    border-radius: 6px;
     padding: 8px 24px;
+    border: 1px solid #c7b29959;
+
+    color: #c7b299;
+    border-radius: 6px;
+    background: #081c24a6;
     transition: background .2s ease, transform .2s ease;
 }
 
 .btn-secondary:hover {
-    background: rgba(199, 178, 153, 0.18);
+    background: #c7b2992e;
     transform: translateY(-1px);
 }
 
@@ -1658,13 +1453,14 @@ export default {
     position: relative;
     margin-top: 14px;
     padding: 24px 32px;
-    border-radius: 18px;
-    background-color: rgba(8, 28, 36, 0.65);
-    background-image: url('/public/images/ai-advice.png');
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
+
     color: #c7b299;
+    border-radius: 18px;
+    background-color: #081c24a6;
+    background-image: url("/public/images/ai-advice.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
 }
 
 .suggestion-header {
@@ -1672,6 +1468,7 @@ export default {
     display: flex;
     align-items: flex-start;
     margin-bottom: 12px;
+
     color: #c7b299;
 }
 
@@ -1696,8 +1493,8 @@ export default {
 }
 
 .suggestion-content {
-    line-height: 1.8;
     padding-left: 9vw;
+    line-height: 1.8;
 }
 
 .suggestion-content p {
@@ -1717,21 +1514,22 @@ export default {
 
 .suggestion-back {
     position: absolute;
-    right: 20px;
     top: 50%;
-    transform: translate(0, -40%);
+    right: 20px;
     width: 160px;
     height: 50px;
+    font-weight: 600;
     line-height: 50px;
     text-align: center;
-    color: #D8AF87;
-    font-weight: 600;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
-    background-image: url('/public/images/back-list.png');
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-position: center;
+
+    color: #d8af87;
     border-radius: 14px;
+    background-image: url("/public/images/back-list.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+    text-shadow: 0 1px 1px #ffffff59;
+    transform: translate(0, -40%);
     cursor: pointer;
 }
 </style>

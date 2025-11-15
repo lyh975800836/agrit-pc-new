@@ -694,10 +694,10 @@
 </template>
 
 <script>
-import DashboardLayout from '@/components/DashboardLayout.vue';
-import WMTSTileMap from '@/components/WMTSTileMap.vue';
-import HealthIndicatorModal from '@/components/HealthIndicatorModal.vue';
-import FarmingDetailDialog from '@/components/FarmingDetailDialog.vue';
+import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
+import WMTSTileMap from '@/components/Map/WMTSTileMap.vue';
+import HealthIndicatorModal from '@/components/Dialogs/HealthIndicatorModal.vue';
+import FarmingDetailDialog from '@/components/Dialogs/FarmingDetailDialog.vue';
 import { getAllPlotNames } from '@/utils/plotConfig';
 
 export default {

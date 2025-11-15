@@ -44,10 +44,10 @@ import {
 import {
     getTypeIcon
 } from '@/utils/plotMarkerManager';
-import MapLoadingOverlay from '@/components/MapLoadingOverlay.vue';
-import CategorySidebar from '@/components/CategorySidebar.vue';
-import CategoryPopup from '@/components/CategoryPopup.vue';
-import PlotDetailPopup from '@/components/PlotDetailPopup.vue';
+import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
+import CategorySidebar from '@/components/Dialogs/CategorySidebar.vue';
+import CategoryPopup from '@/components/Dialogs/CategoryPopup.vue';
+import PlotDetailPopup from '@/components/Dialogs/PlotDetailPopup.vue';
 
 // 使用CDN引入的Leaflet (在index.html中已引入)
 const { L } = window;

@@ -26,15 +26,16 @@ export default {
 <style lang="less" scoped>
 .loading-overlay {
     position: absolute;
+    z-index: 1000;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    width: 100%;
+    height: 100%;
+
+    background: #00000080;
 }
 
 .loading-spinner {
@@ -47,9 +48,10 @@ export default {
 .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
+    border: 4px solid #ffffff4d;
     border-top-color: #fff;
+
+    border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
@@ -61,7 +63,7 @@ export default {
 
 .loading-text {
     margin-top: 15px;
-    color: #fff;
     font-size: 14px;
+    color: #fff;
 }
 </style>

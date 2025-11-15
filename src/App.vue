@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import EarthIntro from '@/components/EarthIntro.vue';
+import EarthIntro from '@/components/ThreeD/EarthIntro.vue';
 
 export default {
     name: 'App',

@@ -42,56 +42,59 @@ export default {
 <style lang="less" scoped>
 .category-popup {
     position: fixed;
+    z-index: 500;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 500;
+    width: 100%;
+    height: 100%;
+
+    background: #00000080;
 }
 
 .popup-content {
-    background: #041f1c;
-    border: 1px solid #c69c6d;
-    border-radius: 4px;
-    padding: 20px;
-    max-width: 400px;
     width: 90%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+    padding: 20px;
+    border: 1px solid #c69c6d;
+
+    border-radius: 4px;
+    background: #041f1c;
+    box-shadow: 0 4px 20px #00000080;
 }
 
 .popup-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(198, 156, 109, 0.3);
+    border-bottom: 1px solid #c69c6d4d;
 
     h3 {
-        color: #c69c6d;
-        font-size: 16px;
         margin: 0;
+        font-size: 16px;
         font-weight: 500;
+        color: #c69c6d;
     }
 }
 
 .popup-close-btn {
-    background: none;
-    border: none;
-    color: #c69c6d;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0;
-    width: 24px;
-    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.3s ease;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    font-size: 20px;
+
+    color: #c69c6d;
+    background: none;
+    transition: color .3s ease;
+    cursor: pointer;
 
     &:hover {
         color: #fff;
@@ -102,16 +105,16 @@ export default {
     margin-bottom: 15px;
 
     p {
-        color: rgba(198, 156, 109, 0.8);
+        margin: 0 0 10px;
         font-size: 13px;
         line-height: 1.6;
-        margin: 0 0 10px 0;
+        color: #c69c6dcc;
     }
 }
 
 .popup-stats {
-    color: rgba(198, 156, 109, 0.6);
     font-size: 12px;
+    color: #c69c6d99;
 }
 
 .popup-footer {
@@ -120,19 +123,20 @@ export default {
 }
 
 .navigate-btn {
-    background: rgba(198, 156, 109, 0.3);
-    border: 1px solid #c69c6d;
-    color: #c69c6d;
     padding: 8px 16px;
-    border-radius: 3px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    border: 1px solid #c69c6d;
     font-family: SourceHanSansCN-Regular;
+    font-size: 12px;
+
+    color: #c69c6d;
+    border-radius: 3px;
+    background: #c69c6d4d;
+    transition: all .3s ease;
+    cursor: pointer;
 
     &:hover {
-        background: rgba(198, 156, 109, 0.5);
         color: #fff;
+        background: #c69c6d80;
     }
 }
 </style>

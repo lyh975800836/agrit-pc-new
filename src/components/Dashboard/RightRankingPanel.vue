@@ -95,11 +95,11 @@
             <div class="section-header">
               <h4 class="section-title">标准农事</h4>
             </div>
-            
+
             <!-- 农事项目列表 -->
             <div class="farming-items-list">
-              <div class="farming-item" 
-                   v-for="(item, index) in standardFarmingItems" 
+              <div class="farming-item"
+                   v-for="(item, index) in standardFarmingItems"
                    :key="index"
                    :class="{ 'farming-item--active': selectedFarmingItem && item.id === selectedFarmingItem.id }"
                    @click="handleFarmingItemClick(item)">
@@ -136,7 +136,7 @@
                 <span class="name-text">{{ selectedFarmingItem.name }}</span>
                 <span v-if="selectedFarmingItem.status === 'current'" class="current-badge">（当前）</span>
               </div>
-              
+
               <div class="farming-time">
                 <div class="time-item">
                   <span class="time-label">开始时间：</span>
@@ -211,7 +211,7 @@
 </template>
 
 <script>
-import FarmingDetailDialog from './FarmingDetailDialog.vue';
+import FarmingDetailDialog from '@/components/Dialogs/FarmingDetailDialog.vue';
 import { getCategoryImages } from '@/utils/imageManager';
 
 export default {
@@ -263,13 +263,13 @@ export default {
                 { type: 'poor', value: this.qualityData.poor, label: '较差' }
             ];
         },
-        
+
         // 标准农事项目数据
         standardFarmingItems() {
             return [
-                { 
-                    id: 'winter-fertilizing', 
-                    name: '冬季施肥', 
+                {
+                    id: 'winter-fertilizing',
+                    name: '冬季施肥',
                     startDate: '12月01日',
                     endDate: '12月30日',
                     description: '复合肥',
@@ -277,9 +277,9 @@ export default {
                     status: 'completed',
                     isGold: false
                 },
-                { 
-                    id: 'spring-pest-control', 
-                    name: '春季生物防治', 
+                {
+                    id: 'spring-pest-control',
+                    name: '春季生物防治',
                     startDate: '3月01日',
                     endDate: '3月30日',
                     description: '生物防治药剂',
@@ -287,9 +287,9 @@ export default {
                     status: 'completed',
                     isGold: false
                 },
-                { 
-                    id: 'spring-strong-fertilizing', 
-                    name: '春季强梢施肥', 
+                {
+                    id: 'spring-strong-fertilizing',
+                    name: '春季强梢施肥',
                     startDate: '4月01日',
                     endDate: '4月30日',
                     description: '强梢专用肥',
@@ -297,9 +297,9 @@ export default {
                     status: 'completed',
                     isGold: false
                 },
-                { 
-                    id: 'summer-weeding', 
-                    name: '夏季除草', 
+                {
+                    id: 'summer-weeding',
+                    name: '夏季除草',
                     startDate: '6月01日',
                     endDate: '6月30日',
                     description: '除草剂',
@@ -307,9 +307,9 @@ export default {
                     status: 'completed',
                     isGold: false
                 },
-                { 
-                    id: 'summer-enhanced-treatment', 
-                    name: '夏季加强版生物防治+催花', 
+                {
+                    id: 'summer-enhanced-treatment',
+                    name: '夏季加强版生物防治+催花',
                     startDate: '7月01日',
                     endDate: '7月30日',
                     description: '生物防治剂+催花素',
@@ -317,9 +317,9 @@ export default {
                     status: 'completed',
                     isGold: false
                 },
-                { 
-                    id: 'autumn-flower-protection', 
-                    name: '秋季保花施肥', 
+                {
+                    id: 'autumn-flower-protection',
+                    name: '秋季保花施肥',
                     startDate: '8月01日',
                     endDate: '8月30日',
                     description: '复合肥',
@@ -327,9 +327,9 @@ export default {
                     status: 'current',
                     isGold: false
                 },
-                { 
-                    id: 'winter-fruit-strengthening', 
-                    name: '冬季保果壮果', 
+                {
+                    id: 'winter-fruit-strengthening',
+                    name: '冬季保果壮果',
                     startDate: '11月01日',
                     endDate: '11月30日',
                     description: '壮果专用肥',
@@ -337,9 +337,9 @@ export default {
                     status: 'expected',
                     isGold: true
                 },
-                { 
-                    id: 'spring-fruit-protection', 
-                    name: '春季保果', 
+                {
+                    id: 'spring-fruit-protection',
+                    name: '春季保果',
                     startDate: '2月01日',
                     endDate: '2月28日',
                     description: '保果剂',
@@ -347,9 +347,9 @@ export default {
                     status: 'expected',
                     isGold: true
                 },
-                { 
-                    id: 'summer-fruit-strengthening', 
-                    name: '夏季壮果', 
+                {
+                    id: 'summer-fruit-strengthening',
+                    name: '夏季壮果',
                     startDate: '5月01日',
                     endDate: '5月30日',
                     description: '壮果肥',
@@ -357,9 +357,9 @@ export default {
                     status: 'expected',
                     isGold: true
                 },
-                { 
-                    id: 'autumn-harvest', 
-                    name: '秋果采摘', 
+                {
+                    id: 'autumn-harvest',
+                    name: '秋果采摘',
                     startDate: '10月01日',
                     endDate: '10月30日',
                     description: '成熟度检测',
@@ -395,7 +395,7 @@ export default {
             };
             return mapping[type] || '';
         },
-        
+
         getStatusText(status) {
             const statusMap = {
                 current: '当前',
@@ -405,7 +405,7 @@ export default {
             };
             return statusMap[status] || status;
         },
-        
+
         getStatusClass(status) {
             const classMap = {
                 current: 'status-current',
@@ -415,7 +415,7 @@ export default {
             };
             return classMap[status] || '';
         },
-        
+
         // 处理农事项目点击
         handleFarmingItemClick(item) {
             // 向父组件发出事件，更新选中的农事项目
@@ -488,11 +488,12 @@ export default {
     margin: 21px 0 5px;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
+    font-weight: 600;
     line-height: 15px;
     text-align: center;
     white-space: nowrap;
-    font-weight: 600;
-    color: #1D3534;
+
+    color: #1d3534;
 
     .production-ranking & {
         width: 117px;
@@ -506,7 +507,7 @@ export default {
 }
 
 .header-title-second {
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .header-underline {
@@ -533,8 +534,8 @@ export default {
     .sub-title {
         font-family: SourceHanSansCN-Light;
         font-size: 14px;
-        color: #c69c6d;
         font-weight: 600;
+        color: #c69c6d;
     }
 }
 
@@ -553,7 +554,7 @@ export default {
 .ranking-list {
     position: relative;
     width: 340px;
-    margin: 13px 0 0 0;
+    margin: 13px 0 0;
 }
 
 .ranking-items {
@@ -649,7 +650,7 @@ export default {
     text-align: center;
     white-space: nowrap;
 
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .location-info {
@@ -669,9 +670,10 @@ export default {
 .location-name {
     font-family: SourceHanSansCN-Light;
     font-size: 13px;
+    font-weight: 600;
     text-align: center;
     white-space: nowrap;
-    font-weight: 600;
+
     color: #c69c6d;
 }
 
@@ -680,21 +682,22 @@ export default {
     align-items: baseline;
     justify-content: center;
     font-weight: 600;
+
     gap: 2px;
 }
 
 .area-number {
     font-family: SourceHanSansCN-Medium;
     font-size: 13px;
-    color: #c69c6d;
     font-weight: 600;
+    color: #c69c6d;
 }
 
 .area-unit {
     font-family: SourceHanSansCN-Light;
     font-size: 13px;
-    color: #c69c6d;
     font-weight: 600;
+    color: #c69c6d;
 }
 
 .district-name {
@@ -703,7 +706,8 @@ export default {
     font-weight: 700;
     text-align: center;
     white-space: nowrap;
-    color: #4CFDEB;
+
+    color: #4cfdeb;
 }
 
 .yield-info {
@@ -911,8 +915,8 @@ export default {
 
 .farming-dynamics-sections {
     display: flex;
-    gap: 10px;
     justify-content: space-between;
+    gap: 10px;
 }
 
 // 左侧标准农事区域
@@ -929,7 +933,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
     font-weight: 500;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .farming-items-list {
@@ -941,30 +945,32 @@ export default {
     align-items: center;
     margin-bottom: 8px;
     padding: 6px 8px;
+
     border-radius: 4px;
+    transition: all .3s ease;
     cursor: pointer;
-    transition: all 0.3s ease;
+
     gap: 8px;
 }
 
 .farming-item:hover {
-    background: rgba(76, 253, 235, 0.1);
+    background: #4cfdeb1a;
     transform: translateX(2px);
 }
 
 .farming-item--active {
-    background: rgba(76, 253, 235, 0.2);
-    border-left: 3px solid #C69C6D;
+    border-left: 3px solid #c69c6d;
+    background: #4cfdeb33;
     transform: translateX(2px);
 }
 
 .farming-icon-wrapper {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
+    width: 20px;
+    height: 20px;
 }
 
 .farming-symbol {
@@ -976,7 +982,8 @@ export default {
     font-family: SourceHanSansCN-Regular;
     font-size: 11px;
     line-height: 1.4;
-    color: #C69C6D;
+
+    color: #c69c6d;
 }
 
 .farming-text--gold {
@@ -999,7 +1006,7 @@ export default {
 .status-text {
     font-family: SourceHanSansCN-Regular;
     font-size: 9px;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .status-bar {
@@ -1008,7 +1015,7 @@ export default {
 }
 
 .status-bar--executed {
-    background: #C69C6D;
+    background: #c69c6d;
 }
 
 .status-bar--pending {
@@ -1026,7 +1033,7 @@ export default {
     padding: 12px;
     border: 1px solid #4cfcea33;
     border-radius: 6px;
-    background: rgba(76, 253, 235, 0.05);
+    background: #4cfdeb0d;
 }
 
 .farming-name,
@@ -1041,7 +1048,7 @@ export default {
     font-family: SourceHanSansCN-Medium;
     font-size: 12px;
     font-weight: 500;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .current-badge {
@@ -1062,10 +1069,10 @@ export default {
 }
 
 .time-label {
+    min-width: 60px;
     font-family: SourceHanSansCN-Regular;
     font-size: 10px;
-    color: #C69C6D;
-    min-width: 60px;
+    color: #c69c6d;
 }
 
 .time-value {
@@ -1082,10 +1089,10 @@ export default {
 }
 
 .prescription-label {
+    min-width: 40px;
     font-family: SourceHanSansCN-Regular;
     font-size: 10px;
-    color: #C69C6D;
-    min-width: 40px;
+    color: #c69c6d;
 }
 
 .prescription-value {
@@ -1100,32 +1107,35 @@ export default {
 }
 
 .requirement-label {
-    font-family: SourceHanSansCN-Regular;
-    font-size: 10px;
-    color: #C69C6D;
     display: block;
     margin-bottom: 4px;
+    font-family: SourceHanSansCN-Regular;
+    font-size: 10px;
+
+    color: #c69c6d;
 }
 
 .requirement-value {
     font-family: SourceHanSansCN-Regular;
     font-size: 10px;
     line-height: 1.4;
-    color: #fff;
     word-wrap: break-word;
+
+    color: #fff;
 }
 
 .view-details {
-    text-align: right;
     margin-top: 10px;
+    text-align: right;
 }
 
 .details-link {
     font-family: SourceHanSansCN-Regular;
     font-size: 9px;
-    color: #C69C6D;
-    cursor: pointer;
     text-decoration: none;
+
+    color: #c69c6d;
+    cursor: pointer;
 }
 
 .details-link:hover {

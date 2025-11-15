@@ -408,7 +408,6 @@ export default {
     font-family: SourceHanSansCN-Normal, "Microsoft YaHei", Arial, sans-serif;
     font-size: 15px; /* 31 * 0.5 */
     line-height: 15px;
-
     color: #08c4b6;
 }
 

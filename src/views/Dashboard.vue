@@ -30,8 +30,8 @@
 </template>
 
 <script>
-import MapViewBaise from '@/components/MapViewBaise.vue';
-import DashboardLayout from '@/components/DashboardLayout.vue';
+import MapViewBaise from '@/components/Map/MapViewBaise.vue';
+import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
 import { sharedDashboardData } from '@/config/dashboardData';
 
 export default {

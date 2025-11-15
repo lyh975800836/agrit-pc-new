@@ -2,13 +2,13 @@
   <div class="health-indicator-panel">
     <!-- 关闭按钮 -->
     <img class="close-button" src="/images/close-btn.png" @click="handleClose" alt="关闭" />
-      
+
       <!-- 上半部分：健康指标图表 + 指标趋势表格 -->
       <div class="top-section flex-row">
         <!-- 左侧：健康指标图表区域 -->
         <div class="chart-section">
           <div class="section-title">健康指标</div>
-          
+
           <!-- 图表区域 -->
           <div class="chart-area">
             <div class="chart-container">
@@ -20,7 +20,7 @@
                 <span class="axis-label">40</span>
                 <span class="axis-label">20</span>
               </div>
-              
+
               <!-- 图表内容 -->
               <div class="chart-content">
                 <svg class="line-chart" viewBox="0 0 300 150">
@@ -31,7 +31,7 @@
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#grid)" />
-                  
+
                   <!-- 折线图 -->
                   <polyline
                     fill="none"
@@ -39,7 +39,7 @@
                     stroke-width="2"
                     points="18,90 56,75 94,82 132,70 170,65 208,68 246,62 284,58"
                   />
-                  
+
                   <!-- 数据点 -->
                   <circle cx="18" cy="90" r="3" fill="#C69C6D" />
                   <circle cx="56" cy="75" r="3" fill="#C69C6D" />
@@ -50,7 +50,7 @@
                   <circle cx="246" cy="62" r="3" fill="#C69C6D" />
                   <circle cx="284" cy="58" r="3" fill="#C69C6D" />
                 </svg>
-                
+
                 <!-- X轴标签 -->
                 <div class="x-axis">
                   <span class="axis-label">第08周</span>
@@ -70,7 +70,7 @@
         <!-- 右侧：指标趋势表格 -->
         <div class="table-section">
           <div class="section-title">指标趋势表格示例</div>
-          
+
           <!-- 表格容器 -->
           <div class="trend-table-container">
             <!-- 表头 -->
@@ -132,20 +132,20 @@
         <!-- 左侧：巡飞图像对比 -->
         <div class="image-section">
           <div class="section-title">巡飞图像对比</div>
-          
+
           <!-- 可拖动图像对比容器 -->
           <div class="image-comparison-container" ref="comparisonContainer">
             <!-- 旧图像 (底层) -->
             <img class="comparison-image-old" src="/images/old.jpg" alt="旧图像" />
-            
+
             <!-- 新图像 (顶层，带遮罩) -->
             <div class="comparison-image-new-wrapper" :style="{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }">
               <img class="comparison-image-new" src="/images/new.jpg" alt="新图像" />
             </div>
-            
+
             <!-- 拖动分割线 -->
-            <div 
-              class="comparison-slider" 
+            <div
+              class="comparison-slider"
               :style="{ left: `${sliderPosition}%` }"
               @mousedown="startDrag"
             >
@@ -162,7 +162,7 @@
         <!-- 右侧：智能诊断与建议 -->
         <div class="diagnosis-section">
           <div class="section-title">智能诊断与建议：</div>
-          
+
           <div class="diagnosis-content">
             <div class="diagnosis-text">
               当前阶段基本正常，但评分略有下滑，建议关注以下问题：
@@ -217,15 +217,19 @@ export default {
 
         // 拖动过程
         onDrag(event) {
-            if (!this.isDragging) return;
+            if (!this.isDragging) {
+                return;
+            }
 
             const container = this.$refs.comparisonContainer;
-            if (!container) return;
+            if (!container) {
+                return;
+            }
 
             const rect = container.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-            
+
             this.sliderPosition = percentage;
         },
 
@@ -266,31 +270,34 @@ export default {
 /* 主面板样式 */
 .health-indicator-panel {
     position: relative;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
     width: 760px;
     height: 520px;
     padding: 20px;
     border: 2px solid #4cfcea4d;
+
     border-radius: 8px;
     background: linear-gradient(135deg, #102838f2 0%, #081c24f2 100%);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    display: flex;
-    flex-direction: column;
+    box-shadow: 0 10px 30px #000c;
+
     gap: 20px;
 }
 
 /* 关闭按钮 */
 .close-button {
     position: absolute;
+    z-index: 10;
     top: 10px;
     right: 10px;
     width: 20px;
     height: 20px;
+
     cursor: pointer;
-    z-index: 10;
-    
+
     &:hover {
-        opacity: 0.8;
+        opacity: .8;
     }
 }
 
@@ -308,46 +315,47 @@ export default {
 
 /* 左侧图表区域 */
 .chart-section {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
 }
 
 /* 右侧表格区域 */
 .table-section {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
 }
 
 /* 底部左侧图像区域 */
 .image-section {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
 }
 
 /* 底部右侧诊断区域 */
 .diagnosis-section {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
 }
 
 /* 通用标题样式 */
 .section-title {
+    margin-bottom: 15px;
     font-family: SourceHanSansCN-Medium;
     font-size: 16px;
     font-weight: 500;
-    color: #C69C6D;
-    margin-bottom: 15px;
+
+    color: #c69c6d;
 }
 
 /* 图表容器 */
 .chart-container {
     display: flex;
-    gap: 10px;
     height: 180px;
+    gap: 10px;
 }
 
 /* Y轴标签 */
@@ -361,8 +369,8 @@ export default {
 
 /* 图表内容区域 */
 .chart-content {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
 }
 
@@ -390,12 +398,13 @@ export default {
 
 /* 表格容器 */
 .trend-table-container {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
     border: 1px solid #4cfcea33;
+
     border-radius: 4px;
-    background: rgba(76, 252, 234, 0.05);
+    background: #4cfcea0d;
 }
 
 .table-header-row,
@@ -407,39 +416,41 @@ export default {
 }
 
 .table-header-row {
-    background: rgba(76, 252, 234, 0.1);
     font-weight: 500;
+    background: #4cfcea1a;
 }
 
 .table-cell,
 .data-cell {
+    flex: 1;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     font-weight: 300;
     text-align: center;
+
     color: #5dd7ce;
-    flex: 1;
 }
 
 .data-cell {
     font-family: SourceHanSansCN-Medium;
     font-weight: 500;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .trend-indicator {
     display: flex;
+    flex: 1;
     align-items: center;
     justify-content: center;
+
     gap: 5px;
-    flex: 1;
 }
 
 .trend-status {
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
     font-weight: 300;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 .trend-down {
@@ -458,13 +469,14 @@ export default {
 /* 图像对比容器 */
 .image-comparison-container {
     position: relative;
+    overflow: hidden;
     width: 100%;
     height: 140px;
     margin-bottom: 10px;
-    overflow: hidden;
+    border: 1px solid #4cfcea33;
+
     border-radius: 4px;
     cursor: ew-resize;
-    border: 1px solid #4cfcea33;
 }
 
 /* 旧图像 (底层) */
@@ -474,6 +486,7 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
+
     object-fit: cover;
 }
 
@@ -493,19 +506,21 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
+
     object-fit: cover;
 }
 
 /* 拖动分割线 */
 .comparison-slider {
     position: absolute;
+    z-index: 10;
     top: 0;
     bottom: 0;
     width: 2px;
-    background: #C69C6D;
-    cursor: ew-resize;
-    z-index: 10;
+
+    background: #c69c6d;
     transform: translateX(-50%);
+    cursor: ew-resize;
 }
 
 /* 分割线手柄 */
@@ -515,9 +530,10 @@ export default {
     left: 50%;
     width: 16px;
     height: 16px;
-    background: #C69C6D;
-    border: 2px solid #ffffff;
+    border: 2px solid #fff;
+
     border-radius: 50%;
+    background: #c69c6d;
     transform: translate(-50%, -50%);
     cursor: ew-resize;
 }
@@ -532,7 +548,7 @@ export default {
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
     font-weight: 300;
-    color: #C69C6D;
+    color: #c69c6d;
 }
 
 /* 诊断建议区域 */
@@ -540,16 +556,18 @@ export default {
     flex: 1;
     padding: 15px;
     border: 1px solid #38fe8333;
+
     border-radius: 4px;
-    background: rgba(56, 254, 131, 0.05);
+    background: #38fe830d;
 }
 
 .diagnosis-text {
+    margin-bottom: 10px;
     font-family: SourceHanSansCN-Normal;
     font-size: 12px;
     line-height: 18px;
+
     color: #bcf7ce;
-    margin-bottom: 10px;
 }
 
 .diagnosis-list {
@@ -559,11 +577,12 @@ export default {
 }
 
 .diagnosis-item {
+    position: relative;
+    padding-left: 10px;
     font-family: SourceHanSansCN-Light;
     font-size: 11px;
     line-height: 16px;
+
     color: #bcf7ce;
-    padding-left: 10px;
-    position: relative;
 }
 </style>

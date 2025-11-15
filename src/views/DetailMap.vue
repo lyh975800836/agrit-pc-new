@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import DashboardLayout from '@/components/DashboardLayout.vue';
-import RegionDetailMap from '@/components/RegionDetailMap.vue';
+import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
+import RegionDetailMap from '@/components/Map/RegionDetailMap.vue';
 import { sharedDashboardData } from '@/config/dashboardData';
 
 export default {
