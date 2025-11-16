@@ -60,40 +60,13 @@
             <slot name="center-map"></slot>
           </div>
 
-          <!-- 底部导航条 - 只在非首页且有多级导航时显示 -->
-          <nav v-if="shouldShowBottomNav" class="breadcrumb-navigation" aria-label="位置导航">
-            <div class="breadcrumb-navigation__container">
-              <div class="breadcrumb-navigation__left">
-                <button class="breadcrumb-navigation__back-btn" @click="handleBackClick" type="button">
-                  <span class="breadcrumb-navigation__back-arrow">‹</span>
-                  <span class="breadcrumb-navigation__back-text">返回上级</span>
-                </button>
-              </div>
-
-              <ol class="breadcrumb-list">
-                <template v-for="(item, index) in breadcrumbs">
-                  <li :key="'item-' + index" class="breadcrumb-list__item">
-                    <a
-                      class="breadcrumb-list__link"
-                      :class="{ 'breadcrumb-list__link--current': item.current }"
-                      :aria-current="item.current ? 'page' : undefined"
-                      @click="handleBreadcrumbClick(item)"
-                    >
-                      {{ item.name }}
-                    </a>
-                    <span
-                      v-if="index < breadcrumbs.length - 1"
-                      :key="'sep-' + index"
-                      class="breadcrumb-list__separator"
-                      aria-hidden="true"
-                    >
-                      >
-                    </span>
-                  </li>
-                </template>
-              </ol>
-            </div>
-          </nav>
+          <!-- 底部导航条 - 面包屑导航 -->
+          <BreadcrumbNavigation
+            :region-name="regionName"
+            :show-bottom-nav="showBottomNav"
+            @back="handleBackClick"
+            @breadcrumb-click="handleBreadcrumbClick"
+          />
         </div>
 
         <!-- 右侧区域 - 根据插槽内容决定显示什么 -->
@@ -148,13 +121,15 @@ import { getCategoryImages } from '@/utils/imageManager';
 import DashboardHeader from './DashboardHeader.vue';
 import LeftDataPanel from './LeftDataPanel.vue';
 import RightRankingPanel from './RightRankingPanel.vue';
+import BreadcrumbNavigation from './BreadcrumbNavigation.vue';
 
 export default {
     name: 'DashboardLayout',
     components: {
         DashboardHeader,
         LeftDataPanel,
-        RightRankingPanel
+        RightRankingPanel,
+        BreadcrumbNavigation
     },
     props: {
         weather: {
@@ -233,7 +208,7 @@ export default {
         layoutClasses() {
             return {
                 'dashboard-layout--full-map': this.fullScreenMap,
-                'dashboard-layout--with-bottom-nav': this.shouldShowBottomNav
+                'dashboard-layout--with-bottom-nav': this.showBottomNav
             };
         },
         leftSidebarClasses() {
@@ -269,57 +244,6 @@ export default {
         },
         shouldRenderRightPanel() {
             return !this.hideRightPanel;
-        },
-        breadcrumbs() {
-            const route = this.$route;
-            const breadcrumbs = [];
-
-            // 根据当前路由生成面包屑 - 只显示地理层级，不显示数据驾驶舱
-            switch (route.name) {
-                case 'Dashboard':
-                case 'DataDashboard':
-                    // 首页不显示面包屑
-                    break;
-
-                case 'DetailMap': {
-                    // 区县详情页面：百色 > 右江区
-                    breadcrumbs.push({ name: '百色', path: '/' });
-                    const regionName = route.params.region || this.regionName || '右江区';
-                    breadcrumbs.push({ name: regionName, path: route.path, current: true });
-                    break;
-                }
-
-                case 'PlotDetail': {
-                    // 地块详情页面：百色 > XX县 > 具体地块名
-                    breadcrumbs.push({ name: '百色', path: '/' });
-
-                    // 从query参数获取区域信息
-                    const plotRegion = route.query.region || this.regionName || '右江区';
-                    breadcrumbs.push({
-                        name: plotRegion,
-                        path: `/detail/${ plotRegion }`
-                    });
-
-                    // 当前地块名称
-                    const plotName = route.query.plotName || '地块详情';
-                    breadcrumbs.push({
-                        name: plotName,
-                        path: route.path,
-                        current: true
-                    });
-                    break;
-                }
-            }
-
-            return breadcrumbs;
-        },
-
-        // 控制底部导航是否显示
-        shouldShowBottomNav() {
-            const route = this.$route;
-            // 只在地块详情页面或区县详情页面显示底部导航
-            // 数据驾驶舱页面和总览图页面不显示
-            return route.name === 'PlotDetail' || route.name === 'DetailMap';
         }
     },
     watch: {
@@ -434,8 +358,8 @@ export default {
     flex: 0 0 375px;
     align-items: stretch;
     min-width: 0;
-
     height: 100%;
+
     opacity: .9;
     background: #00282a;
     transition: flex-basis .3s ease, width .3s ease;
@@ -481,8 +405,8 @@ export default {
 
 .sidebar-panel__content {
     position: relative;
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
     flex: none;
     width: 375px;
     max-width: 100%;
@@ -529,8 +453,8 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    transform: translateY(-50%);
     transition: opacity .3s ease;
+    transform: translateY(-50%);
     cursor: pointer;
 
     &:hover {
@@ -578,110 +502,10 @@ export default {
     pointer-events: auto;
 }
 
-.dashboard-layout--full-map .breadcrumb-navigation__container {
-    max-width: none;
-}
-
-// 底部导航条（面包屑导航）
-.breadcrumb-navigation {
-    position: absolute;
-    z-index: 10;
-    bottom: 26px;
-    left: 50%;
-    height: 40px;
-    transform: translate(-50%, 0);
-    max-width: 550px;
-    box-sizing: border-box;
-}
-
-.breadcrumb-navigation__container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 550px;
-    height: 100%;
-    margin: 0 auto;
-}
-
-.breadcrumb-navigation__left {
-    display: flex;
-    align-items: center;
-}
-
-.breadcrumb-navigation__back-btn {
-    margin-left: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 0;
-    font-family: SourceHanSansCN-Medium;
-    font-size: 14px;
-    background: #7C714C;
-    color: #C69C6D;
-    cursor: pointer;
-    width: 154px;
-    height: 40px;
-    box-sizing: border-box;
-}
-
-.breadcrumb-navigation__back-arrow {
-    margin-right: 20px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.breadcrumb-navigation__back-text {
-    font-size: 14px;
-    font-weight: 500;
-}
-
-// 面包屑列表
-.breadcrumb-list {
-    display: flex;
-    align-items: center;
-    margin-left: 5px;
-    padding: 0 30px;
-    height: 100%;
-    list-style: none;
-    background: #041F1C;
-    gap: 8px;
-    border: 1px solid #937C57;
-    box-sizing: border-box;
-    opacity: .9;
-}
-
-.breadcrumb-list__item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.breadcrumb-list__link {
-    font-family: SourceHanSansCN-Regular;
-    font-size: 14px;
-
-    color: #C69C6D;
-    transition: color .3s ease;
-    cursor: pointer;
-    opacity: .5;
-
-    &:not(.breadcrumb-list__link--current):hover {
-        color: #C69C6D;
-        opacity: 1;
+// 面包屑导航样式已移至 BreadcrumbNavigation.vue 组件中
+.dashboard-layout--full-map .breadcrumb-navigation {
+    ::v-deep .breadcrumb-navigation__container {
+        max-width: none;
     }
-
-    &.breadcrumb-list__link--current {
-        font-weight: 500;
-        color: #C69C6D;
-        opacity: 1;
-        cursor: default;
-    }
-}
-
-.breadcrumb-list__separator {
-    font-size: 14px;
-    color: #C69C6D;
-    opacity: .5;
-    user-select: none;
 }
 </style>
