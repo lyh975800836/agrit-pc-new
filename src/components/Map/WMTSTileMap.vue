@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import { generatePlotIdMapping, getTilePreset, getDefaultZoomLevel, findPlotNameById, findPlotConfig } from '@/utils/plotConfig';
+import { generatePlotIdMapping, getTilePreset, getDefaultZoomLevel } from '@/utils/plotConfig';
 import TileImageManager from '@/components/Map/TileImageManager.vue';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
@@ -97,7 +97,12 @@ export default {
             currentTileImages: [],
             // 响应式瓦片尺寸
             tileSizePx: 120,
-            resizeObserver: null
+            resizeObserver: null,
+            // 从后端获取的plot tiles列表缓存
+            plotTilesList: [],
+            plotTilesListLoaded: false,
+            // 当前plot的tile信息（从列表中获取）
+            currentPlotTileRecord: null
         };
     },
     computed: {
@@ -136,20 +141,19 @@ export default {
             return 1000;
         },
         layerName() {
-            const canonicalName = findPlotNameById(this.plotId) || '雷哥';
-            const plotConfig = findPlotConfig(canonicalName);
-
-            if (plotConfig?.tileLayerName) {
-                return plotConfig.tileLayerName;
+            // 直接使用 plotData 中的 layer（从路由传递过来）
+            if (this.plotData?.layer) {
+                return this.plotData.layer;
             }
 
+            // 备选方案：从 tileInfo 中获取
             if (this.tileInfo?.layer_name) {
                 return this.tileInfo.layer_name;
             }
 
-            // 使用来自PLOT_REGISTRY的规范化地块名称，而不是mutable的plotData.name
-            // 这确保无论本地或服务器，layer参数都保持一致
-            return `plot_${ this.plotId }_${ canonicalName }`;
+            // 最后的备选方案
+            const plotName = this.plotData?.name || '雷哥';
+            return `plot_${ this.plotId }_${ plotName }`;
         },
         visibleMarkers() {
             return this.markers.filter(marker => marker.zoom_level === this.zoomLevel);
@@ -234,6 +238,66 @@ export default {
         }
     },
     methods: {
+        async loadPlotTilesList() {
+            if (this.plotTilesListLoaded) {
+                return;
+            }
+
+            try {
+                const isProduction = process.env.NODE_ENV === 'production';
+                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
+                const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/list`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: this.requestAbortController?.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${ response.status }`);
+                }
+
+                const result = await response.json();
+                if (result && result.code === 0 && Array.isArray(result.data)) {
+                    this.plotTilesList = result.data;
+                    this.plotTilesListLoaded = true;
+                    // eslint-disable-next-line no-console
+                    console.log(`Loaded ${ result.data.length } plot tiles records from backend`);
+                }
+            }
+            catch (error) {
+                // 如果请求被取消，不输出错误日志
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                // eslint-disable-next-line no-console
+                console.warn('Failed to load plot tiles list:', error);
+            }
+        },
+
+        findPlotTileRecord(plotId) {
+            if (!this.plotTilesList || this.plotTilesList.length === 0) {
+                return null;
+            }
+
+            // 按 plot_id 匹配
+            const numPlotId = Number(plotId);
+            const record = this.plotTilesList.find(item => Number(item.plot_id) === numPlotId);
+            if (record) {
+                return record;
+            }
+
+            // 如果 plotId 不是数字，按 plot_name 匹配
+            if (!Number.isFinite(numPlotId)) {
+                const plotName = String(plotId).trim();
+                return this.plotTilesList.find(item => item.plot_name === plotName);
+            }
+
+            return null;
+        },
+
         async loadMapData() {
             if (!this.plotId) {
                 return;

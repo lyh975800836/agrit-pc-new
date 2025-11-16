@@ -7,7 +7,6 @@
       :region-name="regionName"
       :show-back-button="false"
       :page-title="'数据驾驶舱'"
-      @page-title-click="handlePageTitleClick"
       @nav-button-click="handleNavButtonClick"
     />
 
@@ -503,10 +502,6 @@ export default {
         },
         resetDistributionChart() {
             this.showProductiveForestChart = false;
-        },
-        handlePageTitleClick() {
-            // 已在数据驾驶舱页面，导航保持在当前位置
-            // 如果需要刷新页面，可以添加相应逻辑
         },
         handleNavButtonClick() {
             // 返回首页

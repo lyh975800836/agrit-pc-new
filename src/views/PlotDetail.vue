@@ -11,6 +11,7 @@
       :show-back-button="true"
       :page-title="plotData.name || '地块详情'"
       :full-screen-map="true"
+      :show-bottom-nav="true"
       @back="handleBackClick"
     >
     <template #center-map>
@@ -27,107 +28,50 @@
       <!-- 左侧面板 - 根据type类型动态显示 -->
       <!-- 八角地块详情面板 -->
       <div v-if="plotData.type !== 'factory' && plotData.type !== 'warehouse'" class="plot-details-panel">
-        <!-- 装饰线 -->
-        <img class="panel-decoration-top" src="/images/decoration-1.jpg" />
-
         <!-- 地块标题信息 -->
-        <div class="plot-title-section">
-          <h2 class="left-plot-name">{{ plotData.name || '千户十亩-大楞乡基地' }}</h2>
-          <img class="region-label" src="/images/region-label.jpg" />
-          <span class="region-name">{{ plotData.district || '右江区' }}</span>
-        </div>
-
-        <img class="section-divider" src="/images/decoration-2.png" />
+        <PlotTitleSection
+          :plot-name="plotData.name || '千户十亩-大楞乡基地'"
+          :region-name="plotData.district || '右江区'"
+        />
 
         <!-- 农户信息 -->
-        <div class="farmer-profile" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
-          <img class="farmer-avatar" :src="farmerAvatarUrl" />
-          <div class="farmer-details">
-            <div class="farmer-name">农户：{{ plotData.farmerName || '隆启雷' }}</div>
-            <img class="detail-divider" src="/images/divider.png" />
-            <div class="farmer-age">年龄：{{ plotData.farmerAge || '54' }}岁</div>
-            <div class="farmer-rating">
-              <span class="rating-filled">★★★★</span>
-              <span class="rating-empty">★</span>
-            </div>
-            <div class="farmer-status">
-              <div class="status-tag status-general">一般户</div>
-              <div class="status-tag status-unpoverty">未脱贫</div>
-              <div class="status-tag status-poverty">已脱贫</div>
-            </div>
-          </div>
-        </div>
+        <FarmerProfileCard
+          :farmer-name="plotData.farmerName || '隆启雷'"
+          :farmer-age="plotData.farmerAge || '54'"
+          :avatar-url="farmerAvatarUrl"
+          :background-image="images.farmerProfile"
+          :status-tags="[
+            { label: '一般户', cssClass: 'status-general' },
+            { label: '未脱贫', cssClass: 'status-unpoverty' },
+            { label: '已脱贫', cssClass: 'status-poverty' }
+          ]"
+        />
         <!-- 地块统计数据 -->
-        <div class="plot-statistics">
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">总面积(亩)：</span>
-            <span class="stat-value stat-value-large">{{ displayedPlotArea }}</span>
-          </div>
-
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">产量(万斤)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.yield || '48' }}</span>
-          </div>
-
-          <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
-            <span class="stat-label">亩产量(斤/亩)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.unitYield || '1200' }}</span>
-          </div>
-        </div>
+        <PlotStatisticsGrid
+          :items="[
+            { label: '总面积(亩)：', value: displayedPlotArea },
+            { label: '产量(万斤)：', value: plotData.yield || '48' },
+            { label: '亩产量(斤/亩)：', value: plotData.unitYield || '1200' }
+          ]"
+          :background-image="images.statItem"
+        />
         <!-- 价格信息 -->
-        <div class="price-info" :style="{ backgroundImage: `url(${images.priceInfo})` }">
-          <div class="price-display">
-            <span class="price-label">今日价格：</span>
-            <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">{{ plotData.price || '4.10' }}</span>
-            <span class="price-unit">&nbsp;&nbsp;元/斤</span>
-          </div>
-        </div>
+        <PriceInfoBox
+          label="今日价格："
+          :value="plotData.price || '4.10'"
+          unit="元/斤"
+          :background-image="images.priceInfo"
+        />
 
         <!-- 健康指标 -->
-        <div class="health-section">
-          <div class="health-header">
-            <span class="health-title">林地健康指标</span>
-            <div class="health-link" @click="showHealthModal">
-              <span class="link-text">查看详情</span>
-              <span class="link-arrow">>></span>
-            </div>
-          </div>
-          <img class="third-divider" src="/images/decoration-2.png" />
-          <!-- 健康指标圆形图表 -->
-          <div class="health-indicators">
-            <!-- 郁闭度 -->
-            <div class="health-indicator">
-              <div class="circular-progress" data-percentage="60">
-                <div class="circle-bg"></div>
-                <div class="circle" style="--percentage: 60;
---color: #c69c6d;"></div>
-                <div class="percentage">60%</div>
-              </div>
-              <div class="indicator-label">郁闭度</div>
-            </div>
-
-            <!-- 生长匹配度 -->
-            <div class="health-indicator">
-              <div class="circular-progress" data-percentage="75">
-                <div class="circle-bg"></div>
-                <div class="circle" style="--percentage: 75;
---color: #ffa500;"></div>
-                <div class="percentage">75%</div>
-              </div>
-              <div class="indicator-label">生长匹配度</div>
-            </div>
-
-            <!-- 健康度 -->
-            <div class="health-indicator special">
-              <div class="health-score-container">
-                <div class="health-score-bg"></div>
-                <div class="health-score">90</div>
-              </div>
-              <div class="indicator-label">健康度</div>
-            </div>
-          </div>
-        </div>
+        <HealthIndicators
+          :indicators="[
+            { label: '郁闭度', percentage: 20 },
+            { label: '生长匹配度', percentage: 30 },
+            { label: '健康度', percentage: 90 }
+          ]"
+          @show-health-modal="showHealthModal"
+        />
       </div>
 
       <!-- 烘干厂生产概况面板 -->
@@ -415,7 +359,7 @@
               <!-- 下一任务 -->
               <div class="farming-dynamics__next-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
                 <span class="farming-dynamics__next-task-name">{{ nextFarmingItem ? nextFarmingItem.details.title.replace(/\(.*?\)/, '').trim() : '冬季保果壮果' }}</span>
-                <span class="farming-dynamics__next-label">（{{ getNextTaskStatusText() }}）</span>
+                <span class="farming-dynamics__next-label">（下阶段）</span>
               </div>
               <div class="farming-dynamics__next-task-time">
                 <div class="farming-dynamics__time-item">
@@ -698,6 +642,11 @@ import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
 import WMTSTileMap from '@/components/Map/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/Dialogs/HealthIndicatorModal.vue';
 import FarmingDetailDialog from '@/components/Dialogs/FarmingDetailDialog.vue';
+import PlotTitleSection from '@/components/PlotDetail/PlotTitleSection.vue';
+import FarmerProfileCard from '@/components/PlotDetail/FarmerProfileCard.vue';
+import PlotStatisticsGrid from '@/components/PlotDetail/PlotStatisticsGrid.vue';
+import PriceInfoBox from '@/components/PlotDetail/PriceInfoBox.vue';
+import HealthIndicators from '@/components/PlotDetail/HealthIndicators.vue';
 import { getAllPlotNames } from '@/utils/plotConfig';
 
 export default {
@@ -706,7 +655,12 @@ export default {
         DashboardLayout,
         WMTSTileMap,
         HealthIndicatorModal,
-        FarmingDetailDialog
+        FarmingDetailDialog,
+        PlotTitleSection,
+        FarmerProfileCard,
+        PlotStatisticsGrid,
+        PriceInfoBox,
+        HealthIndicators
     },
     props: {
         plotId: {
@@ -832,7 +786,7 @@ export default {
     },
     computed: {
         displayedPlotArea() {
-            return '101';
+            return this.plotData.area || '0';
         },
         // 标准农事项目 - 使用集中管理的图片常量
         standardFarmingItems() {
@@ -1055,9 +1009,12 @@ export default {
             // 获取该地块的农户信息
             const farmerInfo = this.farmerConfig[plotName] || this.farmerConfig.default;
 
+            // 从后端获取plot tiles列表，根据plotName找到真实的plot_id和layer_name
+            const tileRecord = await this.fetchPlotTileRecord(plotName);
+
             // 基础地块数据
             this.plotData = {
-                id: decodedPlotId,
+                id: tileRecord?.plot_id || decodedPlotId,
                 name: plotName,
                 district: this.regionName,
                 area,
@@ -1066,12 +1023,32 @@ export default {
                 farmerName: farmerInfo.name,
                 farmerAge: farmerInfo.age,
                 price: '4.10',
-                type // 地块类型
+                type, // 地块类型
+                layer: tileRecord?.layer_name // 从后端获取的layer_name
             };
 
             // 尝试加载地块坐标数据
             await this.loadPlotCoordinates(decodedPlotId);
 
+        },
+
+        // 从后端获取plot tile记录
+        async fetchPlotTileRecord(plotName) {
+            try {
+                const isProduction = process.env.NODE_ENV === 'production';
+                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
+                const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/list`);
+                const result = await response.json();
+
+                if (result && result.code === 0 && Array.isArray(result.data)) {
+                    // 按 plot_name 查找
+                    const record = result.data.find(item => item.plot_name === plotName);
+                    return record || null;
+                }
+            } catch (error) {
+                console.warn('Failed to fetch plot tile record:', error);
+            }
+            return null;
         },
 
         // 加载地块坐标数据
@@ -1185,20 +1162,8 @@ export default {
             // 设置选中的农事项目ID
             this.selectedFarmingItemId = item.id;
 
-            // 更新右侧预警农事区域显示选中项目的详细信息
-            this.updateWarningSection();
-
-            // 如果需要改变地图显示，可以调用地图组件的方法
+            // 更新地图显示以反映选中的农事项目
             this.updateMapForFarmingItem(item);
-        },
-
-        // 更新预警农事区域显示
-        updateWarningSection() {
-            // 通过更新selectedFarmingItemId来触发计算属性重新计算
-            // selectedFarmingDetails计算属性会根据selectedFarmingItemId自动更新
-
-            // 强制Vue重新渲染组件
-            this.$forceUpdate();
         },
 
         // 更新地图显示以反映选中的农事项目
@@ -1309,33 +1274,6 @@ export default {
             }
             const { description } = this.selectedFarmingDetails;
             return description.replace('处方：', '');
-        },
-
-        // 获取下一任务状态文本
-        getNextTaskStatusText() {
-            if (!this.nextFarmingItem) {
-                return '下阶段';
-            }
-
-            // 如果选中项目是最后一个或者没有下一个，显示为下阶段
-            if (!this.selectedFarmingItemId) {
-                return '下阶段';
-            }
-
-            const currentIndex = this.standardFarmingItems.findIndex(item => item.id === this.selectedFarmingItemId);
-            if (currentIndex === -1 || currentIndex === this.standardFarmingItems.length - 1) {
-                return '下阶段';
-            }
-
-            // 根据下一个项目的状态返回相应文本
-            const { status } = this.nextFarmingItem.details;
-            const statusMap = {
-                expected: '下阶段',
-                pending: '下阶段',
-                current: '下阶段',
-                completed: '下阶段'
-            };
-            return statusMap[status] || '下阶段';
         },
 
         showHealthModal() {
@@ -2999,12 +2937,13 @@ export default {
 }
 
 .sulfur-ratio-chart-container {
+    box-sizing: border-box;
     width: 100%;
     height: 240px;
-    border-radius: 4px;
-    background: rgba(76, 252, 234, 0.05);
     padding: 10px;
-    box-sizing: border-box;
+
+    border-radius: 4px;
+    background: #4cfcea0d;
 }
 
 /* ===== 工厂面板特定样式 ===== */

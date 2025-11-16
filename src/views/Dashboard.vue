@@ -22,8 +22,6 @@
         :selected-region="selectedRegion"
         :project-regions="projectRegions"
         @region-click="handleRegionClick"
-        @region-hover="handleRegionHover"
-        @marker-click="handleMarkerClick"
       />
     </template>
   </DashboardLayout>
@@ -170,17 +168,6 @@ export default {
                     region: regionName
                 }
             });
-        },
-
-        // 处理区域悬停事件
-        handleRegionHover() {
-            // 这里可以添加悬停效果
-        },
-
-        // 处理标注点点击事件
-        handleMarkerClick() {
-            // 这里可以添加标注点点击后的逻辑
-            this.selectedRegion = null;
         },
 
         // 处理农事项目点击事件
