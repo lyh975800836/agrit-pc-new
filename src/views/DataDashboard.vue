@@ -7,6 +7,8 @@
       :region-name="regionName"
       :show-back-button="false"
       :page-title="'数据驾驶舱'"
+      @page-title-click="handlePageTitleClick"
+      @nav-button-click="handleNavButtonClick"
     />
 
     <!-- 主要数据面板 -->
@@ -38,7 +40,7 @@
             </div>
           </div>
         </div>
- 
+
         <div class="stat-card" :style="{ backgroundImage: `url(${images.statCard3})` }">
           <div class="stat-content">
             <div class="stat-number"><span class="stat-value">3000</span><span class="stat-unit">万元</span></div>
@@ -157,27 +159,27 @@
             </div>
             <div class="distribution-legend-horizontal">
               <div class="legend-item-horizontal">
-                <div class="legend-color-bar" style="background: #22C55E;"></div>
+                <div class="legend-color-bar" style="background: #22c55e;"></div>
                 <span>德保县</span>
               </div>
               <div class="legend-item-horizontal">
-                <div class="legend-color-bar" style="background: #3B82F6;"></div>
+                <div class="legend-color-bar" style="background: #3b82f6;"></div>
                 <span>那坡县</span>
               </div>
               <div class="legend-item-horizontal">
-                <div class="legend-color-bar" style="background: #FFD700;"></div>
+                <div class="legend-color-bar" style="background: #ffd700;"></div>
                 <span>右江区</span>
               </div>
               <div class="legend-item-horizontal">
-                <div class="legend-color-bar" style="background: #A855F7;"></div>
+                <div class="legend-color-bar" style="background: #a855f7;"></div>
                 <span>田林县</span>
               </div>
               <div class="legend-item-horizontal">
-                <div class="legend-color-bar" style="background: #FF6B4A;"></div>
+                <div class="legend-color-bar" style="background: #ff6b4a;"></div>
                 <span>凌云县</span>
               </div>
               <div class="legend-item-horizontal">
-                <div class="legend-color-bar" style="background: #FF9500;"></div>
+                <div class="legend-color-bar" style="background: #ff9500;"></div>
                 <span>乐业县</span>
               </div>
             </div>
@@ -501,6 +503,16 @@ export default {
         },
         resetDistributionChart() {
             this.showProductiveForestChart = false;
+        },
+        handlePageTitleClick() {
+            // 已在数据驾驶舱页面，导航保持在当前位置
+            // 如果需要刷新页面，可以添加相应逻辑
+        },
+        handleNavButtonClick() {
+            // 返回首页
+            if (this.$router) {
+                this.$router.push('/').catch(() => {});
+            }
         }
     }
 };
@@ -1160,6 +1172,7 @@ export default {
     flex: 1;
     flex-direction: column;
     min-height: 0;
+
     gap: 0;
 }
 
@@ -1180,11 +1193,12 @@ export default {
 .disease-legend-horizontal {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
     flex-shrink: 0;
-    justify-content: space-around;
+    flex-wrap: nowrap;
     align-items: center;
+    justify-content: space-around;
     padding: 12px 10px 0;
+
     gap: 10px;
 }
 
@@ -1199,11 +1213,12 @@ export default {
 .distribution-legend-horizontal {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
     flex-shrink: 0;
-    justify-content: space-around;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-around;
     padding: 8px 10px 0;
+
     gap: 15px;
 }
 
@@ -1212,7 +1227,9 @@ export default {
     align-items: center;
     font-family: SourceHanSansCN-Light;
     font-size: 13px;
+
     color: #c69c6d;
+
     gap: 6px;
 }
 
@@ -1222,15 +1239,17 @@ export default {
     align-items: center;
     font-family: SourceHanSansCN-Light;
     font-size: 12px;
+
     color: #c69c6d;
+
     gap: 4px;
 }
 
 .legend-color-bar {
+    flex-shrink: 0;
     width: 60px;
     height: 16px;
     border-radius: 2px;
-    flex-shrink: 0;
 }
 
 .pie-chart-container {
@@ -1247,6 +1266,7 @@ export default {
     flex: 1;
     flex-direction: column;
     min-height: 0;
+
     gap: 0;
 }
 
@@ -1262,8 +1282,8 @@ export default {
     flex: 1;
     align-items: stretch;
     justify-content: center;
-    min-height: 280px;
     width: 100%;
+    min-height: 280px;
 }
 
 /* 数据表格 */
@@ -1430,13 +1450,14 @@ export default {
     }
 
     &.table-head {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #4cfcea66;
         font-family: SourceHanSansCN-Medium;
         font-size: 14px;
         font-weight: 600;
+
         color: #c69c6d;
-        background: rgba(76, 252, 234, 0.1);
-        border-bottom: 1px solid #4cfcea66;
-        padding-bottom: 12px;
+        background: #4cfcea1a;
     }
 
     &:not(.table-head) {
@@ -1480,14 +1501,14 @@ export default {
 
     &.table-head {
         padding: 12px 4px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #4cfcea66;
         font-family: SourceHanSansCN-Medium;
         font-size: 14px;
         font-weight: 600;
-        border-bottom: 1px solid #4cfcea66;
-        padding-bottom: 12px;
 
         color: #c69c6d;
-        background: rgba(76, 252, 234, 0.1);
+        background: #4cfcea1a;
     }
 
     &:not(.table-head) {
@@ -1526,14 +1547,14 @@ export default {
 
     &.table-head {
         padding: 12px 4px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #4cfcea66;
         font-family: SourceHanSansCN-Medium;
         font-size: 14px;
         font-weight: 600;
-        border-bottom: 1px solid #4cfcea66;
-        padding-bottom: 12px;
 
         color: #c69c6d;
-        background: rgba(76, 252, 234, 0.1);
+        background: #4cfcea1a;
     }
 
     &:not(.table-head) {

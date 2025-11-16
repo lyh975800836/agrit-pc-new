@@ -80,42 +80,16 @@
       <div class="table-divider" :style="getLeftPanelImageStyle('TABLE_DIVIDER')"></div>
 
       <div class="table-data">
-        <!-- 每一行数据 -->
-        <div class="data-row">
-          <span class="region-cell">德保县</span>
-          <span class="area-cell">38</span>
-          <span class="ratio-cell">27.34%</span>
-          <div class="bar-cell bar-1"></div>
-        </div>
-        <div class="data-row">
-          <span class="region-cell">那坡县</span>
-          <span class="area-cell">30</span>
-          <span class="ratio-cell">21.58%</span>
-          <div class="bar-cell bar-2"></div>
-        </div>
-        <div class="data-row">
-          <span class="region-cell">右江区</span>
-          <span class="area-cell">23.6</span>
-          <span class="ratio-cell">16.98%</span>
-          <div class="bar-cell bar-3"></div>
-        </div>
-        <div class="data-row">
-          <span class="region-cell">田林县</span>
-          <span class="area-cell">21</span>
-          <span class="ratio-cell">15.11%</span>
-          <div class="bar-cell bar-4"></div>
-        </div>
-        <div class="data-row">
-          <span class="region-cell">凌云县</span>
-          <span class="area-cell">17</span>
-          <span class="ratio-cell">12.23%</span>
-          <div class="bar-cell bar-5"></div>
-        </div>
-        <div class="data-row">
-          <span class="region-cell">乐业县</span>
-          <span class="area-cell">10</span>
-          <span class="ratio-cell">7.19%</span>
-          <div class="bar-cell bar-6"></div>
+        <!-- 动态数据行 -->
+        <div
+          v-for="(row, index) in districtData"
+          :key="index"
+          class="data-row"
+        >
+          <span class="region-cell">{{ row.region }}</span>
+          <span class="area-cell">{{ row.area }}</span>
+          <span class="ratio-cell">{{ row.ratio }}</span>
+          <div class="bar-cell" :style="{ width: row.barWidth }"></div>
         </div>
       </div>
     </div>
@@ -124,6 +98,16 @@
 
 <script>
 import { getCategoryImages } from '@/utils/imageManager';
+
+// 默认百色八角主产区数据
+const DEFAULT_DISTRICT_DATA = [
+    { region: '德保县', area: 38, ratio: '27.34%', barWidth: '110px' },
+    { region: '那坡县', area: 30, ratio: '21.58%', barWidth: '87px' },
+    { region: '右江区', area: 23.6, ratio: '16.98%', barWidth: '68px' },
+    { region: '田林县', area: 21, ratio: '15.11%', barWidth: '61px' },
+    { region: '凌云县', area: 17, ratio: '12.23%', barWidth: '49px' },
+    { region: '乐业县', area: 10, ratio: '7.19%', barWidth: '29px' }
+];
 
 export default {
     name: 'LeftDataPanel',
@@ -140,6 +124,10 @@ export default {
         isCollapsed: {
             type: Boolean,
             default: false
+        },
+        districtData: {
+            type: Array,
+            default: () => DEFAULT_DISTRICT_DATA
         }
     },
 
@@ -518,26 +506,6 @@ export default {
 
     border-radius: 1px;
     background: linear-gradient(90deg, #00c9ff 0%, #92fe9d 100%);
-
-    // 根据占比数值设置柱状图长度比例
-    &.bar-1 {
-        width: 110px !important;
-    }   // 27.34% -> 100% (最大值)
-    &.bar-2 {
-        width: 87px !important;
-    }    // 21.58% -> 78.9% = 87px
-    &.bar-3 {
-        width: 68px !important;
-    }    // 16.98% -> 62.1% = 68px
-    &.bar-4 {
-        width: 61px !important;
-    }    // 15.11% -> 55.2% = 61px
-    &.bar-5 {
-        width: 49px !important;
-    }    // 12.23% -> 44.7% = 49px
-    &.bar-6 {
-        width: 29px !important;
-    }    // 7.19% -> 26.3% = 29px
 }
 
 

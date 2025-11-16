@@ -9,6 +9,8 @@
         :show-back-button="showBackButton"
         :page-title="pageTitle"
         @back="$emit('back')"
+        @page-title-click="handlePageTitleClick"
+        @nav-button-click="handleNavButtonClick"
       />
 
       <!-- 主体内容区域 dashboard-layout__content -->
@@ -269,6 +271,20 @@ export default {
                 if (this.$router) {
                     this.$router.push(item.path);
                 }
+            }
+        },
+        handlePageTitleClick() {
+            this.$emit('page-title-click');
+            // 默认导航到数据驾驶舱
+            if (this.$router) {
+                this.$router.push('/data-dashboard').catch(() => {});
+            }
+        },
+        handleNavButtonClick() {
+            this.$emit('nav-button-click');
+            // 默认导航到首页
+            if (this.$router) {
+                this.$router.push('/').catch(() => {});
             }
         },
         toggleLeftPanel() {

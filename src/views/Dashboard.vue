@@ -185,16 +185,16 @@ export default {
 
         // 处理农事项目点击事件
         handleFarmingItemClick(farmingItem) {
-            
+
             // 设置选中的农事项目
             this.selectedFarmingItem = farmingItem;
-            
+
             // 更新农事项目的活跃状态
             this.farmingItems = this.farmingItems.map(item => ({
                 ...item,
                 isActive: item.id === farmingItem.id
             }));
-            
+
             // 这里可以更新右侧面板显示选中农事项目的详细信息
         },
 
