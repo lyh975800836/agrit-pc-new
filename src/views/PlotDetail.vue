@@ -976,14 +976,18 @@ export default {
                 avatar: this.images.userAvatar
             };
         },
-        // 农户头像URL - 根据地块名称动态获取
+        // 农户头像URL - 根据地块类型动态获取
         farmerAvatarUrl() {
+            const plotType = this.plotData?.type;
+            // 厂（工厂、仓库）展示默认头像
+            if (plotType === 'factory' || plotType === 'warehouse') {
+                return '/images/default-cover.png';
+            }
+            // 其他类型（八角地块）展示当前图片
             const plotName = this.plotData?.name;
-            // 先尝试按地块名称查找
             if (plotName && this.farmerConfig[plotName]) {
                 return this.farmerConfig[plotName].avatar;
             }
-            // 如果找不到，返回默认头像
             return this.farmerConfig.default.avatar;
         }
     },
@@ -1330,16 +1334,15 @@ export default {
     flex-direction: column;
     box-sizing: border-box;
     width: 375px;
-    height: 100%;
-    max-height: calc(100vh - 180px);
+    min-height: 100%;
     margin: 0 0 0 5px;
     padding: 0 23px 35px;
 
     background-repeat: no-repeat;
     background-position: center;
-
-    /* 背景图样式 */
     background-size: 100% 100%;
+
+    gap: 10px;
 }
 
 /* 装饰元素 */
@@ -1441,6 +1444,7 @@ export default {
 .farmer-avatar {
     width: 145px;
     height: 153px;
+    object-fit: cover;
 }
 
 .farmer-details {
@@ -1535,7 +1539,6 @@ export default {
 .price-decoration-top,
 .price-decoration-bottom {
     width: 100%;
-    height: auto;
     height: 9px;
 }
 
