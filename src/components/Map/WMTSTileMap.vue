@@ -52,9 +52,12 @@
 </template>
 
 <script>
+import { generatePlotIdMapping, getTilePreset, getDefaultZoomLevel } from '@/utils/plotConfig';
 import TileImageManager from '@/components/Map/TileImageManager.vue';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
+const EARTH_RADIUS_METERS = 6378137; // WGS84
+const MU_IN_SQUARE_METERS = 666.6666667;
 
 export default {
     name: 'WMTSTileMap',
@@ -62,6 +65,10 @@ export default {
         TileImageManager
     },
     props: {
+        regionName: {
+            type: String,
+            default: ''
+        },
         plotData: {
             type: Object,
             default: () => ({})
@@ -70,13 +77,16 @@ export default {
     data() {
         return {
             zoomLevel: 4,
+            lockedZoomLevel: null, // 用于保存必须使用的 zoom level，防止被 API 覆盖
             markers: [],
             markersLoading: false,
             tileImages: {},
+            tileAreas: {},
             tileInfo: null,
             tileBounds: null,
             tileGridRowsCache: [],
             tileLoading: false,
+            totalTileAreaSquareMeters: 0,
             tilePlaceholderError: TILE_PLACEHOLDER_ERROR,
             currentRequestToken: null,
             // 请求取消控制器 - 用于在组件销毁时取消所有待处理的请求
@@ -88,12 +98,17 @@ export default {
             // 响应式瓦片尺寸
             tileSizePx: 120,
             resizeObserver: null,
-            // 从API获取的最大瓦片坐标（用于动态计算网格大小）
-            maxTileX: null,
-            maxTileY: null
+            // 从后端获取的plot tiles列表缓存
+            plotTilesList: [],
+            plotTilesListLoaded: false,
+            // 当前plot的tile信息（从列表中获取）
+            currentPlotTileRecord: null
         };
     },
     computed: {
+        plotIdMapping() {
+            return generatePlotIdMapping();
+        },
         plotId() {
             const rawId = this.plotData?.id;
             const normalizedId = typeof rawId === 'string' ? rawId.trim() : rawId;
@@ -107,14 +122,23 @@ export default {
                 if (Number.isFinite(numericId)) {
                     return numericId;
                 }
+                // 2. 通过mapping查找
+                if (this.plotIdMapping[normalizedId]) {
+                    return this.plotIdMapping[normalizedId];
+                }
             }
 
-            // 2. 默认返回 plotData.name 或1000
+            // 3. 尝试通过名称查找
             const name = typeof this.plotData?.name === 'string'
                 ? this.plotData.name.trim()
                 : this.plotData?.name;
 
-            return name || 1000;
+            if (name && this.plotIdMapping[name]) {
+                return this.plotIdMapping[name];
+            }
+
+            // 4. 默认返回1000（雷哥）
+            return 1000;
         },
         layerName() {
             // 直接使用 plotData 中的 layer（从路由传递过来）
@@ -134,31 +158,25 @@ export default {
         tileSize() {
             return this.tileSizePx;
         },
+        tileOffsetX() {
+            return this.tileBounds ? this.tileBounds.minX : 0;
+        },
+        tileOffsetY() {
+            return this.tileBounds ? this.tileBounds.minY : 0;
+        },
         tileGridRows() {
             return this.tileGridRowsCache;
         },
         tileColumnCount() {
-            // 优先使用API返回的最大瓦片X坐标
-            if (Number.isFinite(this.maxTileX)) {
-                return this.maxTileX + 1; // +1因为坐标是从0开始
-            }
-            // 其次使用计算得到的tileBounds
             if (this.tileBounds) {
                 return this.tileBounds.maxX - this.tileBounds.minX + 1;
             }
-            // 最后使用容器可见列数
             return this.visibleCols;
         },
         tileRowCount() {
-            // 优先使用API返回的最大瓦片Y坐标
-            if (Number.isFinite(this.maxTileY)) {
-                return this.maxTileY + 1; // +1因为坐标是从0开始
-            }
-            // 其次使用计算得到的tileBounds
             if (this.tileBounds) {
                 return this.tileBounds.maxY - this.tileBounds.minY + 1;
             }
-            // 最后使用容器可见行数
             return this.visibleRows;
         },
         mapDimensions() {
@@ -170,6 +188,9 @@ export default {
                 'height': `${ height }px`,
                 '--tile-size': sizeValue
             };
+        },
+        totalTileAreaMu() {
+            return this.totalTileAreaSquareMeters / MU_IN_SQUARE_METERS;
         },
         visibleCols() {
             if (!this.$refs.tileGrid) {
@@ -214,6 +235,66 @@ export default {
         }
     },
     methods: {
+        async loadPlotTilesList() {
+            if (this.plotTilesListLoaded) {
+                return;
+            }
+
+            try {
+                const isProduction = process.env.NODE_ENV === 'production';
+                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
+                const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/list`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: this.requestAbortController?.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${ response.status }`);
+                }
+
+                const result = await response.json();
+                if (result && result.code === 0 && Array.isArray(result.data)) {
+                    this.plotTilesList = result.data;
+                    this.plotTilesListLoaded = true;
+                    // eslint-disable-next-line no-console
+                    console.log(`Loaded ${ result.data.length } plot tiles records from backend`);
+                }
+            }
+            catch (error) {
+                // 如果请求被取消，不输出错误日志
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                // eslint-disable-next-line no-console
+                console.warn('Failed to load plot tiles list:', error);
+            }
+        },
+
+        findPlotTileRecord(plotId) {
+            if (!this.plotTilesList || this.plotTilesList.length === 0) {
+                return null;
+            }
+
+            // 按 plot_id 匹配
+            const numPlotId = Number(plotId);
+            const record = this.plotTilesList.find(item => Number(item.plot_id) === numPlotId);
+            if (record) {
+                return record;
+            }
+
+            // 如果 plotId 不是数字，按 plot_name 匹配
+            if (!Number.isFinite(numPlotId)) {
+                const plotName = String(plotId).trim();
+                return this.plotTilesList.find(item => item.plot_name === plotName);
+            }
+
+            return null;
+        },
+
         async loadMapData() {
             if (!this.plotId) {
                 return;
@@ -231,6 +312,15 @@ export default {
             const requestToken = Symbol('tile-load');
             this.currentRequestToken = requestToken;
 
+            // 应用该块的默认 zoomLevel（如果有配置）并锁定，防止 API 覆盖
+            const defaultZoom = getDefaultZoomLevel(this.plotId);
+            if (Number.isFinite(defaultZoom)) {
+                this.zoomLevel = defaultZoom;
+                this.lockedZoomLevel = defaultZoom; // 锁定此 zoomLevel，不被 API 覆盖
+                // eslint-disable-next-line no-console
+                console.log(`Applied and locked defaultZoomLevel for plotId ${ this.plotId }: zoomLevel=${ defaultZoom }`);
+            }
+
             try {
                 this.tileLoading = true;
                 await this.loadTileInfo(requestToken);
@@ -241,6 +331,7 @@ export default {
                 if (this.currentRequestToken !== requestToken) {
                     return;
                 }
+                this.applyPresetDimensions();
                 this.buildTileGrid();
                 await this.loadAllTiles(requestToken);
                 if (this.currentRequestToken !== requestToken) {
@@ -257,11 +348,11 @@ export default {
 
         resetTileState() {
             this.tileImages = {};
+            this.tileAreas = {};
             this.tileInfo = null;
             this.tileBounds = null;
             this.tileGridRowsCache = [];
-            this.maxTileX = null;
-            this.maxTileY = null;
+            this.totalTileAreaSquareMeters = 0;
         },
 
         async loadTileInfo(requestToken) {
@@ -293,36 +384,20 @@ export default {
                 console.log(`loadTileInfo response code=${ result?.code }, has data=${ !!result?.data }`);
                 if (result && result.code === 0 && result.data) {
                     this.tileInfo = result.data;
-                    const maxZoom = Number(result.data.max_zoom_level);
-                    if (Number.isFinite(maxZoom)) {
-                        this.zoomLevel = maxZoom;
+                    // 只在没有锁定 zoomLevel 时才使用 API 返回的 max_zoom_level
+                    if (!this.lockedZoomLevel) {
+                        const maxZoom = Number(result.data.max_zoom_level);
+                        if (Number.isFinite(maxZoom)) {
+                            this.zoomLevel = maxZoom;
+                        }
                     }
-                    // 从API响应中获取最大瓦片坐标，用于动态计算网格大小
-                    const maxTileX = Number(result.data.max_tile_x);
-                    const maxTileY = Number(result.data.max_tile_y);
-
-                    if (Number.isFinite(maxTileX)) {
-                        this.maxTileX = maxTileX;
-                    }
-                    if (Number.isFinite(maxTileY)) {
-                        this.maxTileY = maxTileY;
-                    }
-
-                    // 瓦片从(0,0)开始到(maxTileX, maxTileY)
-                    if (Number.isFinite(maxTileX) && Number.isFinite(maxTileY)) {
-                        this.tileBounds = {
-                            minX: 0,
-                            minY: 0,
-                            maxX: maxTileX,
-                            maxY: maxTileY
-                        };
-                        // eslint-disable-next-line no-console
-                        console.log(`loadTileInfo: tileBounds=${ JSON.stringify(this.tileBounds) }`);
-                    }
+                    this.tileBounds = this.computeTileBounds(result.data);
+                    // eslint-disable-next-line no-console
+                    console.log(`loadTileInfo: computed tileBounds=${ JSON.stringify(this.tileBounds) }, lockedZoomLevel=${ this.lockedZoomLevel }`);
                 }
                 else {
                     // eslint-disable-next-line no-console
-                    console.warn(`loadTileInfo: No data in response for plotId=${ this.plotId }`);
+                    console.warn(`loadTileInfo: No data in response for plotId=${ this.plotId }, tileBounds will be set by applyPresetDimensions`);
                 }
             }
             catch (error) {
@@ -355,6 +430,7 @@ export default {
 
                 if (response.ok && result.code === 0) {
                     this.markers = result.data || [];
+                    this.extendBoundsByMarkers();
                 }
                 else {
                     this.markers = [];
@@ -378,6 +454,143 @@ export default {
             }
         },
 
+        computeTileBounds(info) {
+            if (!info) {
+                return null;
+            }
+
+            const zoom = Number.isFinite(info.max_zoom_level) ? info.max_zoom_level : this.zoomLevel;
+            const limit = this.getZoomLimit(zoom);
+
+            const lonMin = Number(info.min_lon);
+            const lonMax = Number(info.max_lon);
+            const latMin = Number(info.min_lat);
+            const latMax = Number(info.max_lat);
+
+            if ([lonMin, lonMax, latMin, latMax].some(value => Number.isNaN(value))) {
+                return null;
+            }
+
+            let minX = this.clampTileIndex(Math.min(this.lonToTileX(lonMin, zoom), this.lonToTileX(lonMax, zoom)), limit);
+            let maxX = this.clampTileIndex(Math.max(this.lonToTileX(lonMin, zoom), this.lonToTileX(lonMax, zoom)), limit);
+            let minY = this.clampTileIndex(Math.min(this.latToTileY(latMin, zoom), this.latToTileY(latMax, zoom)), limit);
+            let maxY = this.clampTileIndex(Math.max(this.latToTileY(latMin, zoom), this.latToTileY(latMax, zoom)), limit);
+
+            if (maxX < minX) {
+                [minX, maxX] = [maxX, minX];
+            }
+            if (maxY < minY) {
+                [minY, maxY] = [maxY, minY];
+            }
+
+            const declaredTileCount = Number(info.tile_count);
+            const currentCols = maxX - minX + 1;
+            const currentRows = maxY - minY + 1;
+
+            if (Number.isFinite(declaredTileCount) && declaredTileCount > 0) {
+                const aspect = currentCols / (currentRows || 1);
+                let desiredCols = Math.max(currentCols, Math.round(Math.sqrt(declaredTileCount * aspect)));
+                let desiredRows = Math.max(currentRows, Math.ceil(declaredTileCount / desiredCols));
+
+                desiredCols = Math.min(desiredCols, limit + 1);
+                desiredRows = Math.min(desiredRows, limit + 1);
+
+                const colsIncrease = desiredCols - currentCols;
+                if (colsIncrease > 0) {
+                    const expandLeft = Math.floor(colsIncrease / 2);
+                    const expandRight = colsIncrease - expandLeft;
+                    minX = this.clampTileIndex(minX - expandLeft, limit);
+                    maxX = this.clampTileIndex(maxX + expandRight, limit);
+
+                    let width = maxX - minX + 1;
+                    if (width < desiredCols) {
+                        const deficit = desiredCols - width;
+                        const moveLeft = Math.min(deficit, minX);
+                        minX = this.clampTileIndex(minX - moveLeft, limit);
+                        maxX = this.clampTileIndex(minX + desiredCols - 1, limit);
+                        width = maxX - minX + 1;
+                        if (width < desiredCols) {
+                            maxX = this.clampTileIndex(maxX + (desiredCols - width), limit);
+                            minX = this.clampTileIndex(maxX - desiredCols + 1, limit);
+                        }
+                    }
+                }
+
+                const rowsIncrease = desiredRows - currentRows;
+                if (rowsIncrease > 0) {
+                    const expandTop = Math.floor(rowsIncrease / 2);
+                    const expandBottom = rowsIncrease - expandTop;
+                    minY = this.clampTileIndex(minY - expandTop, limit);
+                    maxY = this.clampTileIndex(maxY + expandBottom, limit);
+
+                    let height = maxY - minY + 1;
+                    if (height < desiredRows) {
+                        const deficit = desiredRows - height;
+                        const moveUp = Math.min(deficit, minY);
+                        minY = this.clampTileIndex(minY - moveUp, limit);
+                        maxY = this.clampTileIndex(minY + desiredRows - 1, limit);
+                        height = maxY - minY + 1;
+                        if (height < desiredRows) {
+                            maxY = this.clampTileIndex(maxY + (desiredRows - height), limit);
+                            minY = this.clampTileIndex(maxY - desiredRows + 1, limit);
+                        }
+                    }
+                }
+            }
+
+            return {
+                minX,
+                maxX,
+                minY,
+                maxY
+            };
+        },
+
+        applyPresetDimensions() {
+            const preset = getTilePreset(this.plotId);
+            if (!preset) {
+                // eslint-disable-next-line no-console
+                console.warn(`No preset found for plotId: ${ this.plotId }, using API bounds or fallback`);
+                return;
+            }
+
+            const limit = this.getZoomLimit(this.zoomLevel);
+            const { cols } = preset;
+            const { rows } = preset;
+
+            const offsetX = Number(preset.offsetX) || 0;
+            const offsetY = Number(preset.offsetY) || 0;
+
+            // Start from preset dimensions if no tileBounds from API
+            // This ensures oil tea blocks (ID 1039) always have a valid grid
+            let minX = (this.tileBounds ? this.tileBounds.minX : 0) + offsetX;
+            let minY = (this.tileBounds ? this.tileBounds.minY : 0) + offsetY;
+
+            minX = this.clampTileIndex(minX, limit);
+            minY = this.clampTileIndex(minY, limit);
+
+            let maxX = Math.min(minX + cols - 1, limit);
+            if (maxX - minX + 1 < cols) {
+                minX = Math.max(0, maxX - cols + 1);
+                maxX = Math.min(minX + cols - 1, limit);
+            }
+
+            let maxY = Math.min(minY + rows - 1, limit);
+            if (maxY - minY + 1 < rows) {
+                minY = Math.max(0, maxY - rows + 1);
+                maxY = Math.min(minY + rows - 1, limit);
+            }
+
+            // eslint-disable-next-line no-console
+            console.log(`applyPresetDimensions for plotId ${ this.plotId }: cols=${ cols }, rows=${ rows }, bounds=${ JSON.stringify({ minX, maxX, minY, maxY }) }`);
+
+            this.tileBounds = {
+                minX,
+                maxX,
+                minY,
+                maxY
+            };
+        },
 
         buildTileGrid() {
             if (this.tileBounds) {
@@ -461,9 +674,12 @@ export default {
                 if (result && result.data) {
                     const imageSrc = `data:${ result.content_type };base64,${ result.data }`;
                     this.$set(this.tileImages, key, imageSrc);
+                    const tileArea = this.calculateTileArea(tileCol, tileRow, this.zoomLevel);
+                    this.$set(this.tileAreas, key, tileArea);
                 }
                 else {
                     this.$set(this.tileImages, key, 'error');
+                    this.$delete(this.tileAreas, key);
                 }
             }
             catch (error) {
@@ -475,8 +691,109 @@ export default {
                 console.error(`获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
                 if (this.currentRequestToken === requestToken) {
                     this.$set(this.tileImages, key, 'error');
+                    this.$delete(this.tileAreas, key);
                 }
             }
+        },
+
+        calculateTileArea(tileCol, tileRow, zoom) {
+            const bounds = this.getTileBounds(tileCol, tileRow, zoom);
+            const lat1 = this.degToRad(bounds.minLat);
+            const lat2 = this.degToRad(bounds.maxLat);
+            const lon1 = this.degToRad(bounds.minLon);
+            const lon2 = this.degToRad(bounds.maxLon);
+
+            const area = Math.abs(
+                (Math.sin(lat2) - Math.sin(lat1)) * (lon2 - lon1) * (EARTH_RADIUS_METERS ** 2)
+            );
+            return area;
+        },
+
+        getTileBounds(col, row, zoom) {
+            const north = this.tile2lat(row, zoom);
+            const south = this.tile2lat(row + 1, zoom);
+            const west = this.tile2lon(col, zoom);
+            const east = this.tile2lon(col + 1, zoom);
+            return {
+                minLat: Math.min(north, south),
+                maxLat: Math.max(north, south),
+                minLon: Math.min(west, east),
+                maxLon: Math.max(west, east)
+            };
+        },
+
+        extendBoundsByMarkers() {
+            if (!this.markers || !this.markers.length) {
+                this.applyPresetDimensions();
+                return;
+            }
+
+            const limit = this.getZoomLimit(this.zoomLevel);
+            const numericX = this.markers
+                .map(marker => Number(marker.tile_x))
+                .filter(value => Number.isFinite(value));
+            const numericY = this.markers
+                .map(marker => Number(marker.tile_y))
+                .filter(value => Number.isFinite(value));
+
+            if (!numericX.length || !numericY.length) {
+                this.applyPresetDimensions();
+                return;
+            }
+
+            const minX = Math.max(0, Math.min(...numericX));
+            const maxX = Math.min(limit, Math.max(...numericX));
+            const minY = Math.max(0, Math.min(...numericY));
+            const maxY = Math.min(limit, Math.max(...numericY));
+
+            if (!this.tileBounds) {
+                this.tileBounds = {
+                    minX,
+                    maxX,
+                    minY,
+                    maxY
+                };
+            }
+            else {
+                this.tileBounds = {
+                    minX: Math.min(this.tileBounds.minX, minX),
+                    maxX: Math.max(this.tileBounds.maxX, maxX),
+                    minY: Math.min(this.tileBounds.minY, minY),
+                    maxY: Math.max(this.tileBounds.maxY, maxY)
+                };
+            }
+
+            this.applyPresetDimensions();
+        },
+
+        lonToTileX(lon, zoom) {
+            return Math.floor(((lon + 180) / 360) * (2 ** zoom));
+        },
+
+        latToTileY(lat, zoom) {
+            const latRad = this.degToRad(lat);
+            const normalized = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2;
+            return Math.floor(normalized * (2 ** zoom));
+        },
+
+        clampTileIndex(value, limit) {
+            if (!Number.isFinite(value)) {
+                return 0;
+            }
+            return Math.max(0, Math.min(limit, value));
+        },
+
+        tile2lon(x, z) {
+            return (x / (2 ** z)) * 360 - 180;
+        },
+
+        tile2lat(y, z) {
+            const n = Math.PI - (2 * Math.PI * y) / (2 ** z);
+            return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+        },
+
+        degToRad(value) {
+            return (value * Math.PI) / 180;
         },
 
         getZoomLimit(zoom) {
@@ -507,11 +824,16 @@ export default {
         },
 
         updateTileMetrics() {
-            // 瓦片指标发送给父组件
+            const values = Object.values(this.tileAreas);
+            const totalSquareMeters = values.reduce((sum, area) => sum + area, 0);
+            this.totalTileAreaSquareMeters = totalSquareMeters;
+
             this.$emit('tile-metrics', {
                 plotId: this.plotId,
                 zoomLevel: this.zoomLevel,
-                tileCount: Object.keys(this.tileImages).length,
+                tileCount: values.length,
+                totalAreaSquareMeters: totalSquareMeters,
+                totalAreaMu: totalSquareMeters / MU_IN_SQUARE_METERS,
                 declaredTileCount: this.tileInfo?.tile_count || null
             });
         },
@@ -550,7 +872,7 @@ export default {
             });
         },
 
-        loadTileImages(x, y) {
+        async loadTileImages(x, y) {
             // 直接从 markers 数据中筛选该瓦片位置的所有标点
             this.currentTileImages = this.markers.filter(marker =>
                 marker.zoom_level === this.zoomLevel
@@ -616,7 +938,7 @@ export default {
 .tile-grid-inner {
     position: relative;
     display: inline-block;
-    min-width: min-content;
+    min-width: fit-content;
     min-height: 100%;
 }
 
@@ -671,7 +993,7 @@ export default {
     font-weight: 700;
 
     color: #fff;
-    background: url('/public/images/mark-point.png') no-repeat center/contain;
+    background: url("/public/images/mark-point.png") no-repeat center/contain;
     transition: transform .2s ease, filter .2s ease;
     cursor: pointer;
 
@@ -768,7 +1090,7 @@ export default {
 
 .modal-header h3 {
     margin: 0;
-    font-family: SourceHanSansCN-Medium, sans-serif;
+    font-family: SourceHanSansCN-Medium;
     font-size: 20px;
     font-weight: 500;
 
@@ -840,6 +1162,13 @@ export default {
     cursor: zoom-in;
 }
 
+.preview-navigation .nav-btn {
+    position: absolute;
+    z-index: 10;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .preview-navigation .nav-prev {
     left: 12px;
 }
@@ -900,11 +1229,6 @@ export default {
     cursor: pointer;
 }
 
-.fullscreen-nav-btn:disabled {
-    opacity: .35;
-    cursor: not-allowed;
-}
-
 .fullscreen-nav-btn:hover:not(:disabled) {
     background: #c7b29933;
     transform: scale(1.08);
@@ -912,6 +1236,11 @@ export default {
 
 .fullscreen-nav-btn:active:not(:disabled) {
     transform: scale(.95);
+}
+
+.fullscreen-nav-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
 }
 
 .fullscreen-nav-prev,
@@ -966,23 +1295,6 @@ export default {
     cursor: not-allowed;
 }
 
-.preview-navigation .nav-btn {
-    position: absolute;
-    z-index: 10;
-    top: 50%;
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    border: 1px solid #c7b29959;
-    font-size: 20px;
-
-    color: #c7b299;
-    border-radius: 50%;
-    background: #081c24a6;
-    transform: translateY(-50%);
-    cursor: pointer;
-}
-
 .preview-actions {
     display: flex;
     justify-content: center;
@@ -1013,7 +1325,7 @@ export default {
     color: #c7b299;
     border-radius: 18px;
     background-color: #081c24a6;
-    background-image: url('/public/images/ai-advice.png');
+    background-image: url("/public/images/ai-advice.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
@@ -1080,7 +1392,7 @@ export default {
 
     color: #d8af87;
     border-radius: 14px;
-    background-image: url('/public/images/back-list.png');
+    background-image: url("/public/images/back-list.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
