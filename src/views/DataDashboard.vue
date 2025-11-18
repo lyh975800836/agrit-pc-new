@@ -19,8 +19,8 @@
             <div class="stat-number"><span class="stat-value">10,273</span><span class="stat-unit">亩</span></div>
             <div class="stat-right">
               <div class="stat-trend">
-                <img :src="images.downArrow" class="trend-icon" />
-                <span class="trend-text">-1.5%</span>
+                <img :src="images.upArrow" class="trend-icon" />
+                <span class="trend-text trend-up">+1.5%</span>
               </div>
               <div class="stat-label">百燕AI监测面积</div>
             </div>
