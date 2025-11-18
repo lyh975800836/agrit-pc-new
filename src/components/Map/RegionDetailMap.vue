@@ -39,9 +39,6 @@
 
 <script>
 import {
-    generateMockPlotConfig
-} from '@/utils/plotConfig';
-import {
     getTypeIcon
 } from '@/utils/plotMarkerManager';
 import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
@@ -352,60 +349,6 @@ export default {
                     reject(error);
                 }
             });
-        },
-
-        extendCoordinateEntries(coordinateData) {
-            const baseEntries = Object.entries(coordinateData);
-            const mockEntries = this.createMockPlotEntries(coordinateData);
-            return [...baseEntries, ...mockEntries];
-        },
-
-        createMockPlotEntries(coordinateData) {
-            const entries = [];
-            const mockConfigs = generateMockPlotConfig();
-
-            mockConfigs.forEach(config => {
-                const basePlot = coordinateData[config.baseKey];
-                if (!basePlot || !Array.isArray(basePlot.center)) {
-                    return;
-                }
-
-                const mockPlot = this.buildMockPlot(basePlot, config);
-                if (mockPlot) {
-                    entries.push([config.key, mockPlot]);
-                }
-            });
-
-            return entries;
-        },
-
-        buildMockPlot(basePlot, config) {
-            const [baseLat, baseLng] = basePlot.center;
-            if (typeof baseLat !== 'number' || typeof baseLng !== 'number') {
-                return null;
-            }
-
-            const offsetLat = config.offset?.lat || 0;
-            const offsetLng = config.offset?.lng || 0;
-
-            const mockCenter = [baseLat + offsetLat, baseLng + offsetLng];
-            const mockPolygon = Array.isArray(basePlot.leaflet_polygon)
-                ? basePlot.leaflet_polygon.map(ring =>
-                    ring.map(([lat, lng]) => [lat + offsetLat, lng + offsetLng]))
-                : basePlot.leaflet_polygon;
-
-            const baseClone = JSON.parse(JSON.stringify(basePlot));
-
-            return {
-                ...baseClone,
-                id: config.displayName, // 使用displayName作为地块ID，便于后续路由传递
-                name: config.displayName,
-                displayName: config.displayName,
-                routeName: config.routeName || basePlot.name,
-                type: config.type,
-                center: mockCenter,
-                leaflet_polygon: mockPolygon
-            };
         },
 
         changePlotFilter(filterValue) {
@@ -1045,7 +988,7 @@ export default {
                 const coordinateData = await response.json();
                 const plots = [];
 
-                const allEntries = this.extendCoordinateEntries(coordinateData);
+                const allEntries = Object.entries(coordinateData);
 
                 allEntries.forEach(([key, fieldData]) => {
                     console.log(`处理地块: ${ key }`, fieldData);
