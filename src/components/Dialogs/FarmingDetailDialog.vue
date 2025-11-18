@@ -8,17 +8,17 @@
 
       <!-- 标题区域 -->
       <div class="dialog-header">
-        <div class="header-title">{{ title }}</div>
-        <div class="header-content">{{ content }}</div>
+        <div class="header-title">{{ computedTitle }}</div>
+        <div class="header-content">{{ computedContent }}</div>
       </div>
 
+      <!-- 施工安全事项标题 -->
+      <div class="construction-title">开挖施工安全事项:</div>
+
       <!-- 图片网格区域 -->
-      <div v-if="images && images.length > 0" class="images-section">
-        <div class="images-title">{{ imagesTitle }}</div>
-        <div class="images-grid">
-          <div class="image-item" v-for="(image, index) in images" :key="index">
-            <img :src="image" :alt="`施工图片${index + 1}`" @error="handleImageError" />
-          </div>
+      <div class="images-grid">
+        <div class="image-item" v-for="(image, index) in defaultImages" :key="index">
+          <img :src="image" :alt="`施工图片${index + 1}`" @error="handleImageError" />
         </div>
       </div>
     </div>
@@ -36,59 +36,41 @@ export default {
         farmingItem: {
             type: Object,
             default: null
-        },
-        // 对话框标题
-        title: {
-            type: String,
-            default: '农事详情'
-        },
-        // 对话框内容
-        content: {
-            type: String,
-            default: '请提供具体的农事操作描述'
-        },
-        // 图片列表
-        images: {
-            type: Array,
-            default: () => []
-        },
-        // 图片标题
-        imagesTitle: {
-            type: String,
-            default: '相关图片'
-        },
-        // 背景图片（可选）
-        backgroundImage: {
-            type: String,
-            default: null
         }
+    },
+    data() {
+        return {
+            // 示例图片 - 使用已存在的占位图片或空图片处理
+            defaultImages: [
+                '/images/farming-demo1.png',
+                '/images/farming-demo2.png',
+                '/images/farming-demo3.png',
+                '/images/farming-demo4.png'
+            ]
+        };
     },
     computed: {
         dialogStyles() {
-            const styles = {
+            const baseUrl = process.env.BASE_URL || '/';
+            return {
+                backgroundImage: `url(${ baseUrl }images/farming-detail-dialog.png)`,
                 backgroundSize: '100% 100%',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center'
             };
-
-            if (this.backgroundImage) {
-                styles.backgroundImage = `url(${ this.backgroundImage })`;
-            }
-
-            return styles;
         },
         // 从farmingItem中动态生成标题和内容
         computedTitle() {
             if (this.farmingItem && this.farmingItem.name) {
                 return this.farmingItem.name;
             }
-            return this.title;
+            return '基础开挖:';
         },
         computedContent() {
-            if (this.farmingItem && this.farmingItem.description) {
-                return this.farmingItem.description;
+            if (this.farmingItem && this.farmingItem.requirement) {
+                return this.farmingItem.requirement;
             }
-            return this.content;
+            return '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。';
         }
     },
     methods: {
@@ -187,12 +169,8 @@ export default {
     color: #c69c6d;
 }
 
-// 图片部分
-.images-section {
-    margin-top: 30px;
-}
-
-.images-title {
+// 施工安全事项标题
+.construction-title {
     margin-bottom: 17px;
     font-family: SourceHanSansCN-Medium;
     font-size: 20px;

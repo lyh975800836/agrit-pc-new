@@ -42,6 +42,7 @@
 
     <!-- 瓦片图片管理弹窗 -->
     <TileImageManager
+      ref="tileImageManager"
       :visible="showTileImageModal"
       :images="currentTileImages"
       :tile-position="currentTilePosition"
@@ -79,7 +80,6 @@ export default {
             lockedZoomLevel: null, // 用于保存必须使用的 zoom level，防止被 API 覆盖
             markers: [],
             markersLoading: false,
-            selectedMarker: null,
             tileImages: {},
             tileAreas: {},
             tileInfo: null,
@@ -154,9 +154,6 @@ export default {
             // 最后的备选方案
             const plotName = this.plotData?.name || '雷哥';
             return `plot_${ this.plotId }_${ plotName }`;
-        },
-        visibleMarkers() {
-            return this.markers.filter(marker => marker.zoom_level === this.zoomLevel);
         },
         tileSize() {
             return this.tileSizePx;
@@ -826,32 +823,6 @@ export default {
             return this.tileImages[key] || null;
         },
 
-        getMarkerStyle(marker) {
-            if (!marker) {
-                return {};
-            }
-
-            const { tileSize } = this;
-            const scale = tileSize / 256 / 2;
-
-            const tileX = Number(marker.tile_x);
-            const tileY = Number(marker.tile_y);
-            const pixelX = Number.isFinite(marker.pixel_x) ? marker.pixel_x : 256;
-            const pixelY = Number.isFinite(marker.pixel_y) ? marker.pixel_y : 256;
-
-            if (!Number.isFinite(tileX) || !Number.isFinite(tileY)) {
-                return {};
-            }
-
-            const offsetX = (tileX - this.tileOffsetX) * tileSize;
-            const offsetY = (tileY - this.tileOffsetY) * tileSize;
-
-            return {
-                left: `${ offsetX + pixelX * scale }px`,
-                top: `${ offsetY + pixelY * scale }px`
-            };
-        },
-
         updateTileMetrics() {
             const values = Object.values(this.tileAreas);
             const totalSquareMeters = values.reduce((sum, area) => sum + area, 0);
@@ -865,14 +836,6 @@ export default {
                 totalAreaMu: totalSquareMeters / MU_IN_SQUARE_METERS,
                 declaredTileCount: this.tileInfo?.tile_count || null
             });
-        },
-
-        showMarkerImage(marker) {
-            this.selectedMarker = marker;
-        },
-
-        closeImageViewer() {
-            this.selectedMarker = null;
         },
 
         handleResize() {
@@ -899,6 +862,14 @@ export default {
 
             // 加载该瓦片的图片列表
             await this.loadTileImages(x, y);
+
+            // 加载图片后，自动跳转到预览模式，显示第一张图片
+            this.$nextTick(() => {
+                if (this.$refs.tileImageManager && this.currentTileImages.length > 0) {
+                    // 调用 TileImageManager 的 openPreview 方法，直接显示预览
+                    this.$refs.tileImageManager.openPreview(0);
+                }
+            });
         },
 
         async loadTileImages(x, y) {
@@ -971,37 +942,6 @@ export default {
     min-height: 100%;
 }
 
-.markers-overlay {
-    position: absolute;
-    z-index: 5;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    pointer-events: none;
-}
-
-.marker {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border: 2px solid white;
-
-    border-radius: 50%;
-    background: #ff4757;
-    box-shadow: 0 2px 8px #ff475766;
-    transition: all .2s;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-    pointer-events: auto;
-}
-
-.marker:hover {
-    background: #ff3838;
-    transform: translate(-50%, -50%) scale(1.2);
-}
-
 .tile-row {
     display: flex;
     white-space: nowrap;
@@ -1036,88 +976,6 @@ export default {
 .tile-placeholder span {
     font-size: 12px;
     color: #ff6b6b;
-}
-
-.image-viewer-overlay {
-    position: fixed;
-    z-index: 1000;
-    top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-
-    background: #000000e6;
-}
-
-.image-viewer {
-    position: relative;
-    overflow: hidden;
-    max-width: 90%;
-    max-height: 90%;
-
-    border-radius: 15px;
-    background: #fff;
-    box-shadow: 0 20px 60px #0000004d;
-}
-
-.image-viewer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px 20px;
-
-    color: #fff;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.image-viewer-title {
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-.close-btn {
-    padding: 5px 10px;
-    border: none;
-    font-size: 1.5em;
-
-    color: #fff;
-    border-radius: 5px;
-    background: none;
-    transition: background .3s;
-    cursor: pointer;
-}
-
-.close-btn:hover {
-    background: #ffffff1a;
-}
-
-.image-viewer-body {
-    padding: 20px;
-    text-align: center;
-}
-
-.marker-image {
-    max-width: 100%;
-    max-height: 50vh;
-    border-radius: 8px;
-    box-shadow: 0 10px 24px #00000073;
-}
-
-.marker-details {
-    margin-top: 12px;
-    padding: 0 40px;
-    font-size: 17px;
-    line-height: 1.6;
-    text-align: left;
-
-    color: #c7b299;
-}
-
-.marker-details strong {
-    color: #c7b299;
 }
 
 /* 瓦片图片数量徽章样式 */
@@ -1182,60 +1040,6 @@ export default {
 
 .tile-image-modal .modal-body::-webkit-scrollbar {
     display: none;
-}
-
-.tile-images-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    padding: 18px;
-    border: 1px solid #4cfcea2e;
-
-    border-radius: 12px;
-    background: #0c26368c;
-
-    backdrop-filter: blur(2px);
-    gap: 18px;
-}
-
-.tile-image-item {
-    position: relative;
-    overflow: hidden;
-    padding-top: 72%;
-    border: 1px solid #c7b2992e;
-
-    border-radius: 10px;
-    background: #ffffff0a;
-    box-shadow: 0 2px 12px #00000059;
-    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-    cursor: pointer;
-}
-
-.tile-image-item:hover {
-    border-color: #c7b29973;
-    box-shadow: 0 12px 24px #00000073;
-    transform: translateY(-4px);
-}
-
-.tile-image-item img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-.empty-message {
-    padding: 42px;
-    border: 1px dashed #c7b29973;
-    font-family: SourceHanSansCN-Regular;
-    font-size: 16px;
-    text-align: center;
-
-    color: #c7b299;
-    border-radius: 12px;
-    background: #0c26368c;
 }
 
 /* 通用按钮样式 */

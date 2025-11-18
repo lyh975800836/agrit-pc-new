@@ -564,9 +564,14 @@ export default {
 
     color: #c69c6d;
     cursor: pointer;
+    transition: color 0.3s ease;
 
     &:hover {
         color: #faaf3b;
+    }
+
+    &:active {
+        color: #ffd700;
     }
 }
 </style>

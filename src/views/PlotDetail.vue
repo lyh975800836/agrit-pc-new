@@ -647,7 +647,6 @@ import FarmerProfileCard from '@/components/PlotDetail/FarmerProfileCard.vue';
 import PlotStatisticsGrid from '@/components/PlotDetail/PlotStatisticsGrid.vue';
 import PriceInfoBox from '@/components/PlotDetail/PriceInfoBox.vue';
 import HealthIndicators from '@/components/PlotDetail/HealthIndicators.vue';
-import { getAllPlotNames } from '@/utils/plotConfig';
 
 export default {
     name: 'PlotDetail',
@@ -1031,9 +1030,6 @@ export default {
                 layer: tileRecord?.layer_name // 从后端获取的layer_name
             };
 
-            // 尝试加载地块坐标数据
-            await this.loadPlotCoordinates(decodedPlotId);
-
         },
 
         // 从后端获取plot tile记录
@@ -1056,53 +1052,6 @@ export default {
             return null;
         },
 
-        // 加载地块坐标数据
-        async loadPlotCoordinates(plotId) {
-            try {
-                const response = await fetch('/demo/coordinates.json');
-                const coordinateData = await response.json();
-
-                const normalizedId = typeof plotId === 'string' ? plotId.trim() : plotId;
-                const normalizedIdStr = normalizedId !== undefined && normalizedId !== null
-                    ? String(normalizedId)
-                    : '';
-
-                let plotCoordData = coordinateData[normalizedIdStr] || coordinateData[normalizedId];
-
-                // 使用统一的别名查找逻辑
-                if (!plotCoordData && this.plotData?.name) {
-                    const allNames = getAllPlotNames(plotId);
-                    for (const name of allNames) {
-                        if (coordinateData[name]) {
-                            plotCoordData = coordinateData[name];
-                            break;
-                        }
-                    }
-                }
-
-                // 备用方案：通过name属性查找
-                if (!plotCoordData && this.plotData?.name) {
-                    const normalizedName = typeof this.plotData.name === 'string'
-                        ? this.plotData.name.trim()
-                        : this.plotData.name;
-                    plotCoordData = Object.values(coordinateData).find(item => item.name === normalizedName);
-                }
-
-                if (plotCoordData && plotCoordData.coordinates) {
-                    // 添加坐标数据到plotData
-                    this.plotData.coordinates = plotCoordData.coordinates;
-                    this.plotData.center = plotCoordData.center || this.calculateCenter(plotCoordData.coordinates);
-                }
-                else {
-                    // 使用默认中心位置
-                    this.plotData.center = [23.9, 106.6];
-                }
-            }
-            catch (error) {
-                // 使用默认中心位置
-                this.plotData.center = [23.9, 106.6];
-            }
-        },
 
         handleTileMetrics(metrics) {
             this.tileMetrics = metrics || null;
@@ -1114,21 +1063,6 @@ export default {
                 return '0.00';
             }
             return numeric.toFixed(fractionDigits);
-        },
-
-        // 计算多边形中心点
-        calculateCenter(coordinates) {
-            if (!coordinates || coordinates.length === 0) {
-                return [23.9, 106.6];
-            }
-
-            let latSum = 0; let lngSum = 0;
-            coordinates.forEach(coord => {
-                latSum += coord[0];
-                lngSum += coord[1];
-            });
-
-            return [latSum / coordinates.length, lngSum / coordinates.length];
         },
 
         handleBackClick() {
