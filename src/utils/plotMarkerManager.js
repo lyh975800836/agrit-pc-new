@@ -24,11 +24,11 @@ const CATEGORY_MAP = {
 
 // 二级属性映射：property_type_name -> 图标和配置
 const TYPE_ICON_MAP = {
-    '八角基地': '/images/map-filter1.png',        // 林
-    '晒场': '/images/map-filter9.png',            // 厂
-    '烘干工厂': '/images/map-filter3.png',        // 厂
-    '林业产业智能园区': '/images/map-filter5.png', // 厂
-    '交收仓': '/images/map-filter7.png'           // 仓
+    八角基地: '/images/map-filter1.png', // 林
+    晒场: '/images/map-filter9.png', // 厂
+    烘干工厂: '/images/map-filter3.png', // 厂
+    林业产业智能园区: '/images/map-filter5.png', // 厂
+    交收仓: '/images/map-filter7.png' // 仓
 };
 
 /**
@@ -61,7 +61,7 @@ export function getPlotMarkerVisualConfig(plotData) {
 
     return {
         backgroundImage: icon,
-        typeClass: `plot-type-${categoryCode}`,
+        typeClass: `plot-type-${ categoryCode }`,
         width: 174,
         height: 82,
         anchorYOffset: 8,
@@ -82,17 +82,17 @@ export function createPlotMarkerHtml(plot, plotData) {
     const encodedName = (plot.displayName || plot.name || '').replace(/"/g, '&quot;');
 
     return `<div
-        class="plot-marker ${visualConfig.typeClass}"
-        data-category-code="${visualConfig.categoryCode}"
-        data-type-name="${visualConfig.typeName}"
-        data-plot-name="${encodedName}"
+        class="plot-marker ${ visualConfig.typeClass }"
+        data-category-code="${ visualConfig.categoryCode }"
+        data-type-name="${ visualConfig.typeName }"
+        data-plot-name="${ encodedName }"
         style="
-            background-image: url('${visualConfig.backgroundImage}');
+            background-image: url('${ visualConfig.backgroundImage }');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            width: ${visualConfig.width}px;
-            height: ${visualConfig.height}px;
+            width: ${ visualConfig.width }px;
+            height: ${ visualConfig.height }px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -109,7 +109,7 @@ export function createPlotMarkerHtml(plot, plotData) {
             padding: 4px;
             word-break: break-all;
             text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-        ">${encodedName}</span>
+        ">${ encodedName }</span>
     </div>`;
 }
 
@@ -167,10 +167,9 @@ export function updateMarkerVisibility(entry, selectedCategory, selectedType) {
             if (entry.layer.setOpacity) {
                 entry.layer.setOpacity(1);
             }
-        } else {
-            if (entry.map.hasLayer(entry.layer)) {
-                entry.map.removeLayer(entry.layer);
-            }
+        }
+        else if (entry.map.hasLayer(entry.layer)) {
+            entry.map.removeLayer(entry.layer);
         }
     }
 }

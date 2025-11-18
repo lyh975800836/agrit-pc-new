@@ -29,7 +29,6 @@ export const IMAGES = {
 
     // 左侧面板
     LEFT_PANEL: {
-        TITLE_DECORATION: `${ IMAGE_BASE_PATH }title-decoration.png`,
         TITLE_UNDERLINE: `${ IMAGE_BASE_PATH }title-underline.png`,
         BLOCK_COUNT_CARD: `${ IMAGE_BASE_PATH }total-area-card.png`,
         TOTAL_AREA_CARD: `${ IMAGE_BASE_PATH }total-area-card.png`,
@@ -67,7 +66,6 @@ export const IMAGES = {
         QUALITY_ICON: `${ IMAGE_BASE_PATH }quality-icon.png`,
         QUALITY_DIVIDER: `${ IMAGE_BASE_PATH }quality-divider.png`,
         QUALITY_GOOD: `${ IMAGE_BASE_PATH }quality-good.png`,
-        QUALITY_AVERAGE: `${ IMAGE_BASE_PATH }quality-average.png`,
         QUALITY_POOR: `${ IMAGE_BASE_PATH }quality-poor.png`
     },
 

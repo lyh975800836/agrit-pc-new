@@ -73,7 +73,7 @@ export default {
         this.$nextTick(() => {
             if (window.L) {
                 // 先加载坐标数据，再初始化地图
-                this.loadCoordinateData();
+                this.initMap();
                 // 将组件方法暴露到全局，供弹窗按钮使用
                 window.zoomToField = this.zoomToField;
                 window.showFieldDetails = this.showFieldDetails;
@@ -611,22 +611,6 @@ export default {
             });
 
             return regionPlots;
-        },
-
-        // 加载坐标数据
-        async loadCoordinateData() {
-            try {
-                const response = await fetch('/demo/coordinates.json');
-                this.coordinateData = await response.json();
-
-                // 加载坐标数据后初始化地图
-                this.initMap();
-            }
-            catch (error) {
-                console.warn('坐标数据加载失败:', error);
-                // 即使坐标数据加载失败也继续初始化地图
-                this.initMap();
-            }
         },
 
         // 添加精确的地块多边形边界
