@@ -1049,7 +1049,8 @@ export default {
                     const record = result.data.find(item => item.plot_name === plotName);
                     return record || null;
                 }
-            } catch (error) {
+            }
+            catch (error) {
                 console.warn('Failed to fetch plot tile record:', error);
             }
             return null;
