@@ -14,13 +14,6 @@
       @category-filter="filterMapByCategory"
     />
 
-    <!-- 分类弹窗 -->
-    <CategoryPopup
-      :selected-category="selectedCategory"
-      @close="closeCategoryPopup"
-      @navigate="navigateToTertiaryMap"
-    />
-
     <!-- Leaflet地图容器 -->
     <div id="leaflet-map" class="leaflet-container" :class="{ 'map-hidden': isLoading }"></div>
 
@@ -51,7 +44,6 @@ import {
 import regionCoordinates from '@/config/regionCoordinates.json';
 import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
 import CategorySidebar from '@/components/Dialogs/CategorySidebar.vue';
-import CategoryPopup from '@/components/Dialogs/CategoryPopup.vue';
 import PlotDetailPopup from '@/components/Dialogs/PlotDetailPopup.vue';
 
 // 使用CDN引入的Leaflet (在index.html中已引入)
@@ -68,7 +60,6 @@ export default {
     components: {
         MapLoadingOverlay,
         CategorySidebar,
-        CategoryPopup,
         PlotDetailPopup
     },
     data() {
@@ -100,9 +91,7 @@ export default {
             currentLoadedRegion: null,
             showDetailPopup: false,
             popupPosition: { top: 0, left: 0 },
-            popupData: null,
-            selectedCategory: null,
-            selectedCategoryType: 'all'
+            popupData: null
         };
     },
     computed: {
@@ -637,46 +626,7 @@ export default {
 
         // 分类过滤相关方法
         filterMapByCategory(category) {
-            this.selectedCategoryType = category.type;
-            this.applyPlotFilter();
-        },
-
-        setCategoryPopup(show) {
-            if (!show) {
-                this.selectedCategory = null;
-                return;
-            }
-            // show 时不做处理，由外部控制
-        },
-
-        closeCategoryPopup() {
-            this.setCategoryPopup(false);
-        },
-
-        navigateToTertiaryMap() {
-            if (!this.selectedCategory) return;
-
-            // 全部选项只是关闭弹窗
-            if (this.selectedCategory.isAllOption) {
-                this.closeCategoryPopup();
-                return;
-            }
-
-            this.$emit('category-navigate', {
-                categoryType: this.selectedCategory.type,
-                categoryName: this.selectedCategory.name
-            });
-
-            this.$router.push({
-                path: '/plot/八角智能烘干工厂',
-                query: {
-                    type: 'factory',
-                    region: '右江区',
-                    category: this.selectedCategory.type
-                }
-            });
-
-            this.closeCategoryPopup();
+            // TODO: 实现分类过滤功能
         }
     }
 };
@@ -1642,114 +1592,5 @@ export default {
     transform: translateX(-50%);
 }
 
-/* 分类弹窗 */
-.category-popup {
-    position: fixed;
-    z-index: 100;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #0009;
-    animation: fadeIn .3s ease;
-}
-
-.popup-content {
-    width: 90%;
-    max-width: 400px;
-    border: 1px solid #4cfcea66;
-
-    border-radius: 12px;
-    background: #0f2334f2;
-    box-shadow: 0 8px 32px #00000080;
-    animation: slideUp .3s ease;
-}
-
-.popup-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-    border-bottom: 1px solid #4cfcea33;
-}
-
-.popup-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #c69c6d;
-}
-
-.popup-close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border: none;
-    font-size: 24px;
-    font-weight: 600;
-
-    color: #4cfceacc;
-    background: none;
-    transition: color .3s ease;
-    cursor: pointer;
-}
-
-.popup-close-btn:hover {
-    color: #4cfcea;
-}
-
-.popup-body {
-    padding: 20px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #4cfceae6;
-}
-
-.popup-stats {
-    margin-top: 15px;
-    padding: 10px;
-    border-left: 3px solid #4cfcea66;
-
-    border-radius: 4px;
-    background: #4cfcea0d;
-}
-
-.popup-stats span {
-    font-weight: 600;
-    color: #c69c6d;
-}
-
-.popup-footer {
-    display: flex;
-    justify-content: flex-end;
-    padding: 15px 20px;
-    border-top: 1px solid #4cfcea33;
-}
-
-.navigate-btn {
-    padding: 10px 24px;
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-
-    color: #fff;
-    border-radius: 6px;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    transition: all .3s ease;
-    cursor: pointer;
-}
-
-.navigate-btn:hover {
-    background: linear-gradient(135deg, #16a34a, #15803d);
-    box-shadow: 0 4px 12px #22c55e66;
-    transform: translateY(-2px);
-}
 
 </style>
