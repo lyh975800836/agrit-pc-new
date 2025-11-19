@@ -66,6 +66,7 @@ export const IMAGES = {
         QUALITY_ICON: `${ IMAGE_BASE_PATH }quality-icon.png`,
         QUALITY_DIVIDER: `${ IMAGE_BASE_PATH }quality-divider.png`,
         QUALITY_GOOD: `${ IMAGE_BASE_PATH }quality-good.png`,
+        QUALITY_AVERAGE: `${ IMAGE_BASE_PATH }quality-average.png`,
         QUALITY_POOR: `${ IMAGE_BASE_PATH }quality-poor.png`
     },
 
