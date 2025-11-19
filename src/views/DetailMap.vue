@@ -17,8 +17,6 @@
       <RegionDetailMap
         :key="`detail-map-${regionName}`"
         :region-name="regionName"
-        :show-plot-details="false"
-        :show-plot-markers="true"
       />
     </template>
 

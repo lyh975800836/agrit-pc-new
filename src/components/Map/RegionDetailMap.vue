@@ -38,9 +38,17 @@
 </template>
 
 <script>
+import { getTypeIcon } from '@/utils/plotMarkerManager';
 import {
-    getTypeIcon
-} from '@/utils/plotMarkerManager';
+    transformTilesToCoordinates,
+    createPlotData,
+    isValidFieldData
+} from '@/utils/tileDataProcessor';
+import {
+    generatePlotMarkerHtml,
+    getMarkerIconConfig
+} from '@/config/markerConfig';
+import regionCoordinates from '@/config/regionCoordinates.json';
 import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
 import CategorySidebar from '@/components/Dialogs/CategorySidebar.vue';
 import CategoryPopup from '@/components/Dialogs/CategoryPopup.vue';
@@ -55,22 +63,6 @@ export default {
         regionName: {
             type: String,
             required: true
-        },
-        showPlotDetails: {
-            type: Boolean,
-            default: false
-        },
-        showPlotMarkers: {
-            type: Boolean,
-            default: true
-        },
-        plotData: {
-            type: Object,
-            default: null
-        },
-        isPlotDetailPage: {
-            type: Boolean,
-            default: false
         }
     },
     components: {
@@ -81,50 +73,46 @@ export default {
     },
     data() {
         return {
+            // 地图配置常量
+            mapConfig: {
+                defaultZoom: 12,
+                minZoom: 8,
+                maxZoom: 16,
+                fitZoom: 14,
+                fallbackZoom: 13,
+                centerPadding: [30, 30],
+                fitPadding: [50, 50],
+                tileLoadTimeout: 3000,
+                regionMaskMarginMultiplier: 3,
+                popupWidth: 380,
+                popupHeight: 350,
+                popupOffsetAbove: 20,
+                popupMargin: 10
+            },
+            // 地图实例及状态
             map: null,
-            regionPlots: [],
             plotLayers: [],
             plotMarkerLayers: [],
             isLoading: true,
             loadingText: '正在初始化地图...',
-            currentLoadedRegion: null, // 记录当前已加载的区域，防重复加载
-            showDetailPopup: false, // 控制地块详情弹窗显示
-            popupPosition: { top: 0, left: 0 }, // 弹窗位置
-            popupData: null, // 弹窗数据
-            selectedPlotFilter: 'all',
-            showPlotFilterBar: true,
+            currentLoadedRegion: null,
+            showDetailPopup: false,
+            popupPosition: { top: 0, left: 0 },
+            popupData: null,
             selectedCategory: null,
-            selectedCategoryType: 'all', // 当前选中的分类类型
-            categories: [
-                { id: 0, name: '全部', icon: '', description: '查看所有地块', count: 85, type: 'all', isAllOption: true },
-                { id: 1, name: '林', icon: '/images/map-filter1.png', description: '林业基地', count: 20, type: 'forest', subtypes: ['star-anise', 'tea-oil'] },
-                { id: 2, name: '厂', icon: '/images/map-filter3.png', description: '加工厂设施', count: 16, type: 'factory', subtypes: ['drying-facility', '中心工厂', '晒场'] },
-                { id: 3, name: '仓', icon: '/images/map-filter6.png', description: '仓储设施', count: 20, type: 'warehouse', subtypes: ['产地仓', '交收仓', '云仓'] }
-            ],
-            // 区域中心坐标
-            regionCoordinates: {
-                百色市: [23.9, 106.6],
-                右江区: [23.75, 106.28], // 修正为接近实际地块的坐标
-                田林县: [24.3, 106.2],
-                德保县: [23.3, 106.6],
-                靖西市: [23.1, 106.4],
-                田阳区: [23.7, 106.9],
-                田东县: [23.6, 107.1],
-                西林县: [24.49, 105.09], // 西林县坐标
-                隆林各族自治县: [24.77, 105.34], // 隆林各族自治县坐标
-                巴塘: [24.236, 106.205], // 添加巴塘坐标
-                大楞乡: [24.236, 106.205], // 大楞乡坐标
-                新村合作地块: [24.236, 106.205] // 地块坐标
-            },
-
-            // 农户配置映射表 - 根据地块名称获取对应的农户头像
-            farmerConfig: {
-                宏哥: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
-                1001: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
-                八角智能烘干工厂: { name: '烘干厂', age: '经营', avatar: '/images/honggan.png' },
-                default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
-            }
+            selectedCategoryType: 'all'
         };
+    },
+    computed: {
+        // 地块分类配置（不变，使用 computed 避免重复创建对象）
+        categories() {
+            return [
+                { id: 0, name: '全部', icon: '', type: 'all', isAllOption: true },
+                { id: 1, name: '林', icon: '/images/map-filter1.png', type: 'forest' },
+                { id: 2, name: '厂', icon: '/images/map-filter3.png', type: 'factory' },
+                { id: 3, name: '仓', icon: '/images/map-filter6.png', type: 'warehouse' }
+            ];
+        }
     },
     mounted() {
         // 确保Leaflet已加载并且DOM已完全渲染
@@ -150,7 +138,6 @@ export default {
         // 统一的组件初始化方法
         async initializeMapComponent() {
             try {
-
                 if (!window.L) {
                     console.warn('Leaflet库未加载');
                     this.isLoading = false;
@@ -165,33 +152,20 @@ export default {
                     return;
                 }
 
-                // 如果地图已存在，先销毁
+                // 销毁已有地图实例
                 if (this.map) {
                     this.map.remove();
                     this.map = null;
                 }
 
-                // 重置状态
+                // 重置状态并初始化地图
                 this.resetComponentState();
-
-                // 初始化地图
                 await this.initMap();
-
                 await this.loadRegionData();
-
                 this.isLoading = false;
-
             }
             catch (error) {
-                console.error('RegionDetailMap初始化失败:', error);
-                this.isLoading = false;
-                // 即使出错也不阻止用户交互
-                this.$notify({
-                    title: '加载提示',
-                    message: '地图加载可能不完整，请刷新页面',
-                    type: 'warning',
-                    duration: 3000
-                });
+                this.handleError('RegionDetailMap初始化失败，请刷新页面', error);
             }
         },
 
@@ -208,28 +182,25 @@ export default {
 
         // 重置组件状态
         resetComponentState() {
-            this.regionPlots = [];
             this.plotLayers = [];
             this.plotMarkerLayers = [];
             this.currentLoadedRegion = null;
             this.showDetailPopup = false;
             this.popupData = null;
-            this.selectedPlotFilter = 'all';
-            this.showPlotFilterBar = true;
         },
 
         // 初始化Leaflet地图
         initMap() {
             return new Promise((resolve, reject) => {
                 try {
-
-                    const center = this.regionCoordinates[this.regionName] || [23.9, 106.6];
+                    const cfg = this.mapConfig;
+                    const center = regionCoordinates[this.regionName] || [23.9, 106.6];
 
                     this.map = L.map('leaflet-map', {
                         center,
-                        zoom: 12,
-                        minZoom: 8,
-                        maxZoom: 16,
+                        zoom: cfg.defaultZoom,
+                        minZoom: cfg.minZoom,
+                        maxZoom: cfg.maxZoom,
                         zoomControl: true,
                         scrollWheelZoom: true,
                         doubleClickZoom: true,
@@ -247,21 +218,18 @@ export default {
 
                     this.map.zoomControl.setPosition('bottomright');
 
-                    // 正常情况：使用卫星底图
+                    // 添加卫星底图
                     this.addSatelliteLayer().then(() => {
                         this.isLoading = false;
                         resolve();
                     })
                         .catch(error => {
-                            console.error('卫星底图加载失败:', error);
-                            this.isLoading = false;
+                            this.handleError('卫星底图加载失败', error);
                             reject(error);
                         });
-
-
                 }
                 catch (error) {
-                    console.error('地图初始化失败:', error);
+                    this.handleError('地图初始化失败', error);
                     reject(error);
                 }
             });
@@ -300,15 +268,10 @@ export default {
         },
 
         updateMarkerVisibility(entry) {
-            if (!entry || !entry.layer) {
-                return;
-            }
+            if (!entry || !entry.layer) return;
 
             const categoryCode = entry.categoryCode || 'forest';
-            // Check if categoryCode matches selected category
-            const matchesCategory = this.selectedCategoryType === 'all'
-                                   || categoryCode === this.selectedCategoryType;
-            const shouldShow = matchesCategory;
+            const shouldShow = this.selectedCategoryType === 'all' || categoryCode === this.selectedCategoryType;
 
             if (!this.map) {
                 entry.visible = shouldShow;
@@ -316,111 +279,51 @@ export default {
             }
 
             const { layer } = entry;
-            const element = layer.getElement ? layer.getElement() : null;
+            this.setMarkerVisibility(layer, shouldShow);
+            entry.visible = shouldShow;
+        },
 
-            if (shouldShow) {
-                if (!this.map.hasLayer(layer)) {
-                    layer.addTo(this.map);
-                }
-
-                if (element) {
-                    element.style.display = '';
-                    element.style.pointerEvents = '';
-                    element.style.opacity = '1';
-                }
-
-                if (layer.setOpacity) {
-                    layer.setOpacity(1);
-                }
-
-                entry.visible = true;
-            }
-            else {
-                if (element) {
-                    element.style.display = 'none';
-                    element.style.pointerEvents = 'none';
-                }
-
-                if (layer.setOpacity) {
-                    layer.setOpacity(0);
-                }
-
-                if (this.map.hasLayer(layer)) {
-                    this.map.removeLayer(layer);
-                }
-
-                entry.visible = false;
+        // 设置单个标记的可见性
+        setMarkerVisibility(layer, visible) {
+            const element = layer.getElement?.();
+            if (visible) {
+                if (!this.map.hasLayer(layer)) layer.addTo(this.map);
+                if (element) element.style.display = '';
+                if (layer.setOpacity) layer.setOpacity(1);
+            } else {
+                if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
+                if (element) element.style.display = 'none';
+                if (layer.setOpacity) layer.setOpacity(0);
             }
         },
 
-        // 添加标准的卫星底图层
+        // 添加卫星底图层 - 简化版本，使用固定超时
         async addSatelliteLayer() {
             return new Promise((resolve, reject) => {
                 try {
-                    // 使用高德卫星图
-                    const tileLayer = L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
-                        attribution: '© 高德地图',
-                        subdomains: ['1', '2', '3', '4'],
-                        maxZoom: 18,
-                        minZoom: 3,
-                        tileSize: 256,
-                        crossOrigin: true
-                    });
-
-                    let tilesLoading = 0;
-                    let tilesLoaded = 0;
-                    let initialLoadComplete = false;
-
-                    const checkLoadComplete = () => {
-                        if (!initialLoadComplete && tilesLoading > 0 && tilesLoaded >= tilesLoading) {
-                            initialLoadComplete = true;
-                            this.loadingText = '地图加载完成';
-                            setTimeout(() => {
-                                this.isLoading = false;
-                                resolve();
-                            }, 300);
+                    const tileLayer = L.tileLayer(
+                        'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                        {
+                            attribution: '© 高德地图',
+                            subdomains: ['1', '2', '3', '4'],
+                            maxZoom: 18,
+                            minZoom: 3,
+                            tileSize: 256,
+                            crossOrigin: true
                         }
-                    };
+                    );
 
-                    tileLayer.on('loading', () => {
-                        this.loadingText = '正在加载卫星地图...';
-                        tilesLoading = 0;
-                        tilesLoaded = 0;
-                        initialLoadComplete = false;
-                    });
-
-                    tileLayer.on('tileloadstart', () => {
-                        tilesLoading++;
-                    });
-
-                    tileLayer.on('tileload', () => {
-                        tilesLoaded++;
-                        if (tilesLoading > 0) {
-                            const progress = Math.round((tilesLoaded / tilesLoading) * 100);
-                            this.loadingText = `加载卫星地图 ${ progress }%`;
-                        }
-                        checkLoadComplete();
-                    });
-
-                    tileLayer.on('tileerror', () => {
-                        tilesLoaded++;
-                        checkLoadComplete();
-                    });
-
-                    // 添加到地图
                     tileLayer.addTo(this.map);
+                    this.loadingText = '正在加载卫星地图...';
 
-                    // 设置超时，确保不会永远等待
+                    // 简单超时方案 - 避免复杂事件跟踪
                     setTimeout(() => {
-                        if (!initialLoadComplete) {
-                            this.isLoading = false;
-                            resolve();
-                        }
-                    }, 5000);
-
+                        this.isLoading = false;
+                        resolve();
+                    }, this.mapConfig.tileLoadTimeout);
                 }
                 catch (error) {
-                    console.error('卫星图层加载失败:', error);
+                    this.handleError('卫星图层加载失败', error);
                     reject(error);
                 }
             });
@@ -435,37 +338,28 @@ export default {
                 }
 
                 this.loadingText = '正在加载区域轮廓...';
-
-                // 清除现有图层
                 this.clearPlotLayers();
-
-                // 记录当前加载的区域
                 this.currentLoadedRegion = this.regionName;
 
-                // 从区县级地图文件中加载当前区县的轮廓数据
+                // 动态导入地图数据
                 const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json');
                 const baiseData = baiseDataImport.default || baiseDataImport;
 
-                // 找到当前区县的轮廓数据
+                // 查找当前区县的轮廓数据
                 const regionFeature = baiseData.features.find(feature =>
                     feature.properties.name === this.regionName);
 
                 if (regionFeature) {
                     this.addRegionBoundary(regionFeature);
-                }
-                else {
-                    console.warn('未找到区域轮廓数据，区域名称:', this.regionName);
+                } else {
+                    console.warn('未找到区域轮廓数据:', this.regionName);
                 }
 
                 this.isLoading = false;
                 this.loadingText = '';
-
             }
             catch (error) {
-                console.error('加载区域轮廓失败:', error);
-                this.isLoading = false;
-                this.loadingText = '加载失败，请刷新重试';
-                console.warn('错误详情:', error.message);
+                this.handleError('加载区域轮廓失败，请刷新重试', error);
             }
         },
 
@@ -490,18 +384,11 @@ export default {
                 // 添加区域外遮罩层效果
                 this.addRegionMask(regionFeature);
 
-                // 只在非地块详情页面调整地图视野，避免覆盖地块详情的高缩放级别
-                if (!this.isPlotDetailPage) {
-                    this.map.fitBounds(regionLayer.getBounds(), {
-                        padding: [30, 30],
-                        maxZoom: 14 // 设置合理的最大缩放级别确保卫星瓦片可用
-                    });
-                }
+                // 调整地图视野至区域边界
+                this.fitMapToContent(regionLayer.getBounds(), this.mapConfig.centerPadding);
 
                 // 添加地块标记
-                if (this.showPlotMarkers) {
-                    this.addRealPlotMarkers();
-                }
+                this.addRealPlotMarkers();
 
             }
             catch (error) {
@@ -512,15 +399,13 @@ export default {
         // 添加区域外遮罩层
         addRegionMask(regionFeature) {
             try {
-                // 立即执行，不延迟
-                // 获取区域边界而不是当前地图边界
-                const geoJsonLayer = L.geoJSON(regionFeature);
-                const regionBounds = geoJsonLayer.getBounds();
+                const regionBounds = L.geoJSON(regionFeature).getBounds();
 
                 // 扩大边界以确保完全覆盖
+                const mult = this.mapConfig.regionMaskMarginMultiplier;
                 const margin = Math.max(
-                    Math.abs(regionBounds.getNorth() - regionBounds.getSouth()) * 3,
-                    Math.abs(regionBounds.getEast() - regionBounds.getWest()) * 3
+                    Math.abs(regionBounds.getNorth() - regionBounds.getSouth()) * mult,
+                    Math.abs(regionBounds.getEast() - regionBounds.getWest()) * mult
                 );
 
                 // 创建一个覆盖整个可视区域的大矩形
@@ -569,186 +454,80 @@ export default {
 
         // 基于真实坐标数据添加地块标记
         async addRealPlotMarkers() {
-
             try {
-                // 调用动态接口获取地块瓦片数据
                 const response = await fetch('http://43.136.169.150:8000/api/v1/geoprocessing/plot-tiles/list');
                 const tilesData = await response.json();
 
-                // 将瓦片数据转换为坐标格式
-                const coordinateData = this.transformTilesToCoordinates(tilesData);
-
+                // 使用工具函数转换瓦片数据
+                const coordinateData = transformTilesToCoordinates(tilesData);
                 const allEntries = Object.entries(coordinateData);
 
                 allEntries.forEach(([key, fieldData]) => {
                     const plotName = fieldData.displayName || fieldData.name || key;
-                    console.log(`处理地块: ${ plotName }`, fieldData);
 
-                    if (fieldData.center && (fieldData.leaflet_polygon || fieldData.leafletPolygon)) {
-                        const displayName = plotName;
+                    // 验证数据完整性
+                    if (!isValidFieldData(fieldData)) return;
 
-                        const plotData = {
-                            name: displayName,
-                            displayName,
-                            area: fieldData.area || '30',
-                            output: '1970', // 产量
-                            property_category_code: fieldData.property_category_code || 'forest',
-                            property_type_name: fieldData.property_type_name || '八角基地',
-                            lat: fieldData.center[0],
-                            lng: fieldData.center[1]
-                        };
+                    const plotData = createPlotData(fieldData, plotName);
+                    const [markerLat, markerLng] = fieldData.center;
+                    const markerHtml = generatePlotMarkerHtml(plotData, getTypeIcon);
+                    const iconConfig = getMarkerIconConfig(markerHtml);
+                    const customIcon = L.divIcon(iconConfig);
 
-                        // 根据页面类型选择不同的标记样式
-                        let customIcon;
-                        const markerLat = fieldData.center[0];
-                        const markerLng = fieldData.center[1];
-                        if (this.isPlotDetailPage) {
-                            // 三级地图：使用简单的图片标记
-                            customIcon = L.divIcon({
-                                className: 'preview-mark-container',
-                                html: `<img src="/images/preview-mark.png" class="preview-mark-icon" alt="${ displayName }" />`,
-                                iconSize: [40, 50],
-                                iconAnchor: [20, 50]
-                            });
-                        }
-                        else {
-                            // 二级地图：使用icon标记
-                            const markerHtml = this.createPlotMarkerHtml(plotData);
-                            const iconSize = 48;
+                    const plotMarker = L.marker([markerLat, markerLng], { icon: customIcon }).addTo(this.map);
 
-                            customIcon = L.divIcon({
-                                className: 'leaflet-marker-icon custom-plot-marker preview-mark-container',
-                                html: markerHtml,
-                                iconSize: [iconSize, iconSize],
-                                iconAnchor: [iconSize / 2, iconSize / 2]
-                            });
-                        }
+                    // 点击事件：显示地块详情弹窗
+                    plotMarker.on('click', () => {
+                        this.setPlotDetailPopup(true, fieldData.center, plotData);
+                    });
 
-                        const plotMarker = L.marker([
-                            markerLat,
-                            markerLng
-                        ], {
-                            icon: customIcon
-                        }).addTo(this.map);
-
-                        // 添加点击事件：显示弹窗，然后通过弹窗内的按钮跳转
-                        plotMarker.on('click', () => {
-                            // 无论二级还是三级页面，都先显示弹窗
-                            this.showPlotDetailPopup(fieldData.center, plotData);
-                        });
-
-                        // 将标记添加到图层数组，用于地图视野调整
-                        this.plotLayers.push(plotMarker);
-
-                        if (!this.isPlotDetailPage) {
-                            this.registerPlotMarker(plotMarker, plotData.property_category_code);
-                        }
-
-                    }
+                    this.plotLayers.push(plotMarker);
+                    this.registerPlotMarker(plotMarker, plotData.property_category_code);
                 });
 
-
-                // 调整地图视野以显示所有地块标记
+                // 调整地图视野
                 this.fitMapToPlotMarkers();
             }
             catch (error) {
-                console.error('加载坐标数据失败:', error);
+                this.handleError('加载坐标数据失败', error);
             }
-        },
-
-        // 将后端瓦片数据转换为坐标格式
-        transformTilesToCoordinates(tilesData) {
-            const result = {};
-            const margin = 0.002; // 边界边距
-
-            if (!tilesData || !tilesData.data || !Array.isArray(tilesData.data)) {
-                console.warn('瓦片数据格式不正确');
-                return result;
-            }
-
-            tilesData.data.forEach(tile => {
-                const name = tile.plot_name || tile.layer_name || `Plot_${ tile.plot_id }`;
-
-                // 创建矩形边界坐标
-                const leafletPolygon = [[
-                    [tile.min_lat - margin, tile.min_lon - margin],
-                    [tile.min_lat - margin, tile.max_lon + margin],
-                    [tile.max_lat + margin, tile.max_lon + margin],
-                    [tile.max_lat + margin, tile.min_lon - margin],
-                    [tile.min_lat - margin, tile.min_lon - margin]
-                ]];
-
-                // 计算中心点
-                const center = [
-                    (tile.min_lat + tile.max_lat) / 2,
-                    (tile.min_lon + tile.max_lon) / 2
-                ];
-
-                result[name] = {
-                    name,
-                    displayName: tile.plot_name || name,
-                    center,
-                    leafletPolygon,
-                    area: tile.plot_area ? String(tile.plot_area) : '0',
-                    // 直接保留后端字段，不做转换
-                    property_category_code: tile.property_category_code,
-                    property_category_name: tile.property_category_name,
-                    property_type_name: tile.property_type_name,
-                    tileData: tile
-                };
-            });
-
-            return result;
         },
 
         // 调整地图视野以显示地块标记
         fitMapToPlotMarkers() {
-            try {
-                if (this.plotLayers.length === 0) {
-                    return;
+            const plotCoordinates = [];
+            this.plotLayers.forEach(layer => {
+                if (layer.getLatLng) {
+                    const latlng = layer.getLatLng();
+                    plotCoordinates.push([latlng.lat, latlng.lng]);
                 }
+            });
 
-                // 计算所有地块标记的边界
-                const plotCoordinates = [];
-                this.plotLayers.forEach(layer => {
-                    if (layer.getLatLng) {
-                        const latlng = layer.getLatLng();
-                        plotCoordinates.push([latlng.lat, latlng.lng]);
-                    }
-                });
-
-                if (plotCoordinates.length > 0) {
-                    // 创建边界并适配
-                    const bounds = L.latLngBounds(plotCoordinates);
-
-                    this.map.fitBounds(bounds, {
-                        padding: [50, 50],
-                        maxZoom: 14
-                    });
-
-                }
-                else {
-                    const center = this.regionCoordinates[this.regionName] || [23.9, 106.6];
-                    this.map.setView(center, 13);
-                }
-            }
-            catch (error) {
-                console.error('调整地图视野失败:', error);
-                const center = this.regionCoordinates[this.regionName] || [23.9, 106.6];
-                this.map.setView(center, 13);
+            if (plotCoordinates.length > 0) {
+                const bounds = L.latLngBounds(plotCoordinates);
+                this.fitMapToContent(bounds, this.mapConfig.fitPadding);
+            } else {
+                this.setDefaultView();
             }
         },
 
-        // 创建地块标记HTML
-        createPlotMarkerHtml(plot) {
-            // 使用新的 plotMarkerManager，基于后端字段创建标记
-            const plotName = plot.name || plot.displayName || '';
-            const icon = getTypeIcon(plot.property_type_name || '');
-            console.log('Plot:', plotName, 'Category:', plot.property_category_code, 'Type:', plot.property_type_name, 'Icon:', icon);
-            return `<div class="plot-marker-wrapper">
-                <div class="plot-marker-icon" style="background-image: url('${ icon }'); width: 48px; height: 48px;"></div>
-                <div class="plot-marker-label">${ plotName }</div>
-            </div>`;
+        // 统一的地图视野调整方法
+        fitMapToContent(bounds, padding = this.mapConfig.centerPadding) {
+            try {
+                this.map.fitBounds(bounds, {
+                    padding,
+                    maxZoom: this.mapConfig.fitZoom
+                });
+            } catch (error) {
+                this.handleError('调整地图视野失败', error);
+                this.setDefaultView();
+            }
+        },
+
+        // 设置地图到默认视野
+        setDefaultView() {
+            const center = regionCoordinates[this.regionName] || [23.9, 106.6];
+            this.map.setView(center, this.mapConfig.fallbackZoom);
         },
 
         // 清除现有地块图层
@@ -760,90 +539,45 @@ export default {
             this.plotMarkerLayers = [];
         },
 
-        // 显示地块详情弹窗
-        showPlotDetailPopup(plotCenter, plotData) {
+        // 显示/关闭地块详情弹窗
+        setPlotDetailPopup(show, plotCenter = null, plotData = null) {
+            if (!show) {
+                this.showDetailPopup = false;
+                this.popupData = null;
+                return;
+            }
+
             try {
+                const cfg = this.mapConfig;
                 const mapContainer = document.getElementById('leaflet-map');
                 const mapRect = mapContainer.getBoundingClientRect();
-
-                // 将地理坐标转换为屏幕坐标
                 const point = this.map.latLngToContainerPoint(plotCenter);
                 const screenX = mapRect.left + point.x;
                 const screenY = mapRect.top + point.y;
 
-                // 计算弹窗位置（在icon的上方）
-                // 弹窗宽度约380px，高度约350px
-                const popupWidth = 380;
-                const popupHeight = 350;
-                const offsetAbove = 20; // icon上方距离
-                const margin = 10; // 与屏幕边界的最小距离
+                // 计算弹窗位置
+                let top = screenY - cfg.popupHeight - cfg.popupOffsetAbove;
+                if (top < cfg.popupMargin) {
+                    top = screenY + cfg.popupOffsetAbove;
+                }
+                if (top + cfg.popupHeight > window.innerHeight - cfg.popupMargin) {
+                    top = window.innerHeight - cfg.popupHeight - cfg.popupMargin;
+                }
+                top = Math.max(cfg.popupMargin, top);
 
-                // 获取窗口尺寸
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
-
-                // 计算垂直位置：优先在上方，如果空间不足则在下方
-                let top = screenY - popupHeight - offsetAbove;
-                if (top < margin) {
-                    // 如果上方空间不足，显示在icon下方
-                    top = screenY + offsetAbove;
-                }
-                // 确保不超出窗口底部
-                if (top + popupHeight > windowHeight - margin) {
-                    top = windowHeight - popupHeight - margin;
-                }
-                top = Math.max(margin, top);
-
-                // 计算水平位置：优先居中，确保不超出左右边界
-                let left = screenX - popupWidth / 2;
-                if (left < margin) {
-                    // 左边界检查
-                    left = margin;
-                }
-                else if (left + popupWidth > windowWidth - margin) {
-                    // 右边界检查
-                    left = windowWidth - popupWidth - margin;
-                }
+                let left = screenX - cfg.popupWidth / 2;
+                left = Math.max(cfg.popupMargin, Math.min(left, window.innerWidth - cfg.popupWidth - cfg.popupMargin));
 
                 this.popupPosition = { top, left };
-
-                // 根据地块名称从农户配置中获取对应的头像
-                const plotName = plotData?.name;
-                let farmerAvatar = '/images/pop-banner.png'; // 默认图片
-                if (plotName && this.farmerConfig[plotName]) {
-                    farmerAvatar = this.farmerConfig[plotName].avatar;
-                }
-                else {
-                    farmerAvatar = this.farmerConfig.default.avatar;
-                }
-
-                // 设置弹窗数据
-                this.popupData = {
-                    ...plotData,
-                    photo: farmerAvatar // 使用对应农户的头像作为弹窗图片
-                };
-
-                // 显示弹窗
+                this.popupData = { ...plotData, photo: '/images/pop-banner.png' };
                 this.showDetailPopup = true;
-
-                console.log('地块详情弹窗已显示', {
-                    plotCenter,
-                    screenPosition: { x: screenX, y: screenY },
-                    popupPosition: this.popupPosition,
-                    windowSize: { width: windowWidth, height: windowHeight },
-                    plotData
-                });
-
-            }
-            catch (error) {
-                console.error('显示地块详情弹窗失败:', error);
+            } catch (error) {
+                this.handleError('显示地块详情弹窗失败', error);
             }
         },
 
-        // 关闭地块详情弹窗
         closePlotDetailPopup() {
-            this.showDetailPopup = false;
-            this.popupData = null;
+            this.setPlotDetailPopup(false);
         },
 
         // 跳转到地块详情页面
@@ -887,40 +621,60 @@ export default {
             }
         },
 
+        // 统一错误处理
+        handleError(message, error) {
+            console.error(message, error);
+            this.isLoading = false;
+            this.$notify({
+                title: '提示',
+                message: message,
+                type: 'warning',
+                duration: 3000
+            });
+        },
+
         // 分类过滤相关方法
-        // 筛选地图上的icon显示
         filterMapByCategory(category) {
             this.selectedCategoryType = category.type;
-            // 应用分类筛选
             this.applyPlotFilter();
         },
 
+        setCategoryPopup(show) {
+            if (!show) {
+                this.selectedCategory = null;
+                return;
+            }
+            // show 时不做处理，由外部控制
+        },
+
         closeCategoryPopup() {
-            this.selectedCategory = null;
+            this.setCategoryPopup(false);
         },
 
         navigateToTertiaryMap() {
-            if (this.selectedCategory) {
-                // 全部选项只是关闭弹窗，显示所有地块
-                if (this.selectedCategory.isAllOption) {
-                    this.closeCategoryPopup();
-                    return;
-                }
+            if (!this.selectedCategory) return;
 
-                this.$emit('category-navigate', {
-                    categoryType: this.selectedCategory.type,
-                    categoryName: this.selectedCategory.name
-                });
-                this.$router.push({
-                    path: '/plot/八角智能烘干工厂',
-                    query: {
-                        type: 'factory',
-                        region: '右江区',
-                        category: this.selectedCategory.type
-                    }
-                });
+            // 全部选项只是关闭弹窗
+            if (this.selectedCategory.isAllOption) {
                 this.closeCategoryPopup();
+                return;
             }
+
+            this.$emit('category-navigate', {
+                categoryType: this.selectedCategory.type,
+                categoryName: this.selectedCategory.name
+            });
+
+            this.$router.push({
+                path: '/plot/八角智能烘干工厂',
+                query: {
+                    type: 'factory',
+                    region: '右江区',
+                    category: this.selectedCategory.type
+                }
+            });
+
+            this.closeCategoryPopup();
         }
     }
 };
@@ -1460,7 +1214,7 @@ export default {
     background: none !important;
 }
 
-/* 二级地图marker icon - 只显示分类图标 */ - 只显示分类图标
+/* 二级地图marker icon - 只显示分类图标 */
 /* Leaflet marker容器样式调整 */
 .leaflet-marker-icon.custom-plot-marker.preview-mark-container {
     width: 48px !important;
