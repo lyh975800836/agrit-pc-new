@@ -44,7 +44,6 @@
 import * as THREE from 'three';
 
 const EARTH_TEXTURE_URL = `${ process.env.BASE_URL }images/earth_atmos_2048.jpg`;
-const CLOUD_TEXTURE_URL = `${ process.env.BASE_URL }images/earth_clouds.png`;
 
 export default {
     name: 'EarthIntro',
@@ -174,21 +173,14 @@ export default {
                     }
                 });
 
-            const cloudPromise = this.loadTexture(loader, CLOUD_TEXTURE_URL)
-                .catch(error => {
-                    // eslint-disable-next-line no-console
-                    console.warn(`云层贴图加载失败，使用兜底纹理: ${ error.message }`);
-                    return this.createCloudTexture();
-                })
-                .then(texture => {
-                    if (texture) {
-                        texture.anisotropy = this.renderer ? this.renderer.capabilities.getMaxAnisotropy() : 1;
-                        cloudMaterial.map = texture;
-                        cloudMaterial.needsUpdate = true;
-                    }
-                });
+            // 直接使用生成的云层纹理，不加载外部图片
+            const cloudTexture = this.createCloudTexture();
+            if (cloudTexture) {
+                cloudMaterial.map = cloudTexture;
+                cloudMaterial.needsUpdate = true;
+            }
 
-            return Promise.all([earthPromise, cloudPromise]);
+            return Promise.all([earthPromise]);
         },
 
         loadTexture(loader, source) {

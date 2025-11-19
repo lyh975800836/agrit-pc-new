@@ -23,10 +23,10 @@ export const FARMER_CONFIG = {
         age: '经营',
         avatar: '/images/honggan.png'
     },
-    // 默认配置（其他地块使用虚拟名字）
+    // 默认配置（其他地块使用虚拟农户）
     default: {
-        name: '绿农科技',
-        age: '54',
+        name: '陈启伟',
+        age: '50',
         avatar: '/images/farmer-avatar.jpg'
     }
 };

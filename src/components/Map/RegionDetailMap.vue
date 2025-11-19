@@ -73,6 +73,8 @@ export default {
     },
     data() {
         return {
+            // 页面状态
+            isPlotDetailPage: false,
             // 地图配置常量
             mapConfig: {
                 defaultZoom: 12,
