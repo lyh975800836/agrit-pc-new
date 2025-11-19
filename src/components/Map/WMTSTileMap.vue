@@ -109,12 +109,12 @@ export default {
                 }
             }
 
-            // 2. 默认返回 plotData.name 或1000
+            // 2. 默认返回 plotData.name，不返回1000来避免不必要的API请求
             const name = typeof this.plotData?.name === 'string'
                 ? this.plotData.name.trim()
                 : this.plotData?.name;
 
-            return name || 1000;
+            return name || null;
         },
         layerName() {
             // 直接使用 plotData 中的 layer（从路由传递过来）

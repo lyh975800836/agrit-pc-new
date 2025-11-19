@@ -36,8 +36,8 @@
 
         <!-- 农户信息 -->
         <FarmerProfileCard
-          :farmer-name="plotData.farmerName || '隆启雷'"
-          :farmer-age="plotData.farmerAge || '54'"
+          :farmer-name="plotData.farmerName || defaultFarmerName"
+          :farmer-age="plotData.farmerAge || defaultFarmerAge"
           :avatar-url="farmerAvatarUrl"
           :background-image="images.farmerProfile"
           :status-tags="[
@@ -50,15 +50,15 @@
         <PlotStatisticsGrid
           :items="[
             { label: '总面积(亩)：', value: displayedPlotArea },
-            { label: '产量(万斤)：', value: plotData.yield || '48' },
-            { label: '亩产量(斤/亩)：', value: plotData.unitYield || '1200' }
+            { label: '产量(万斤)：', value: plotData.yield || DEFAULT_PLOT_DATA.yield },
+            { label: '亩产量(斤/亩)：', value: plotData.unitYield || DEFAULT_PLOT_DATA.unitYield }
           ]"
           :background-image="images.statItem"
         />
         <!-- 价格信息 -->
         <PriceInfoBox
           label="今日价格："
-          :value="plotData.price || '4.10'"
+          :value="String(plotData.price || DEFAULT_PLOT_DATA.price)"
           unit="元/斤"
           :background-image="images.priceInfo"
         />
@@ -92,7 +92,7 @@
         <div class="farmer-profile" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
           <img class="farmer-avatar" :src="farmerAvatarUrl" />
           <div class="farmer-details">
-            <div class="farmer-name">所有人：{{ plotData.farmerName || '隆启雷' }}</div>
+            <div class="farmer-name">所有人：{{ plotData.farmerName || defaultFarmerName }}</div>
             <img class="detail-divider" src="/images/divider.png" />
             <div class="farmer-age">名下工厂数：3个</div>
             <div class="farmer-rating">
@@ -183,7 +183,7 @@
         <div class="farmer-profile warehouse-owner" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
           <img class="farmer-avatar" :src="farmerAvatarUrl" />
           <div class="farmer-details">
-            <div class="farmer-name">所有人：{{ plotData.farmerName || '李明' }}</div>
+            <div class="farmer-name">所有人：{{ plotData.farmerName || '陈启伟' }}</div>
             <img class="detail-divider" src="/images/divider.png" />
             <div class="farmer-age">管理仓库数：2个</div>
             <div class="farmer-rating">
@@ -386,20 +386,14 @@
               <div class="farming-dynamics__services" :style="{ backgroundImage: `url(${images.threeNong})` }">
                 <h4 class="farming-dynamics__services-title">三农服务</h4>
                 <div class="farming-dynamics__services-content">
-                  <div class="farming-dynamics__service-item">
-                    <img class="farming-dynamics__service-icon" src="/images/service-icon-1.jpg" />
-                    <div class="farming-dynamics__service-label">-农投-</div>
-                    <div class="farming-dynamics__service-provider">隆启雷</div>
-                  </div>
-                  <div class="farming-dynamics__service-item">
-                    <img class="farming-dynamics__service-icon" src="/images/service-icon-2.jpg" />
-                    <div class="farming-dynamics__service-label">-农资-</div>
-                    <div class="farming-dynamics__service-provider">泮香科技</div>
-                  </div>
-                  <div class="farming-dynamics__service-item">
-                    <img class="farming-dynamics__service-icon" src="/images/service-icon-3.jpg" />
-                    <div class="farming-dynamics__service-label">-农投-</div>
-                    <div class="farming-dynamics__service-provider">泮香科技</div>
+                  <div
+                    v-for="(service, index) in servicesData"
+                    :key="index"
+                    class="farming-dynamics__service-item"
+                  >
+                    <img class="farming-dynamics__service-icon" :src="service.icon" />
+                    <div class="farming-dynamics__service-label">{{ service.label }}</div>
+                    <div class="farming-dynamics__service-provider">{{ service.provider }}</div>
                   </div>
                 </div>
               </div>
@@ -647,6 +641,7 @@ import FarmerProfileCard from '@/components/PlotDetail/FarmerProfileCard.vue';
 import PlotStatisticsGrid from '@/components/PlotDetail/PlotStatisticsGrid.vue';
 import PriceInfoBox from '@/components/PlotDetail/PriceInfoBox.vue';
 import HealthIndicators from '@/components/PlotDetail/HealthIndicators.vue';
+import { FARMER_CONFIG, SERVICES_CONFIG, RANKING_CONFIG, DEFAULT_PLOT_DATA, getFarmerInfo } from '@/config/farmerConfig';
 
 export default {
     name: 'PlotDetail',
@@ -669,14 +664,9 @@ export default {
     },
     data() {
         return {
-            // 农户配置映射表 - 根据地块ID映射农户信息
-            farmerConfig: {
-                宏哥: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
-                1001: { name: '周建华', age: '50', avatar: '/images/zjh.jpg' },
-                八角智能烘干工厂: { name: '烘干厂', age: '经营', avatar: '/images/honggan.png' },
-                // 其他地块保持原样
-                default: { name: '隆启雷', age: '54', avatar: '/images/farmer-avatar.jpg' }
-            },
+            // 配置常量（模板中使用）
+            FARMER_CONFIG,
+            DEFAULT_PLOT_DATA,
             // 健康指标弹窗控制
             healthModalVisible: false,
             // 选中的农事项目ID
@@ -734,30 +724,8 @@ export default {
                 totalBlocks: 45,
                 totalProduction: 2400
             },
-            // 排名数据
-            rankingData: [
-                {
-                    manager: '隆起雷',
-                    location: '隆起雷八角林',
-                    area: 10,
-                    yield: 1970,
-                    district: '右江区'
-                },
-                {
-                    manager: '李子顺',
-                    location: '李子顺八角林',
-                    area: 10,
-                    yield: 1680,
-                    district: '右江区'
-                },
-                {
-                    manager: '周建华',
-                    location: '周建华八角林',
-                    area: 100,
-                    yield: 800,
-                    district: '右江区'
-                }
-            ],
+            // 排名数据 - 从配置文件导入
+            rankingData: RANKING_CONFIG,
             // 质量数据
             qualityData: {
                 good: '50.9',
@@ -960,13 +928,17 @@ export default {
             return this.standardFarmingItems[currentIndex + 1];
         },
 
-        // 三农服务项目 - 使用集中管理的图片常量
+        // 三农服务项目 - 使用集中管理的配置和图片
         servicesData() {
-            return [
-                { icon: this.images.serviceIcon1, label: '-农投-', provider: '泮香科技' },
-                { icon: this.images.serviceIcon2, label: '-农资-', provider: '泮香科技' },
-                { icon: this.images.serviceIcon3, label: '-农服-', provider: '隆启雷' }
+            const iconMap = [
+                this.images.serviceIcon1,
+                this.images.serviceIcon2,
+                this.images.serviceIcon3
             ];
+            return SERVICES_CONFIG.map((service, index) => ({
+                ...service,
+                icon: iconMap[index] || this.images.serviceIcon1
+            }));
         },
         // 用户信息 - 使用集中管理的图片常量
         user() {
@@ -975,6 +947,14 @@ export default {
                 avatar: this.images.userAvatar
             };
         },
+        // 默认农户名
+        defaultFarmerName() {
+            return this.FARMER_CONFIG.default.name;
+        },
+        // 默认农户年龄
+        defaultFarmerAge() {
+            return this.FARMER_CONFIG.default.age;
+        },
         // 农户头像URL - 根据地块类型动态获取
         farmerAvatarUrl() {
             const plotType = this.plotData?.type;
@@ -982,12 +962,13 @@ export default {
             if (plotType === 'factory' || plotType === 'warehouse') {
                 return '/images/default-cover.png';
             }
-            // 其他类型（八角地块）展示当前图片
+            // 其他类型（八角地块）展示农户头像
             const plotName = this.plotData?.name;
-            if (plotName && this.farmerConfig[plotName]) {
-                return this.farmerConfig[plotName].avatar;
+            if (plotName) {
+                const farmerInfo = getFarmerInfo(plotName);
+                return farmerInfo.avatar;
             }
-            return this.farmerConfig.default.avatar;
+            return this.FARMER_CONFIG.default.avatar;
         }
     },
     mounted() {
@@ -1004,28 +985,30 @@ export default {
 
             // 从query参数获取地块数据
             const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
-            const area = this.$route.query.area || '40';
-            const output = this.$route.query.output || '25';
+            const area = this.$route.query.area || String(DEFAULT_PLOT_DATA.area);
+            const output = this.$route.query.output || String(DEFAULT_PLOT_DATA.output);
             // 默认类型为八角
             const type = this.$route.query.type || 'star-anise';
 
             // 获取该地块的农户信息
-            const farmerInfo = this.farmerConfig[plotName] || this.farmerConfig.default;
+            const farmerInfo = getFarmerInfo(plotName);
 
             // 从后端获取plot tiles列表，根据plotName找到真实的plot_id和layer_name
             const tileRecord = await this.fetchPlotTileRecord(plotName);
 
             // 基础地块数据
+            const outputNum = parseFloat(output) || DEFAULT_PLOT_DATA.output;
+            const areaNum = parseFloat(area) || DEFAULT_PLOT_DATA.area;
             this.plotData = {
                 id: tileRecord?.plot_id || decodedPlotId,
                 name: plotName,
                 district: this.regionName,
                 area,
-                yield: Math.floor((parseFloat(output) || 25) * 2000 / 10000) || '48', // 转换为万斤
-                unitYield: output ? Math.floor(parseFloat(output) * 2000 / parseFloat(area)) : '1200',
+                yield: Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / DEFAULT_PLOT_DATA.conversionDivisor) || DEFAULT_PLOT_DATA.yield,
+                unitYield: output ? Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / areaNum) : DEFAULT_PLOT_DATA.unitYield,
                 farmerName: farmerInfo.name,
                 farmerAge: farmerInfo.age,
-                price: '4.10',
+                price: DEFAULT_PLOT_DATA.price,
                 type, // 地块类型
                 layer: tileRecord?.layer_name // 从后端获取的layer_name
             };
@@ -1076,15 +1059,18 @@ export default {
 
         handlePlotSelected(plot) {
             // 选中地块时更新详情信息
+            const farmerInfo = getFarmerInfo(plot.name);
+            const outputNum = plot.output || DEFAULT_PLOT_DATA.output;
+            const areaNum = plot.area || DEFAULT_PLOT_DATA.area;
             this.plotData = {
                 name: plot.name,
                 district: this.regionName,
                 area: plot.area,
-                yield: Math.floor((plot.output || 25) * 2000 / 10000),
-                unitYield: plot.output ? Math.floor(plot.output * 2000 / plot.area) : '1200',
-                farmerName: '隆启雷',
-                farmerAge: '54',
-                price: '4.10'
+                yield: Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / DEFAULT_PLOT_DATA.conversionDivisor) || DEFAULT_PLOT_DATA.yield,
+                unitYield: plot.output ? Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / areaNum) : DEFAULT_PLOT_DATA.unitYield,
+                farmerName: farmerInfo.name,
+                farmerAge: farmerInfo.age,
+                price: DEFAULT_PLOT_DATA.price
             };
         },
 
