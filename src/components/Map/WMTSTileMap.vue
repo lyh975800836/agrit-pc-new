@@ -37,6 +37,12 @@
             </div>
           </div>
         </template>
+
+        <!-- Mock 标记点组件 - 仅在"那色"地块显示 -->
+        <MockMarkers
+          :plot-data="plotData"
+          :tile-size="tileSize"
+        />
       </div>
     </div>
 
@@ -53,13 +59,15 @@
 
 <script>
 import TileImageManager from '@/components/Map/TileImageManager.vue';
+import MockMarkers from '@/components/Map/MockMarkers.vue';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
 
 export default {
     name: 'WMTSTileMap',
     components: {
-        TileImageManager
+        TileImageManager,
+        MockMarkers
     },
     props: {
         plotData: {
@@ -242,11 +250,21 @@ export default {
                     return;
                 }
                 this.buildTileGrid();
-                await this.loadAllTiles(requestToken);
-                if (this.currentRequestToken !== requestToken) {
-                    return;
-                }
-                this.updateTileMetrics();
+
+                // 在后台加载瓦片，不阻塞主流程
+                this.loadAllTiles(requestToken).then(() => {
+                    if (this.currentRequestToken === requestToken) {
+                        this.updateTileMetrics();
+                    }
+                }).catch(error => {
+                    // eslint-disable-next-line no-console
+                    console.error('[loadAllTiles] error:', error);
+                });
+            }
+            catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('[loadMapData] ERROR:', error);
+                throw error;
             }
             finally {
                 if (this.currentRequestToken === requestToken) {
@@ -268,8 +286,6 @@ export default {
             try {
                 const isProduction = process.env.NODE_ENV === 'production';
                 const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
-                // eslint-disable-next-line no-console
-                console.log(`loadTileInfo: requesting tile info for plotId=${ this.plotId }`);
                 // 改为GET请求，避免CORS preflight
                 const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/info?plot_id=${ String(this.plotId) }`, {
                     signal: this.requestAbortController?.signal
@@ -284,8 +300,6 @@ export default {
                     return;
                 }
 
-                // eslint-disable-next-line no-console
-                console.log(`loadTileInfo response code=${ result?.code }, has data=${ !!result?.data }`);
                 if (result && result.code === 0 && result.data) {
                     this.tileInfo = result.data;
                     const maxZoom = Number(result.data.max_zoom_level);
@@ -311,13 +325,7 @@ export default {
                             maxX: maxTileX,
                             maxY: maxTileY
                         };
-                        // eslint-disable-next-line no-console
-                        console.log(`loadTileInfo: tileBounds=${ JSON.stringify(this.tileBounds) }`);
                     }
-                }
-                else {
-                    // eslint-disable-next-line no-console
-                    console.warn(`loadTileInfo: No data in response for plotId=${ this.plotId }`);
                 }
             }
             catch (error) {
@@ -385,14 +393,10 @@ export default {
                     rows.push(cols);
                 }
                 this.tileGridRowsCache = rows;
-                // eslint-disable-next-line no-console
-                console.log(`buildTileGrid created ${ rows.length } rows x ${ rows[0]?.length || 0 } cols from tileBounds for plotId ${ this.plotId }`);
                 this.recalculateTileSize();
                 return;
             }
 
-            // eslint-disable-next-line no-console
-            console.warn(`buildTileGrid: tileBounds is null for plotId ${ this.plotId }, using fallback grid`);
             const fallbackRows = [];
             for (let y = 0; y < this.visibleRows; y += 1) {
                 const rowTiles = [];
