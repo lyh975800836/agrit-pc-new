@@ -60,6 +60,7 @@
 <script>
 import TileImageManager from '@/components/Map/TileImageManager.vue';
 import MockMarkers from '@/components/Map/MockMarkers.vue';
+import apiClient from '@/services/apiClient';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
 
@@ -256,10 +257,11 @@ export default {
                     if (this.currentRequestToken === requestToken) {
                         this.updateTileMetrics();
                     }
-                }).catch(error => {
+                })
+                    .catch(error => {
                     // eslint-disable-next-line no-console
-                    console.error('[loadAllTiles] error:', error);
-                });
+                        console.error('[loadAllTiles] error:', error);
+                    });
             }
             catch (error) {
                 // eslint-disable-next-line no-console
@@ -284,18 +286,10 @@ export default {
 
         async loadTileInfo(requestToken) {
             try {
-                const isProduction = process.env.NODE_ENV === 'production';
-                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
-                // 改为GET请求，避免CORS preflight
-                const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/info?plot_id=${ String(this.plotId) }`, {
+                const result = await apiClient.getTileInfo(String(this.plotId), {
                     signal: this.requestAbortController?.signal
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${ response.status }`);
-                }
-
-                const result = await response.json();
                 if (this.currentRequestToken !== requestToken) {
                     return;
                 }
@@ -345,18 +339,15 @@ export default {
         async loadMarkers(requestToken) {
             this.markersLoading = true;
             try {
-                const isProduction = process.env.NODE_ENV === 'production';
-                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
-                const response = await fetch(`${ baseUrl }/api/v1/markers/plot/${ this.plotId }`, {
+                const result = await apiClient.getPlotMarkers(this.plotId, {
                     signal: this.requestAbortController?.signal
                 });
-                const result = await response.json();
 
                 if (this.currentRequestToken !== requestToken) {
                     return;
                 }
 
-                if (response.ok && result.code === 0) {
+                if (result && result.code === 0) {
                     this.markers = result.data || [];
                 }
                 else {
@@ -431,27 +422,17 @@ export default {
                 return;
             }
 
-            const isProduction = process.env.NODE_ENV === 'production';
-            const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
-            const params = new URLSearchParams({
-                service: 'WMTS',
-                request: 'GetTile',
-                version: '1.0.0',
-                layer: this.layerName,
-                style: 'default',
-                tilematrixset: 'GoogleMapsCompatible',
-                tilematrix: this.zoomLevel,
-                tilerow: tileRow,
-                tilecol: tileCol,
-                format: 'image/png'
-            });
-            const tileUrl = `${ baseUrl }/api/v1/wmts/request?${ params }`;
-
             try {
-                const response = await fetch(tileUrl, {
+                const result = await apiClient.getWmtsTile({
+                    layer: this.layerName,
+                    style: 'default',
+                    tilematrixset: 'GoogleMapsCompatible',
+                    tilematrix: this.zoomLevel,
+                    tilerow: tileRow,
+                    tilecol: tileCol
+                }, {
                     signal: this.requestAbortController?.signal
                 });
-                const result = await response.json();
 
                 if (this.currentRequestToken !== requestToken) {
                     return;
@@ -590,7 +571,8 @@ export default {
                     const parentWidth = container.parentElement?.clientWidth;
                     if (parentWidth && parentWidth > 100) {
                         availableWidth = parentWidth;
-                    } else {
+                    }
+                    else {
                         // 最后的fallback：使用视口宽度的80%
                         availableWidth = Math.max(window.innerWidth * 0.8, 400);
                     }
@@ -613,6 +595,7 @@ export default {
     width: 100%;
     height: 100%;
     font-family: "Helvetica Neue", Arial, sans-serif;
+
     background: transparent;
 }
 
@@ -622,6 +605,7 @@ export default {
     flex: 1;
     width: 100%;
     height: 100%;
+
     background: transparent;
 }
 
@@ -683,7 +667,7 @@ export default {
     font-weight: 700;
 
     color: #fff;
-    background: url('/public/images/mark-point.png') no-repeat center/contain;
+    background: url("/public/images/mark-point.png") no-repeat center/contain;
     transition: transform .2s ease, filter .2s ease;
     cursor: pointer;
 
@@ -1025,7 +1009,7 @@ export default {
     color: #c7b299;
     border-radius: 18px;
     background-color: #081c24a6;
-    background-image: url('/public/images/ai-advice.png');
+    background-image: url("/public/images/ai-advice.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
@@ -1092,7 +1076,7 @@ export default {
 
     color: #d8af87;
     border-radius: 14px;
-    background-image: url('/public/images/back-list.png');
+    background-image: url("/public/images/back-list.png");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;

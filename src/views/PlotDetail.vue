@@ -642,6 +642,7 @@ import PlotStatisticsGrid from '@/components/PlotDetail/PlotStatisticsGrid.vue';
 import PriceInfoBox from '@/components/PlotDetail/PriceInfoBox.vue';
 import HealthIndicators from '@/components/PlotDetail/HealthIndicators.vue';
 import { FARMER_CONFIG, SERVICES_CONFIG, RANKING_CONFIG, DEFAULT_PLOT_DATA, getFarmerInfo } from '@/config/farmerConfig';
+import apiClient from '@/services/apiClient';
 
 export default {
     name: 'PlotDetail',
@@ -1018,10 +1019,7 @@ export default {
         // 从后端获取plot tile记录
         async fetchPlotTileRecord(plotName) {
             try {
-                const isProduction = process.env.NODE_ENV === 'production';
-                const baseUrl = isProduction ? 'http://43.136.169.150:8000' : '';
-                const response = await fetch(`${ baseUrl }/api/v1/geoprocessing/plot-tiles/list`);
-                const result = await response.json();
+                const result = await apiClient.getPlotsList();
 
                 if (result && result.code === 0 && Array.isArray(result.data)) {
                     // 按 plot_name 查找

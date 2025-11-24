@@ -49,6 +49,7 @@ import {
     getMarkerIconConfig
 } from '@/config/markerConfig';
 import regionCoordinates from '@/config/regionCoordinates.json';
+import apiClient from '@/services/apiClient';
 import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
 import CategorySidebar from '@/components/Dialogs/CategorySidebar.vue';
 import CategoryPopup from '@/components/Dialogs/CategoryPopup.vue';
@@ -270,7 +271,9 @@ export default {
         },
 
         updateMarkerVisibility(entry) {
-            if (!entry || !entry.layer) return;
+            if (!entry || !entry.layer) {
+                return;
+            }
 
             const categoryCode = entry.categoryCode || 'forest';
             const shouldShow = this.selectedCategoryType === 'all' || categoryCode === this.selectedCategoryType;
@@ -289,13 +292,26 @@ export default {
         setMarkerVisibility(layer, visible) {
             const element = layer.getElement?.();
             if (visible) {
-                if (!this.map.hasLayer(layer)) layer.addTo(this.map);
-                if (element) element.style.display = '';
-                if (layer.setOpacity) layer.setOpacity(1);
-            } else {
-                if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
-                if (element) element.style.display = 'none';
-                if (layer.setOpacity) layer.setOpacity(0);
+                if (!this.map.hasLayer(layer)) {
+                    layer.addTo(this.map);
+                }
+                if (element) {
+                    element.style.display = '';
+                }
+                if (layer.setOpacity) {
+                    layer.setOpacity(1);
+                }
+            }
+            else {
+                if (this.map.hasLayer(layer)) {
+                    this.map.removeLayer(layer);
+                }
+                if (element) {
+                    element.style.display = 'none';
+                }
+                if (layer.setOpacity) {
+                    layer.setOpacity(0);
+                }
             }
         },
 
@@ -353,7 +369,8 @@ export default {
 
                 if (regionFeature) {
                     this.addRegionBoundary(regionFeature);
-                } else {
+                }
+                else {
                     console.warn('未找到区域轮廓数据:', this.regionName);
                 }
 
@@ -457,8 +474,7 @@ export default {
         // 基于真实坐标数据添加地块标记
         async addRealPlotMarkers() {
             try {
-                const response = await fetch('http://43.136.169.150:8000/api/v1/geoprocessing/plot-tiles/list');
-                const tilesData = await response.json();
+                const tilesData = await apiClient.getPlotsList();
 
                 // 使用工具函数转换瓦片数据
                 const coordinateData = transformTilesToCoordinates(tilesData);
@@ -468,7 +484,9 @@ export default {
                     const plotName = fieldData.displayName || fieldData.name || key;
 
                     // 验证数据完整性
-                    if (!isValidFieldData(fieldData)) return;
+                    if (!isValidFieldData(fieldData)) {
+                        return;
+                    }
 
                     const plotData = createPlotData(fieldData, plotName);
                     const [markerLat, markerLng] = fieldData.center;
@@ -508,7 +526,8 @@ export default {
             if (plotCoordinates.length > 0) {
                 const bounds = L.latLngBounds(plotCoordinates);
                 this.fitMapToContent(bounds, this.mapConfig.fitPadding);
-            } else {
+            }
+            else {
                 this.setDefaultView();
             }
         },
@@ -520,7 +539,8 @@ export default {
                     padding,
                     maxZoom: this.mapConfig.fitZoom
                 });
-            } catch (error) {
+            }
+            catch (error) {
                 this.handleError('调整地图视野失败', error);
                 this.setDefaultView();
             }
@@ -573,7 +593,8 @@ export default {
                 this.popupPosition = { top, left };
                 this.popupData = { ...plotData, photo: '/images/pop-banner.png' };
                 this.showDetailPopup = true;
-            } catch (error) {
+            }
+            catch (error) {
                 this.handleError('显示地块详情弹窗失败', error);
             }
         },
@@ -629,7 +650,7 @@ export default {
             this.isLoading = false;
             this.$notify({
                 title: '提示',
-                message: message,
+                message,
                 type: 'warning',
                 duration: 3000
             });
@@ -644,7 +665,7 @@ export default {
         setCategoryPopup(show) {
             if (!show) {
                 this.selectedCategory = null;
-                return;
+
             }
             // show 时不做处理，由外部控制
         },
@@ -654,7 +675,9 @@ export default {
         },
 
         navigateToTertiaryMap() {
-            if (!this.selectedCategory) return;
+            if (!this.selectedCategory) {
+                return;
+            }
 
             // 全部选项只是关闭弹窗
             if (this.selectedCategory.isAllOption) {

@@ -275,6 +275,7 @@ class MapService {
             return await response.json();
         }
         catch (error) {
+            // eslint-disable-next-line no-console
             console.error('地图数据加载失败:', error);
             throw error;
         }
