@@ -199,10 +199,10 @@
           </div>
         </div>
 
-        <!-- 无硫八角与有硫八角占比年度对比 -->
+        <!-- 高质八角与低质八角占比年度对比 -->
         <div class="chart-panel sulfur-comparison-panel" :style="{ backgroundImage: `url(${images.productionChartBg})` }">
           <div class="chart-header">
-            <h3>无硫与有硫八角占比</h3>
+            <h3>高质与低质八角占比</h3>
             <p class="chart-subtitle">产量（万吨）</p>
           </div>
           <div class="chart-display" :style="{ backgroundImage: `url(${images.barChartBg})` }">

@@ -90,7 +90,7 @@ export default {
                     }
                 },
                 legend: {
-                    data: ['有硫八角', '无硫八角'],
+                    data: ['低质八角', '高质八角'],
                     textStyle: {
                         color: '#C69C6D',
                         fontSize: 12,
@@ -102,7 +102,7 @@ export default {
                 },
                 series: [
                     {
-                        name: '有硫八角',
+                        name: '低质八角',
                         type: 'bar',
                         data: sulfuredData,
                         barWidth: '50%',
@@ -124,7 +124,7 @@ export default {
                         }
                     },
                     {
-                        name: '无硫八角',
+                        name: '高质八角',
                         type: 'bar',
                         data: sulfurFreeData,
                         barWidth: '50%',

@@ -55,7 +55,7 @@ export default {
                     orient: 'vertical',
                     left: 'left',
                     top: 'center',
-                    data: ['无硫八角', '有硫八角'],
+                    data: ['高质八角', '低质八角'],
                     textStyle: {
                         color: '#c69c6d',
                         fontSize: 12,
@@ -71,14 +71,14 @@ export default {
                         data: [
                             {
                                 value: 1200,
-                                name: '无硫八角',
+                                name: '高质八角',
                                 itemStyle: {
                                     color: '#22c55e'
                                 }
                             },
                             {
                                 value: 100,
-                                name: '有硫八角',
+                                name: '低质八角',
                                 itemStyle: {
                                     color: '#ff6b4a'
                                 }
