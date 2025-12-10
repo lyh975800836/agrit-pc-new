@@ -45,17 +45,17 @@
         <!-- 地块统计数据 -->
         <PlotStatisticsGrid
           :items="[
-            { label: '总面积(亩)：', value: displayedPlotArea },
-            { label: '产量(万斤)：', value: plotData.yield || DEFAULT_PLOT_DATA.yield },
-            { label: '亩产量(斤/亩)：', value: plotData.unitYield || DEFAULT_PLOT_DATA.unitYield }
+            { label: '总面积(亩)：', value: farmerConfigData?.total_area },
+            { label: '产量(万斤)：', value: farmerConfigData?.total_yield },
+            { label: '亩产量(斤/亩)：', value: farmerConfigData?.yield_per_mu }
           ]"
           :background-image="images.statItem"
         />
         <!-- 价格信息 -->
         <PriceInfoBox
           label="今日价格："
-          :value="String(plotData.price || DEFAULT_PLOT_DATA.price)"
-          unit="元/斤"
+          :value="String(spicePriceDisplay?.price || DEFAULT_PLOT_DATA.price)"
+          :unit="spicePriceDisplay?.unit || '元/斤'"
           :background-image="images.priceInfo"
         />
 
@@ -88,17 +88,15 @@
         <div class="farmer-profile" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
           <img class="farmer-avatar" :src="farmerAvatarUrl" />
           <div class="farmer-details">
-            <div class="farmer-name">所有人：{{ plotData.farmerName || defaultFarmerName }}</div>
+            <div class="farmer-name">所有人：{{ farmerConfigData?.owner_name }}</div>
             <img class="detail-divider" src="/images/divider.png" />
-            <div class="farmer-age">名下工厂数：3个</div>
+            <div class="farmer-age">名下工厂数：{{ farmerConfigData?.owner_factory_num }}个</div>
             <div class="farmer-rating">
-              <span class="rating-filled">★★★★</span>
-              <span class="rating-empty">★</span>
+              <span class="rating-filled" v-for="i in (farmerConfigData?.owner_star_rank || 4)" :key="`filled-${i}`">★</span>
+              <span class="rating-empty" v-for="i in (5 - (farmerConfigData?.owner_star_rank || 4))" :key="`empty-${i}`">★</span>
             </div>
             <div class="farmer-status">
-              <div class="status-tag status-general">机械加工</div>
-              <div class="status-tag status-unpoverty">阳光晾晒</div>
-              <div class="status-tag status-poverty">机械+阳光</div>
+              <div v-for="tag in factoryStatusTags" :key="tag" class="status-tag" :class="getStatusClass(tag)">{{ tag }}</div>
             </div>
           </div>
         </div>
@@ -107,17 +105,17 @@
         <div class="plot-statistics">
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">总面积(亩)：</span>
-            <span class="stat-value stat-value-large">60</span>
+            <span class="stat-value stat-value-large">{{ farmerConfigData?.total_area }}</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">年度加工产能(吨)：</span>
-            <span class="stat-value stat-value-large">6000</span>
+            <span class="stat-value stat-value-large">{{ farmerConfigData?.annual_capacity }}</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">今年累计产量(吨)：</span>
-            <span class="stat-value stat-value-large">2000</span>
+            <span class="stat-value stat-value-large">{{ farmerConfigData?.year_to_date_production }}</span>
           </div>
         </div>
 
@@ -126,7 +124,7 @@
           <div class="price-display">
             <span class="price-label">鲜果收购价：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">4.1</span>
+            <span class="price-value">{{ farmerConfigData?.fresh_fruit_price }}</span>
             <span class="price-unit">&nbsp;&nbsp;元/斤</span>
           </div>
         </div>
@@ -136,7 +134,7 @@
           <div class="price-display">
             <span class="price-label">加工价格：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">600</span>
+            <span class="price-value">{{ farmerConfigData?.processing_price }}</span>
             <span class="price-unit">&nbsp;&nbsp;元/吨</span>
           </div>
         </div>
@@ -148,12 +146,16 @@
           </div>
           <img class="third-divider" src="/images/decoration-2.png" />
           <!-- 施工计划日历 -->
-          <div class="construction-calendar">
+          <div class="construction-calendar" v-if="constructionCalendarData">
             <div class="calendar-header">
-              <span class="calendar-month">11月</span>
+              <span class="calendar-month">{{ constructionCalendarData.monthDisplay }}</span>
             </div>
             <div class="calendar-grid">
-              <div v-for="day in 30" :key="day" class="calendar-day" :class="{ 'has-schedule': [5, 12, 18, 23, 28].includes(day) }">
+              <div
+                v-for="day in constructionCalendarData.daysInMonth"
+                :key="day"
+                class="calendar-day"
+                :class="{ 'has-schedule': constructionCalendarData.scheduledDays.includes(day) }">
                 <span class="day-number">{{ day }}</span>
               </div>
             </div>
@@ -179,12 +181,12 @@
         <div class="farmer-profile warehouse-owner" :style="{ backgroundImage: `url(${images.farmerProfile})` }">
           <img class="farmer-avatar" :src="farmerAvatarUrl" />
           <div class="farmer-details">
-            <div class="farmer-name">所有人：{{ plotData.farmerName || '陈启伟' }}</div>
+            <div class="farmer-name">所有人：{{ farmerConfigData?.owner_name }}</div>
             <img class="detail-divider" src="/images/divider.png" />
-            <div class="farmer-age">管理仓库数：2个</div>
+            <div class="farmer-age">管理仓库数：{{ farmerConfigData?.manager_warehouse_num }}个</div>
             <div class="farmer-rating">
-              <span class="rating-filled">★★★★</span>
-              <span class="rating-empty">★</span>
+              <span class="rating-filled" v-for="i in (farmerConfigData?.owner_star_rank || 4)" :key="`filled-${i}`">★</span>
+              <span class="rating-empty" v-for="i in (5 - (farmerConfigData?.owner_star_rank || 4))" :key="`empty-${i}`">★</span>
             </div>
           </div>
         </div>
@@ -193,12 +195,12 @@
         <div class="plot-statistics">
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">总面积(平方米)：</span>
-            <span class="stat-value stat-value-large">10000</span>
+            <span class="stat-value stat-value-large">{{ farmerConfigData?.warehouse_area }}</span>
           </div>
 
           <div class="stat-item" :style="{ backgroundImage: `url(${images.statItem})` }">
             <span class="stat-label">总存储量(吨)：</span>
-            <span class="stat-value stat-value-large">{{ plotData.yield || '250' }}</span>
+            <span class="stat-value stat-value-large">{{ farmerConfigData?.total_storage }}</span>
           </div>
         </div>
 
@@ -207,7 +209,7 @@
           <div class="price-display">
             <span class="price-label">存储价格：</span>
             <img class="down-arrow" src="/images/down-arrow.png">
-            <span class="price-value">3</span>
+            <span class="price-value">{{ farmerConfigData?.storage_price }}</span>
             <span class="price-unit">&nbsp;&nbsp;元/吨/天</span>
           </div>
         </div>
@@ -275,9 +277,10 @@
                 <div class="farming-dynamics__item"
                      v-for="(item, index) in standardFarmingItems"
                      :key="index"
-                     :class="{ 'farming-dynamics__item--active': item.id === selectedFarmingItemId }"
+                     :class="{ 'farming-dynamics__item--active': selectedFarmingItemId === item.id }"
                      @click="handleFarmingItemClick(item, index)">
-                  <img class="farming-dynamics__item-icon" :src="item.icon" />
+                  <img class="farming-dynamics__item-icon"
+                       :src="getItemIconByStatus(item)" />
                   <span class="farming-dynamics__item-text" :class="{ 'farming-dynamics__item-text--gold': item.isGold }" v-html="item.text"></span>
                 </div>
               </div>
@@ -331,7 +334,7 @@
               <!-- 当前任务 -->
               <div v-if="selectedFarmingDetails" class="farming-dynamics__current-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
                 <span class="farming-dynamics__task-name">{{ selectedFarmingDetails.title?.replace(/\(.*?\)/, '').trim() }}</span>
-                <span class="farming-dynamics__current-label">（{{ getStatusText(selectedFarmingDetails.status) }}）</span>
+                <span class="farming-dynamics__current-label" :class="`farming-dynamics__current-label--${selectedFarmingDetails.status}`">（{{ getStatusText(selectedFarmingDetails.status) }}）</span>
               </div>
               <div v-if="selectedFarmingDetails" class="farming-dynamics__task-time">
                 <div class="farming-dynamics__time-item">
@@ -770,12 +773,24 @@ export default {
             if (!this.apiPlotDetail || !this.apiPlotDetail.config_data) {
                 return null;
             }
-            try {
-                return JSON.parse(this.apiPlotDetail.config_data);
-            } catch (e) {
-                console.error('Failed to parse config_data:', e);
-                return null;
+            const configData = this.apiPlotDetail.config_data;
+
+            // 如果已经是对象，直接返回
+            if (typeof configData === 'object') {
+                return configData;
             }
+
+            // 如果是字符串，尝试解析
+            if (typeof configData === 'string') {
+                try {
+                    return JSON.parse(configData);
+                } catch (e) {
+                    console.error('Failed to parse config_data:', e);
+                    return null;
+                }
+            }
+
+            return null;
         },
 
         // 标准农事项目 - 从 API 数据动态生成
@@ -784,13 +799,26 @@ export default {
                 return [];
             }
 
-            // 首先转换为标准格式
+            // 首先确定当前农事的索引
+            let currentIndex = -1;
+            if (this.currentFarmingStageId) {
+                currentIndex = this.apiStandardFarming.findIndex(
+                    item => item.id === this.currentFarmingStageId
+                );
+            }
+            if (currentIndex === -1) {
+                currentIndex = 0;
+            }
+
+            // 转换为标准格式，暂不标记 isCurrent 和 isNext
             let items = this.apiStandardFarming.map((item, index) => ({
                 id: `standard-${ item.id }`,
                 originalId: item.id, // 保存原始ID用于匹配
                 text: item.name,
                 icon: this.images.farmingIcon1,
                 isGold: false,
+                isCurrent: false, // 暂时标记为false，后续重新排序后再标记
+                isNext: false, // 暂时标记为false，后续重新排序后再标记
                 details: {
                     title: item.name,
                     startDate: item.start_date,
@@ -802,27 +830,41 @@ export default {
             }));
 
             let currentItem = null;
+            const totalItems = items.length;
 
-            // 如果有当前农事阶段ID，重新排序
-            if (this.currentFarmingStageId) {
-                const currentIndex = items.findIndex(
-                    item => item.originalId === this.currentFarmingStageId
-                );
-                if (currentIndex !== -1) {
-                    // 将当前农事移到队尾
-                    currentItem = items.splice(currentIndex, 1)[0];
-                    items.push(currentItem);
+            // 进行环形排列，使当前农事在中间位置
+            const displayCount = totalItems; // 显示所有农事
+            const middlePosition = Math.floor(displayCount / 2); // 中间位置索引
+            const reorderedItems = [];
+
+            // 从当前农事往前回绕 middlePosition 个位置开始
+            for (let i = 0; i < displayCount; i++) {
+                const index = (currentIndex - middlePosition + i + totalItems * 100) % totalItems;
+                const item = items[index];
+                reorderedItems.push(item);
+
+                // 标记当前农事和下一个农事
+                if (i === middlePosition) {
+                    item.isCurrent = true;
+                    // 当前农事的图标使用 farming-warm
+                    item.icon = this.images.farmingWarm;
+                    currentItem = item;
+                }
+                if (i === middlePosition + 1) {
+                    item.isNext = true;
+                    // 下一个农事的图标也使用 farming-warm
+                    item.icon = this.images.farmingWarm;
                 }
             }
 
-            // 自动选中逻辑：如果没有选中任何项目且列表非空，则根据是否有当前农事
-            // 来选中相应的项目（优先选中当前农事，否则选第一个）
-            if (!this.selectedFarmingItemId && items.length > 0) {
-                if (currentItem) {
+            items = reorderedItems;
+
+            // 自动选中逻辑：如果没有选中任何项目且列表非空，自动选中当前农事
+            if (!this.selectedFarmingItemId && items.length > 0 && currentItem) {
+                // 通过 $nextTick 来异步设置，避免在 computed 属性中产生副作用
+                this.$nextTick(() => {
                     this.selectedFarmingItemId = currentItem.id;
-                } else {
-                    this.selectedFarmingItemId = items[0].id;
-                }
+                });
             }
 
             return items;
@@ -933,18 +975,13 @@ export default {
             return this.FARMER_CONFIG.default.age;
         },
 
-        // 农户头像URL - 根据 API 数据和地块类型动态获取
+        // 农户头像URL - 动态从 API 数据获取
         farmerAvatarUrl() {
-            const plotType = this.plotData?.type;
-            // 厂（工厂、仓库）展示默认头像
-            if (plotType === 'factory' || plotType === 'warehouse') {
-                return '/images/default-cover.png';
-            }
-            // 从 config_data 获取头像
+            // 优先从 config_data 获取头像
             if (this.farmerConfigData && this.farmerConfigData.owner_avatar) {
                 return this.farmerConfigData.owner_avatar;
             }
-            // 其他类型（八角地块）展示农户头像
+            // 其他类型（八角地块）使用默认配置获取农户头像
             const plotName = this.plotData?.name;
             if (plotName) {
                 const farmerInfo = getFarmerInfo(plotName);
@@ -953,20 +990,96 @@ export default {
             return this.FARMER_CONFIG.default.avatar;
         },
 
-        // 动态状态标签 - 根据plot type和farmer config动态生成
+        // 动态状态标签 - 根据plot type和API数据动态生成
         dynamicStatusTags() {
-            const plotType = this.plotData?.type;
-
-            // 普通八角地块的状态标签
-            if (plotType !== 'factory' && plotType !== 'warehouse') {
-                return [
-                    { label: '一般户', cssClass: 'status-general' },
-                    { label: '未脱贫', cssClass: 'status-unpoverty' },
-                    { label: '已脱贫', cssClass: 'status-poverty' }
-                ];
+            if (!this.apiPlotDetail) {
+                return [];
             }
 
-            // 仓库不显示状态标签
+            // 八角地块(property_type_name 包含 "八角")
+            if (this.apiPlotDetail.property_type_name && this.apiPlotDetail.property_type_name.includes('八角')) {
+                const statusMap = {
+                    normal: { label: '一般户', cssClass: 'status-general' },
+                    not_alleviated: { label: '未脱贫', cssClass: 'status-unpoverty' },
+                    alleviated: { label: '已脱贫', cssClass: 'status-poverty' }
+                };
+                const status = this.apiPlotDetail.status;
+                const tagInfo = statusMap[status];
+                return tagInfo ? [tagInfo] : [];
+            }
+
+            return [];
+        },
+
+        // 施工计划日历数据 - 从 config_data.work_schedule 提取
+        constructionCalendarData() {
+            const configData = this.farmerConfigData;
+            if (!configData || !configData.work_schedule) {
+                return null;
+            }
+
+            // 获取当前日期
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1; // 月份从 1-12
+
+            // 获取本月的工作计划
+            const yearData = configData.work_schedule[currentYear];
+            if (!yearData) {
+                return null;
+            }
+
+            const monthStr = String(currentMonth).padStart(2, '0');
+            const monthData = yearData[currentMonth] || yearData[monthStr];
+
+            if (!monthData || !Array.isArray(monthData)) {
+                return null;
+            }
+
+            // 计算本月天数
+            const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            // 提取有工作安排的日期（值为 1 表示有工作）
+            const scheduledDays = monthData
+                .map((value, index) => value === 1 ? index + 1 : null)
+                .filter(day => day !== null && day <= daysInMonth);
+
+            return {
+                monthDisplay: `${currentMonth}月`,
+                daysInMonth: Array.from({ length: daysInMonth }, (_, i) => i + 1),
+                scheduledDays
+            };
+        },
+
+        // 八角价格显示 - 从 API 数据提取
+        spicePriceDisplay() {
+            if (!this.apiSpicePrice) {
+                return null;
+            }
+            return {
+                price: this.apiSpicePrice.todayPrice,
+                unit: this.apiSpicePrice.skuUnit
+            };
+        },
+
+        // 工厂状态标签 - 从API的status字段动态生成
+        factoryStatusTags() {
+            if (!this.apiPlotDetail) {
+                return [];
+            }
+
+            // 工厂类型(property_type_name 包含 "工厂")
+            if (this.apiPlotDetail.property_type_name && this.apiPlotDetail.property_type_name.includes('工厂')) {
+                const statusMap = {
+                    mechanical: '机械加工',
+                    sunlight: '阳光晾晒',
+                    mixed: '机械+阳光晾晒'
+                };
+                const status = this.apiPlotDetail.status;
+                const displayLabel = statusMap[status] || status;
+                return [displayLabel];
+            }
+
             return [];
         }
     },
@@ -1335,6 +1448,35 @@ export default {
         showHealthModal() {
             // 显示健康指标弹窗
             this.healthModalVisible = true;
+        },
+
+        // 根据农事状态获取对应的图标
+        getItemIconByStatus(item) {
+            // 当前农事（中间位置）及以下的农事使用 farming-warm (绿色)
+            if (item.isCurrent) {
+                return this.images.farmingWarm;
+            }
+            // 找到当前农事在列表中的位置
+            const currentIndex = this.standardFarmingItems.findIndex(i => i.isCurrent);
+            const itemIndex = this.standardFarmingItems.indexOf(item);
+
+            // 中间位置及以下的农事使用 farming-warm
+            if (itemIndex >= currentIndex) {
+                return this.images.farmingWarm;
+            }
+
+            // 中间位置以上的农事使用默认图标
+            return this.images.farmingIcon1;
+        },
+
+        // 获取工厂状态标签的CSS类名
+        getStatusClass(tag) {
+            const classMap = {
+                '机械加工': 'status-general',
+                '阳光晾晒': 'status-unpoverty',
+                '机械+阳光晾晒': 'status-poverty'
+            };
+            return classMap[tag] || 'status-general';
         }
     }
 };
