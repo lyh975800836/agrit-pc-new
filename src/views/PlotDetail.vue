@@ -36,8 +36,8 @@
 
         <!-- 农户信息 -->
         <FarmerProfileCard
-          :farmer-name="plotData.farmerName || defaultFarmerName"
-          :farmer-age="plotData.farmerAge || defaultFarmerAge"
+          :farmer-name="farmerConfigData?.owner_name || plotData.farmerName || defaultFarmerName"
+          :farmer-age="farmerConfigData?.owner_age || plotData.farmerAge || defaultFarmerAge"
           :avatar-url="farmerAvatarUrl"
           :background-image="images.farmerProfile"
           :status-tags="[
@@ -310,46 +310,48 @@
 
                 <div class="farming-dynamics__warning-basic-info">
                   <span class="farming-dynamics__warning-label">名称：</span>
-                  <span class="farming-dynamics__warning-name-value">加强版生物防治</span>
+                  <span class="farming-dynamics__warning-name-value">{{ warningFarmingInfo?.name }}</span>
                 </div>
 
                 <div class="farming-dynamics__warning-time-level">
                   <span class="farming-dynamics__warning-label">触发时间：</span>
-                  <span class="farming-dynamics__warning-time-value">8月</span>
+                  <span class="farming-dynamics__warning-time-value">{{ warningFarmingInfo?.triggerMonth }}</span>
                   <span class="farming-dynamics__warning-level-label">等级：</span>
-                  <span class="farming-dynamics__warning-level-value">高</span>
+                  <span class="farming-dynamics__warning-level-value">{{ warningFarmingInfo?.level === 'high' ? '高' : '中' }}</span>
                 </div>
 
                 <div class="farming-dynamics__warning-prescription">
                   <span class="farming-dynamics__warning-label">处方：</span>
-                  <span class="farming-dynamics__warning-prescription-text">多种复合配方加强版生物防治。</span>
+                  <span class="farming-dynamics__warning-prescription-text">
+                    {{ warningFarmingInfo?.prescription }}
+                  </span>
                 </div>
 
                 <div class="farming-dynamics__warning-cycle-info">
-                  处理周期：30天
+                  处理周期：{{ warningFarmingInfo?.processingDays }}天
                 </div>
               </div>
 
               <!-- 当前任务 -->
-              <div class="farming-dynamics__current-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
-                <span class="farming-dynamics__task-name">{{ selectedFarmingDetails ? selectedFarmingDetails.title.replace(/\(.*?\)/, '').trim() : '秋季保花施肥' }}</span>
-                <span class="farming-dynamics__current-label">（{{ selectedFarmingDetails ? getStatusText(selectedFarmingDetails.status) : '当前' }}）</span>
+              <div v-if="selectedFarmingDetails" class="farming-dynamics__current-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
+                <span class="farming-dynamics__task-name">{{ selectedFarmingDetails.title?.replace(/\(.*?\)/, '').trim() }}</span>
+                <span class="farming-dynamics__current-label">（{{ getStatusText(selectedFarmingDetails.status) }}）</span>
               </div>
-              <div class="farming-dynamics__task-time">
+              <div v-if="selectedFarmingDetails" class="farming-dynamics__task-time">
                 <div class="farming-dynamics__time-item">
                   <span class="farming-dynamics__time-label">开始时间：</span>
-                  <span class="farming-dynamics__time-value">{{ selectedFarmingDetails ? selectedFarmingDetails.startDate : '8月01日' }}</span>
+                  <span class="farming-dynamics__time-value">{{ selectedFarmingDetails.startDate }}</span>
                 </div>
-                <div class="farming-dynamics__time-item">结束时间：{{ selectedFarmingDetails ? selectedFarmingDetails.endDate : '8月30日' }}</div>
+                <div class="farming-dynamics__time-item">结束时间：{{ selectedFarmingDetails.endDate }}</div>
               </div>
 
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
+              <img v-if="selectedFarmingDetails" class="farming-dynamics__divider" src="/images/divider.png" />
 
-              <div class="farming-dynamics__prescription">{{ selectedFarmingDetails ? selectedFarmingDetails.description : '处方：复合肥' }}</div>
+              <div v-if="selectedFarmingDetails" class="farming-dynamics__prescription">{{ selectedFarmingDetails.description }}</div>
 
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
+              <img v-if="selectedFarmingDetails" class="farming-dynamics__divider" src="/images/divider.png" />
 
-              <div class="farming-dynamics__standards">{{ selectedFarmingDetails ? selectedFarmingDetails.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
+              <div v-if="selectedFarmingDetails" class="farming-dynamics__standards">{{ selectedFarmingDetails.requirement }}</div>
 
               <div class="farming-dynamics__view-details" @click="openFarmingDetail('current')">
                 <span class="farming-dynamics__details-text">查看详情</span>
@@ -357,25 +359,25 @@
               </div>
 
               <!-- 下一任务 -->
-              <div class="farming-dynamics__next-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
-                <span class="farming-dynamics__next-task-name">{{ nextFarmingItem ? nextFarmingItem.details.title.replace(/\(.*?\)/, '').trim() : '冬季保果壮果' }}</span>
+              <div v-if="nextFarmingItem?.details" class="farming-dynamics__next-task" :style="{ backgroundImage: `url(${images.currentTaskBg})` }">
+                <span class="farming-dynamics__next-task-name">{{ nextFarmingItem.details.title?.replace(/\(.*?\)/, '').trim() }}</span>
                 <span class="farming-dynamics__next-label">（下阶段）</span>
               </div>
-              <div class="farming-dynamics__next-task-time">
+              <div v-if="nextFarmingItem?.details" class="farming-dynamics__next-task-time">
                 <div class="farming-dynamics__time-item">
                   <span class="farming-dynamics__time-label">开始时间：</span>
-                  <span class="farming-dynamics__time-value">{{ nextFarmingItem ? nextFarmingItem.details.startDate : '11月01日' }}</span>
+                  <span class="farming-dynamics__time-value">{{ nextFarmingItem.details.startDate }}</span>
                 </div>
-                <div class="farming-dynamics__time-item">结束时间：{{ nextFarmingItem ? nextFarmingItem.details.endDate : '11月30日' }}</div>
+                <div class="farming-dynamics__time-item">结束时间：{{ nextFarmingItem.details.endDate }}</div>
               </div>
 
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
+              <img v-if="nextFarmingItem?.details" class="farming-dynamics__divider" src="/images/divider.png" />
 
-              <div class="farming-dynamics__prescription">{{ nextFarmingItem ? nextFarmingItem.details.description : '处方：复合肥' }}</div>
+              <div v-if="nextFarmingItem?.details" class="farming-dynamics__prescription">{{ nextFarmingItem.details.description }}</div>
 
-              <img class="farming-dynamics__divider" src="/images/divider.png" />
+              <img v-if="nextFarmingItem?.details" class="farming-dynamics__divider" src="/images/divider.png" />
 
-              <div class="farming-dynamics__standards">{{ nextFarmingItem ? nextFarmingItem.details.requirement : '施工规范：要求再树根往外滴水三分之二处，勾绒树周围撒肥。' }}</div>
+              <div v-if="nextFarmingItem?.details" class="farming-dynamics__standards">{{ nextFarmingItem.details.requirement }}</div>
 
               <div class="farming-dynamics__view-details" @click="openFarmingDetail('next')">
                 <span class="farming-dynamics__details-text">查看详情</span>
@@ -641,7 +643,7 @@ import FarmerProfileCard from '@/components/PlotDetail/FarmerProfileCard.vue';
 import PlotStatisticsGrid from '@/components/PlotDetail/PlotStatisticsGrid.vue';
 import PriceInfoBox from '@/components/PlotDetail/PriceInfoBox.vue';
 import HealthIndicators from '@/components/PlotDetail/HealthIndicators.vue';
-import { FARMER_CONFIG, SERVICES_CONFIG, RANKING_CONFIG, DEFAULT_PLOT_DATA, getFarmerInfo } from '@/config/farmerConfig';
+import { FARMER_CONFIG, RANKING_CONFIG, DEFAULT_PLOT_DATA, getFarmerInfo } from '@/config/farmerConfig';
 import apiClient from '@/services/apiClient';
 
 export default {
@@ -671,7 +673,16 @@ export default {
             // 健康指标弹窗控制
             healthModalVisible: false,
             // 选中的农事项目ID
-            selectedFarmingItemId: 'autumn-harvest',
+            selectedFarmingItemId: null,
+            // API 返回的原始数据
+            apiPlotDetail: null,      // 地块详情（包含 config_data）
+            apiStandardFarming: [],   // 标准农事
+            apiWarningFarming: null,  // 预警农事
+            apiServiceFarming: null,  // 三农服务
+            apiSpicePrice: null,      // 八角价格
+            // 数据加载状态
+            isLoading: true,
+            loadError: null,
             // 图片资源引用
             images: {
                 statItem: '/images/stat-item.png',
@@ -756,155 +767,50 @@ export default {
         displayedPlotArea() {
             return this.plotData.area || '0';
         },
-        // 标准农事项目 - 使用集中管理的图片常量
+
+        // 农户配置信息 - 从 API 返回的 config_data 提取
+        farmerConfigData() {
+            if (!this.apiPlotDetail || !this.apiPlotDetail.config_data) {
+                return null;
+            }
+            try {
+                return JSON.parse(this.apiPlotDetail.config_data);
+            } catch (e) {
+                console.error('Failed to parse config_data:', e);
+                return null;
+            }
+        },
+
+        // 标准农事项目 - 从 API 数据动态生成
         standardFarmingItems() {
-            return [
-                {
-                    id: 'winter-fertilizing',
-                    text: '冬季施肥',
-                    icon: this.images.farmingIcon1,
-                    isGold: false,
-                    details: {
-                        title: '冬季施肥 (当前)',
-                        startDate: '8月01日',
-                        endDate: '8月30日',
-                        description: '处方：复合肥',
-                        requirement: '施工规范：要求宜树根往外滴水的三分之一处，均匀绕树周围撒。',
-                        status: 'current'
-                    }
-                },
-                {
-                    id: 'spring-pest-control',
-                    text: '春季<br />生物防治',
-                    icon: this.images.farmingIcon1,
-                    isGold: false,
-                    details: {
-                        title: '春季生物防治',
-                        startDate: '3月01日',
-                        endDate: '3月30日',
-                        description: '处方：生物防治药剂',
-                        requirement: '施工规范：均匀喷洒叶面，注意天气条件。',
-                        status: 'completed'
-                    }
-                },
-                {
-                    id: 'spring-strong-fertilizing',
-                    text: '春季<br />强梢施肥',
-                    icon: this.images.farmingIcon1,
-                    isGold: false,
-                    details: {
-                        title: '春季强梢施肥',
-                        startDate: '4月01日',
-                        endDate: '4月30日',
-                        description: '处方：强梢专用肥',
-                        requirement: '施工规范：围绕树根部施用，深度15-20cm。',
-                        status: 'completed'
-                    }
-                },
-                {
-                    id: 'summer-weeding',
-                    text: '夏季除草',
-                    icon: this.images.farmingIcon1,
-                    isGold: false,
-                    details: {
-                        title: '夏季除草',
-                        startDate: '6月01日',
-                        endDate: '6月30日',
-                        description: '处方：除草剂',
-                        requirement: '施工规范：避免接触树体，选择无风天气作业。',
-                        status: 'completed'
-                    }
-                },
-                {
-                    id: 'summer-enhanced-treatment',
-                    text: '夏季加强版<br />生物防治+<br />催花',
-                    icon: this.images.farmingIcon1,
-                    isGold: false,
-                    details: {
-                        title: '夏季加强版生物防治+催花',
-                        startDate: '7月01日',
-                        endDate: '7月30日',
-                        description: '处方：生物防治剂+催花素',
-                        requirement: '施工规范：分两次施用，间隔10-15天。',
-                        status: 'completed'
-                    }
-                },
-                {
-                    id: 'autumn-flower-protection',
-                    text: '秋季<br />保花施肥',
-                    icon: this.images.farmingIcon1,
-                    isGold: false,
-                    details: {
-                        title: '秋季保花施肥',
-                        startDate: '9月01日',
-                        endDate: '9月30日',
-                        description: '处方：保花专用肥',
-                        requirement: '施工规范：花期前15天施用，薄肥勤施。',
-                        status: 'pending'
-                    }
-                },
-                {
-                    id: 'winter-fruit-strengthening',
-                    text: '冬季<br />保果壮果',
-                    icon: this.images.farmingWarm,
-                    isGold: true,
-                    details: {
-                        title: '冬季保果壮果预期',
-                        startDate: '11月01日',
-                        endDate: '11月30日',
-                        description: '处方：壮果专用肥',
-                        requirement: '施工规范：果实膨大期施用，配合适当修剪。',
-                        status: 'expected'
-                    }
-                },
-                {
-                    id: 'spring-fruit-protection',
-                    text: '春季保果',
-                    icon: this.images.farmingWarm,
-                    isGold: true,
-                    details: {
-                        title: '春季保果预期',
-                        startDate: '2月01日',
-                        endDate: '2月28日',
-                        description: '处方：保果剂',
-                        requirement: '施工规范：开花后7-10天施用，连续2-3次。',
-                        status: 'expected'
-                    }
-                },
-                {
-                    id: 'summer-fruit-strengthening',
-                    text: '夏季壮果',
-                    icon: this.images.farmingWarm,
-                    isGold: true,
-                    details: {
-                        title: '夏季壮果预期',
-                        startDate: '5月01日',
-                        endDate: '5月30日',
-                        description: '处方：壮果肥',
-                        requirement: '施工规范：果实发育期施用，注意水分管理。',
-                        status: 'expected'
-                    }
-                },
-                {
-                    id: 'autumn-harvest',
-                    text: '秋果采摘',
-                    icon: this.images.farmingWarm,
-                    isGold: true,
-                    details: {
-                        title: '秋果采摘预期',
-                        startDate: '10月01日',
-                        endDate: '10月30日',
-                        description: '处方：成熟度检测',
-                        requirement: '施工规范：选择晴天采摘，轻拿轻放。',
-                        status: 'expected'
-                    }
+            if (!this.apiStandardFarming || this.apiStandardFarming.length === 0) {
+                return [];
+            }
+
+            return this.apiStandardFarming.map((item, index) => ({
+                id: `standard-${ item.id }`,
+                text: item.name,
+                icon: this.images.farmingIcon1,
+                isGold: false,
+                details: {
+                    title: item.name,
+                    startDate: item.start_date,
+                    endDate: item.end_date,
+                    description: `处方：${ item.prescription || '' }`,
+                    requirement: item.specification || '施工规范详见说明',
+                    status: this.getTaskStatus(index, this.apiStandardFarming.length)
                 }
-            ];
+            }));
         },
 
         // 选中的农事项目详情
         selectedFarmingDetails() {
             if (!this.selectedFarmingItemId) {
+                // 默认选中第一个
+                const firstItem = this.standardFarmingItems[0];
+                if (firstItem) {
+                    return firstItem.details;
+                }
                 return null;
             }
             const selectedItem = this.standardFarmingItems.find(item => item.id === this.selectedFarmingItemId);
@@ -913,34 +819,70 @@ export default {
 
         // 下一个农事项目（基于当前选中项目的下一个）
         nextFarmingItem() {
-            if (!this.selectedFarmingItemId) {
-                return this.standardFarmingItems.find(item => item.details.status === 'expected');
+            if (!this.selectedFarmingItemId || this.standardFarmingItems.length === 0) {
+                return null;
             }
 
-            // 找到当前选中项目的索引
             const currentIndex = this.standardFarmingItems.findIndex(item => item.id === this.selectedFarmingItemId);
-
             if (currentIndex === -1 || currentIndex === this.standardFarmingItems.length - 1) {
-                // 如果没找到或者是最后一个，返回第一个expected项目
-                return this.standardFarmingItems.find(item => item.details.status === 'expected');
+                // 如果没找到或者是最后一个，返回第一个
+                const firstItem = this.standardFarmingItems[0];
+                return firstItem ? { details: firstItem.details } : null;
             }
 
-            // 返回下一个项目
-            return this.standardFarmingItems[currentIndex + 1];
+            return { details: this.standardFarmingItems[currentIndex + 1].details };
         },
 
-        // 三农服务项目 - 使用集中管理的配置和图片
+        // 预警农事信息 - 从 API 数据提取
+        warningFarmingInfo() {
+            if (!this.apiWarningFarming) {
+                return null;
+            }
+            return {
+                name: this.apiWarningFarming.name || '加强版生物防治',
+                triggerMonth: this.apiWarningFarming.trigger_month || '8月',
+                level: this.apiWarningFarming.level || 'high',
+                prescription: this.apiWarningFarming.prescription || '多种复合配方加强版生物防治。',
+                processingDays: this.apiWarningFarming.processing_days || 30
+            };
+        },
+
+        // 三农服务项目 - 从 API 数据动态生成
         servicesData() {
+            if (!this.apiServiceFarming) {
+                return [];
+            }
             const iconMap = [
                 this.images.serviceIcon1,
                 this.images.serviceIcon2,
                 this.images.serviceIcon3
             ];
-            return SERVICES_CONFIG.map((service, index) => ({
-                ...service,
-                icon: iconMap[index] || this.images.serviceIcon1
-            }));
+
+            const services = [];
+            if (this.apiServiceFarming.farm_tech) {
+                services.push({
+                    icon: iconMap[0] || this.images.serviceIcon1,
+                    label: '农技',
+                    provider: this.apiServiceFarming.farm_tech
+                });
+            }
+            if (this.apiServiceFarming.farm_material) {
+                services.push({
+                    icon: iconMap[1] || this.images.serviceIcon2,
+                    label: '农资',
+                    provider: this.apiServiceFarming.farm_material
+                });
+            }
+            if (this.apiServiceFarming.farm_invest) {
+                services.push({
+                    icon: iconMap[2] || this.images.serviceIcon3,
+                    label: '投融',
+                    provider: this.apiServiceFarming.farm_invest
+                });
+            }
+            return services;
         },
+
         // 用户信息 - 使用集中管理的图片常量
         user() {
             return {
@@ -948,20 +890,27 @@ export default {
                 avatar: this.images.userAvatar
             };
         },
+
         // 默认农户名
         defaultFarmerName() {
             return this.FARMER_CONFIG.default.name;
         },
+
         // 默认农户年龄
         defaultFarmerAge() {
             return this.FARMER_CONFIG.default.age;
         },
-        // 农户头像URL - 根据地块类型动态获取
+
+        // 农户头像URL - 根据 API 数据和地块类型动态获取
         farmerAvatarUrl() {
             const plotType = this.plotData?.type;
             // 厂（工厂、仓库）展示默认头像
             if (plotType === 'factory' || plotType === 'warehouse') {
                 return '/images/default-cover.png';
+            }
+            // 从 config_data 获取头像
+            if (this.farmerConfigData && this.farmerConfigData.owner_avatar) {
+                return this.farmerConfigData.owner_avatar;
             }
             // 其他类型（八角地块）展示农户头像
             const plotName = this.plotData?.name;
@@ -976,44 +925,132 @@ export default {
         this.loadPlotData();
     },
     methods: {
+        // 获取任务状态 - 根据任务索引判断
+        getTaskStatus(index, totalItems) {
+            // 简化处理：前几个已完成，当前和之后的为待执行
+            if (index < totalItems / 2) {
+                return 'completed';
+            } else if (index === Math.floor(totalItems / 2)) {
+                return 'current';
+            } else {
+                return 'pending';
+            }
+        },
+
         async loadPlotData() {
-            // 从路由参数获取区域名称和地块数据
-            this.regionName = this.$route.query.region || '右江区';
+            try {
+                this.isLoading = true;
+                this.loadError = null;
 
-            // 解码plotId参数（处理中文字符）
-            const encodedPlotId = this.$route.params.plotId;
-            const decodedPlotId = encodedPlotId ? decodeURIComponent(encodedPlotId) : null;
+                // 从路由参数获取区域名称和地块数据
+                this.regionName = this.$route.query.region || '右江区';
 
-            // 从query参数获取地块数据
-            const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
-            const area = this.$route.query.area || String(DEFAULT_PLOT_DATA.area);
-            const output = this.$route.query.output || String(DEFAULT_PLOT_DATA.output);
-            // 默认类型为八角
-            const type = this.$route.query.type || 'star-anise';
+                // 解码plotId参数（处理中文字符）
+                const encodedPlotId = this.$route.params.plotId;
+                const decodedPlotId = encodedPlotId ? decodeURIComponent(encodedPlotId) : null;
 
-            // 获取该地块的农户信息
-            const farmerInfo = getFarmerInfo(plotName);
+                // 从query参数获取地块数据
+                const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
+                const area = this.$route.query.area || String(DEFAULT_PLOT_DATA.area);
+                const output = this.$route.query.output || String(DEFAULT_PLOT_DATA.output);
+                // 默认类型为八角
+                const type = this.$route.query.type || 'star-anise';
 
-            // 从后端获取plot tiles列表，根据plotName找到真实的plot_id和layer_name
-            const tileRecord = await this.fetchPlotTileRecord(plotName);
+                // 获取该地块的农户信息
+                const farmerInfo = getFarmerInfo(plotName);
 
-            // 基础地块数据
-            const outputNum = parseFloat(output) || DEFAULT_PLOT_DATA.output;
-            const areaNum = parseFloat(area) || DEFAULT_PLOT_DATA.area;
-            this.plotData = {
-                id: tileRecord?.plot_id || decodedPlotId,
-                name: plotName,
-                district: this.regionName,
-                area,
-                yield: Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / DEFAULT_PLOT_DATA.conversionDivisor) || DEFAULT_PLOT_DATA.yield,
-                unitYield: output ? Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / areaNum) : DEFAULT_PLOT_DATA.unitYield,
-                farmerName: farmerInfo.name,
-                farmerAge: farmerInfo.age,
-                price: DEFAULT_PLOT_DATA.price,
-                type, // 地块类型
-                layer: tileRecord?.layer_name // 从后端获取的layer_name
-            };
+                // 从后端获取plot tiles列表，根据plotName找到真实的plot_id和layer_name
+                const tileRecord = await this.fetchPlotTileRecord(plotName);
 
+                // plotId优先级：后端返回的ID > 路由参数中解码后的ID > 报错提示
+                let plotId = tileRecord?.plot_id || decodedPlotId;
+                if (!plotId) {
+                    console.warn('无法获取有效的plotId，使用默认值1000');
+                    plotId = '1000';
+                } else {
+                    console.log('使用plotId:', plotId);
+                }
+
+                // 基础地块数据
+                const outputNum = parseFloat(output) || DEFAULT_PLOT_DATA.output;
+                const areaNum = parseFloat(area) || DEFAULT_PLOT_DATA.area;
+                this.plotData = {
+                    id: plotId,
+                    name: plotName,
+                    district: this.regionName,
+                    area,
+                    yield: Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / DEFAULT_PLOT_DATA.conversionDivisor) || DEFAULT_PLOT_DATA.yield,
+                    unitYield: output ? Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / areaNum) : DEFAULT_PLOT_DATA.unitYield,
+                    farmerName: farmerInfo.name,
+                    farmerAge: farmerInfo.age,
+                    price: DEFAULT_PLOT_DATA.price,
+                    type, // 地块类型
+                    layer: tileRecord?.layer_name // 从后端获取的layer_name
+                };
+
+                // 并行加载 API 数据
+                await Promise.all([
+                    this.loadPlotDetail(plotId),
+                    this.loadFarmingData(),
+                    this.loadSpicePrice()
+                ]);
+
+                this.isLoading = false;
+            } catch (error) {
+                console.error('Failed to load plot data:', error);
+                this.loadError = error.message;
+                this.isLoading = false;
+            }
+        },
+
+        // 加载地块详情（包含农户信息）
+        async loadPlotDetail(plotId) {
+            try {
+                const result = await apiClient.getPlotDetail(plotId);
+                if (result && result.code === 0 && result.data) {
+                    this.apiPlotDetail = result.data;
+                }
+            } catch (error) {
+                console.warn('Failed to load plot detail:', error);
+            }
+        },
+
+        // 加载农事数据
+        async loadFarmingData() {
+            try {
+                // 并行加载三种类型的农事数据
+                const [standardResult, warningResult, serviceResult] = await Promise.all([
+                    apiClient.getFarmingList('standard'),
+                    apiClient.getFarmingList('warning'),
+                    apiClient.getFarmingList('service')
+                ]);
+
+                if (standardResult && standardResult.code === 0 && standardResult.data) {
+                    this.apiStandardFarming = standardResult.data.list || [];
+                }
+
+                if (warningResult && warningResult.code === 0 && warningResult.data && warningResult.data.list) {
+                    this.apiWarningFarming = warningResult.data.list[0] || null;
+                }
+
+                if (serviceResult && serviceResult.code === 0 && serviceResult.data && serviceResult.data.list) {
+                    this.apiServiceFarming = serviceResult.data.list[0] || null;
+                }
+            } catch (error) {
+                console.warn('Failed to load farming data:', error);
+            }
+        },
+
+        // 加载八角价格
+        async loadSpicePrice() {
+            try {
+                const result = await apiClient.getSpicePrice(1, 1);
+                if (result && result.code === 0 && result.data && result.data.list) {
+                    this.apiSpicePrice = result.data.list[0] || null;
+                }
+            } catch (error) {
+                console.warn('Failed to load spice price:', error);
+            }
         },
 
         // 从后端获取plot tile记录
@@ -1055,12 +1092,17 @@ export default {
             });
         },
 
-        handlePlotSelected(plot) {
+        async handlePlotSelected(plot) {
             // 选中地块时更新详情信息
             const farmerInfo = getFarmerInfo(plot.name);
             const outputNum = plot.output || DEFAULT_PLOT_DATA.output;
             const areaNum = plot.area || DEFAULT_PLOT_DATA.area;
+
+            // 获取plot ID（支持多种字段名）
+            const plotId = plot.id || plot.plot_id || plot.plotId;
+
             this.plotData = {
+                id: plotId,
                 name: plot.name,
                 district: this.regionName,
                 area: plot.area,
@@ -1068,8 +1110,28 @@ export default {
                 unitYield: plot.output ? Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / areaNum) : DEFAULT_PLOT_DATA.unitYield,
                 farmerName: farmerInfo.name,
                 farmerAge: farmerInfo.age,
-                price: DEFAULT_PLOT_DATA.price
+                price: DEFAULT_PLOT_DATA.price,
+                type: plot.type // 保持地块类型
             };
+
+            // 重新加载该地块的API数据（农事、价格等）
+            if (plotId) {
+                try {
+                    this.isLoading = true;
+                    await Promise.all([
+                        this.loadPlotDetail(plotId),
+                        this.loadFarmingData(),
+                        this.loadSpicePrice()
+                    ]);
+                } catch (error) {
+                    console.error('Failed to reload plot data:', error);
+                    this.loadError = error.message;
+                } finally {
+                    this.isLoading = false;
+                }
+            } else {
+                console.warn('Plot ID not found in selected plot object:', plot);
+            }
         },
 
         handleTownshipClick(township) {
