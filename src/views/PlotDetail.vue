@@ -1001,12 +1001,22 @@ export default {
                     layer: tileRecord?.layer_name // 从后端获取的layer_name
                 };
 
-                // 并行加载 API 数据
-                await Promise.all([
-                    this.loadPlotDetail(plotId),
-                    this.loadFarmingData(),
-                    this.loadSpicePrice()
-                ]);
+                // 优先加载农事数据（只针对八角地块），其他数据后台加载
+                if (type !== 'factory' && type !== 'warehouse') {
+                    // 八角地块：农事数据优先加载
+                    await Promise.all([
+                        this.loadPlotDetail(plotId),
+                        this.loadFarmingData()
+                    ]);
+                    // 价格数据后台加载，不阻塞页面显示
+                    this.loadSpicePrice();
+                } else {
+                    // 工厂/仓库：只加载基本信息
+                    await this.loadPlotDetail(plotId);
+                    // 其他数据后台加载
+                    this.loadFarmingData();
+                    this.loadSpicePrice();
+                }
 
                 this.isLoading = false;
             } catch (error) {
