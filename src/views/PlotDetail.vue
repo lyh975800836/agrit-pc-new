@@ -673,6 +673,7 @@ export default {
             // API 返回的原始数据
             apiPlotDetail: null,      // 地块详情（包含 config_data）
             apiStandardFarming: [],   // 标准农事
+            currentFarmingStageId: null, // 当前农事阶段ID
             apiWarningFarming: null,  // 预警农事
             apiServiceFarming: null,  // 三农服务
             apiSpicePrice: null,      // 八角价格
@@ -783,8 +784,10 @@ export default {
                 return [];
             }
 
-            return this.apiStandardFarming.map((item, index) => ({
+            // 首先转换为标准格式
+            let items = this.apiStandardFarming.map((item, index) => ({
                 id: `standard-${ item.id }`,
+                originalId: item.id, // 保存原始ID用于匹配
                 text: item.name,
                 icon: this.images.farmingIcon1,
                 isGold: false,
@@ -797,6 +800,32 @@ export default {
                     status: this.getTaskStatus(index, this.apiStandardFarming.length)
                 }
             }));
+
+            let currentItem = null;
+
+            // 如果有当前农事阶段ID，重新排序
+            if (this.currentFarmingStageId) {
+                const currentIndex = items.findIndex(
+                    item => item.originalId === this.currentFarmingStageId
+                );
+                if (currentIndex !== -1) {
+                    // 将当前农事移到队尾
+                    currentItem = items.splice(currentIndex, 1)[0];
+                    items.push(currentItem);
+                }
+            }
+
+            // 自动选中逻辑：如果没有选中任何项目且列表非空，则根据是否有当前农事
+            // 来选中相应的项目（优先选中当前农事，否则选第一个）
+            if (!this.selectedFarmingItemId && items.length > 0) {
+                if (currentItem) {
+                    this.selectedFarmingItemId = currentItem.id;
+                } else {
+                    this.selectedFarmingItemId = items[0].id;
+                }
+            }
+
+            return items;
         },
 
         // 选中的农事项目详情
@@ -815,8 +844,15 @@ export default {
 
         // 下一个农事项目（基于当前选中项目的下一个）
         nextFarmingItem() {
-            if (!this.selectedFarmingItemId || this.standardFarmingItems.length === 0) {
+            if (!this.selectedFarmingItemId && this.standardFarmingItems.length === 0) {
                 return null;
+            }
+
+            // 如果没有选中项目，默认选中第一个，返回第二个作为下一项
+            if (!this.selectedFarmingItemId && this.standardFarmingItems.length > 0) {
+                return this.standardFarmingItems.length > 1
+                    ? { details: this.standardFarmingItems[1].details }
+                    : null;
             }
 
             const currentIndex = this.standardFarmingItems.findIndex(item => item.id === this.selectedFarmingItemId);
@@ -1032,6 +1068,10 @@ export default {
                 const result = await apiClient.getPlotDetail(plotId);
                 if (result && result.code === 0 && result.data) {
                     this.apiPlotDetail = result.data;
+                    // 提取当前农事阶段ID
+                    if (result.data.current_farming_stage_id) {
+                        this.currentFarmingStageId = result.data.current_farming_stage_id;
+                    }
                 }
             } catch (error) {
                 console.warn('Failed to load plot detail:', error);
@@ -1048,99 +1088,24 @@ export default {
                     apiClient.getFarmingList('service')
                 ]);
 
-                if (standardResult && standardResult.code === 0 && standardResult.data) {
-                    this.apiStandardFarming = standardResult.data.list || [];
-                } else {
-                    console.warn('标准农事数据获取失败或格式错误，使用 fallback 数据');
-                    this.apiStandardFarming = this.getMockStandardFarming();
+                // 处理标准农事
+                if (standardResult && standardResult.code === 0 && standardResult.data && standardResult.data.list) {
+                    this.apiStandardFarming = standardResult.data.list;
+                    // 自动选中逻辑由 standardFarmingItems computed property 处理
                 }
 
+                // 处理预警农事 - 取第一个或找到当前阶段的
                 if (warningResult && warningResult.code === 0 && warningResult.data && warningResult.data.list) {
                     this.apiWarningFarming = warningResult.data.list[0] || null;
-                } else {
-                    console.warn('预警农事数据获取失败或格式错误，使用 fallback 数据');
-                    this.apiWarningFarming = this.getMockWarningFarming();
                 }
 
+                // 处理三农服务 - 取第一个
                 if (serviceResult && serviceResult.code === 0 && serviceResult.data && serviceResult.data.list) {
                     this.apiServiceFarming = serviceResult.data.list[0] || null;
-                } else {
-                    console.warn('三农服务数据获取失败或格式错误，使用 fallback 数据');
-                    this.apiServiceFarming = this.getMockServiceFarming();
                 }
             } catch (error) {
                 console.warn('Failed to load farming data:', error);
-                // 异常情况下加载 fallback 数据
-                this.apiStandardFarming = this.getMockStandardFarming();
-                this.apiWarningFarming = this.getMockWarningFarming();
-                this.apiServiceFarming = this.getMockServiceFarming();
             }
-        },
-
-        // Fallback mock 数据
-        getMockStandardFarming() {
-            return [
-                {
-                    id: 1,
-                    name: '冬季施肥',
-                    start_date: '12月01日',
-                    end_date: '12月30日',
-                    prescription: '复合肥',
-                    specification: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。'
-                },
-                {
-                    id: 2,
-                    name: '春季生物防治',
-                    start_date: '3月01日',
-                    end_date: '3月30日',
-                    prescription: '生物防治药剂',
-                    specification: '均匀喷洒叶面，注意天气条件。'
-                },
-                {
-                    id: 3,
-                    name: '春季强梢施肥',
-                    start_date: '4月01日',
-                    end_date: '4月30日',
-                    prescription: '强梢专用肥',
-                    specification: '围绕树根部施用，深度15-20cm。'
-                },
-                {
-                    id: 4,
-                    name: '夏季除草',
-                    start_date: '6月01日',
-                    end_date: '6月30日',
-                    prescription: '除草剂',
-                    specification: '避免接触树体，选择无风天气作业。'
-                },
-                {
-                    id: 5,
-                    name: '秋季保花施肥',
-                    start_date: '8月01日',
-                    end_date: '8月30日',
-                    prescription: '复合肥',
-                    specification: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。'
-                }
-            ];
-        },
-
-        getMockWarningFarming() {
-            return {
-                id: 1,
-                name: '秋季保花施肥',
-                trigger_month: '8月',
-                level: 'high',
-                prescription: '多种复合配方加强版生物防治。',
-                processing_days: 30
-            };
-        },
-
-        getMockServiceFarming() {
-            return {
-                id: 1,
-                farm_tech: '农技专家团队',
-                farm_material: '农资供应中心',
-                farm_invest: '投融资服务部'
-            };
         },
 
         // 加载八角价格
@@ -1220,6 +1185,10 @@ export default {
             if (plotId) {
                 try {
                     this.isLoading = true;
+                    // 重置状态，防止旧数据污染
+                    this.selectedFarmingItemId = null;
+                    this.currentFarmingStageId = null;
+
                     await Promise.all([
                         this.loadPlotDetail(plotId),
                         this.loadFarmingData(),

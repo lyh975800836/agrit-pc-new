@@ -22,11 +22,13 @@ function getBaseUrl() {
  * @param {string} endpoint - API 端点（如 '/api/v1/tiles/info'）
  * @param {Object} options - 请求配置
  * @param {Object} options.query - 查询参数
+ * @param {string} options.method - HTTP 方法 (GET, POST, etc.)
+ * @param {string} options.body - 请求体
  * @param {AbortSignal} options.signal - 请求中止信号
  * @returns {Promise<Object>} 响应数据（JSON格式）
  */
 async function request(endpoint, options = {}) {
-    const { query = {}, signal } = options;
+    const { query = {}, signal, method = 'GET', body } = options;
 
     try {
         // 构建完整 URL
@@ -43,8 +45,22 @@ async function request(endpoint, options = {}) {
             url += `?${ params.toString() }`;
         }
 
+        // 构建 fetch 选项
+        const fetchOptions = {
+            signal,
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        // 添加请求体（如果有）
+        if (body) {
+            fetchOptions.body = body;
+        }
+
         // 发起请求
-        const response = await fetch(url, { signal });
+        const response = await fetch(url, fetchOptions);
 
         // 检查 HTTP 状态
         if (!response.ok) {
@@ -130,12 +146,17 @@ async function getPlotsList(options = {}) {
 }
 
 /**
- * 获取地块详情
+ * 获取地块详情 (新API)
  * @param {string} plotId - 地块 ID
  * @param {Object} options - 请求配置
  */
 async function getPlotDetail(plotId, options = {}) {
-    return get(`/api/v1/geoprocessing/plot-tiles/detail/${plotId}`, options);
+    // 优先使用新 API: /api/v1/p/detail (POST)
+    return request('/api/v1/p/detail', {
+        ...options,
+        method: 'POST',
+        body: JSON.stringify({ id: plotId })
+    });
 }
 
 /**
@@ -144,7 +165,10 @@ async function getPlotDetail(plotId, options = {}) {
  * @param {Object} options - 请求配置
  */
 async function getFarmingList(type, options = {}) {
-    return get(`/api/v1/farming/${type}`, options);
+    return get(`/api/v1/farming/list`, {
+        ...options,
+        query: { type, page: 1, page_size: 100, ...options.query }
+    });
 }
 
 /**
@@ -154,7 +178,7 @@ async function getFarmingList(type, options = {}) {
  * @param {Object} options - 请求配置
  */
 async function getSpicePrice(pageNum = 1, pageSize = 10, options = {}) {
-    return get('/api/v1/spice/price', {
+    return get('/api/v1/spice-price/list', {
         ...options,
         query: { pageNum, pageSize, ...options.query }
     });
