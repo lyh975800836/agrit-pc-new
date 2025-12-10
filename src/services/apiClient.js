@@ -4,7 +4,6 @@
  * 支持环境切换、请求取消、错误处理
  */
 
-// 获取基础 URL - 根据环境切换
 function getBaseUrl() {
     const isProduction = process.env.NODE_ENV === 'production';
 
@@ -48,14 +47,14 @@ async function request(endpoint, options = {}) {
         // 构建 fetch 选项
         const fetchOptions = {
             signal,
-            method,
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            method
         };
 
         // 添加请求体（如果有）
         if (body) {
+            fetchOptions.headers = {
+                'Content-Type': 'application/json'
+            };
             fetchOptions.body = body;
         }
 
@@ -151,11 +150,10 @@ async function getPlotsList(options = {}) {
  * @param {Object} options - 请求配置
  */
 async function getPlotDetail(plotId, options = {}) {
-    // 优先使用新 API: /api/v1/p/detail (POST)
-    return request('/api/v1/p/detail', {
+    // 使用 GET + query 参数方式保持一致性
+    return get('/api/v1/p/detail', {
         ...options,
-        method: 'POST',
-        body: JSON.stringify({ id: plotId })
+        query: { id: plotId, ...options.query }
     });
 }
 
