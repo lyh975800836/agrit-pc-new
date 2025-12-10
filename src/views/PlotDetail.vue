@@ -839,11 +839,11 @@ export default {
                 return null;
             }
             return {
-                name: this.apiWarningFarming.name || '加强版生物防治',
-                triggerMonth: this.apiWarningFarming.trigger_month || '8月',
-                level: this.apiWarningFarming.level || 'high',
-                prescription: this.apiWarningFarming.prescription || '多种复合配方加强版生物防治。',
-                processingDays: this.apiWarningFarming.processing_days || 30
+                name: this.apiWarningFarming.name,
+                triggerMonth: this.apiWarningFarming.trigger_month,
+                level: this.apiWarningFarming.level,
+                prescription: this.apiWarningFarming.prescription,
+                processingDays: this.apiWarningFarming.processing_days
             };
         },
 
