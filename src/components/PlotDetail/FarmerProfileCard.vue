@@ -105,11 +105,13 @@ export default {
 .rating-filled {
     font-size: 12px;
     color: #c69c6d;
+    font-family: sans-serif;
 }
 
 .rating-empty {
     font-size: 12px;
     color: #c69c6d;
+    font-family: sans-serif;
 }
 
 .farmer-status {
