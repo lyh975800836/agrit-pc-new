@@ -165,7 +165,7 @@ async function getPlotDetail(plotId, options = {}) {
  * @param {Object} options - 请求配置
  */
 async function getFarmingList(type, options = {}) {
-    return get(`/api/v1/farming/list`, {
+    return get('/api/v1/farming/list', {
         ...options,
         query: { type, page: 1, page_size: 100, ...options.query }
     });

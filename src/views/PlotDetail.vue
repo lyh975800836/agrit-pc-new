@@ -829,7 +829,6 @@ export default {
                 }
             }));
 
-            let currentItem = null;
             const totalItems = items.length;
 
             // 进行环形排列，使当前农事在中间位置
@@ -848,7 +847,6 @@ export default {
                     item.isCurrent = true;
                     // 当前农事的图标使用 farming-warm
                     item.icon = this.images.farmingWarm;
-                    currentItem = item;
                 }
                 if (i === middlePosition + 1) {
                     item.isNext = true;
@@ -858,14 +856,6 @@ export default {
             }
 
             items = reorderedItems;
-
-            // 自动选中逻辑：如果没有选中任何项目且列表非空，自动选中当前农事
-            if (!this.selectedFarmingItemId && items.length > 0 && currentItem) {
-                // 通过 $nextTick 来异步设置，避免在 computed 属性中产生副作用
-                this.$nextTick(() => {
-                    this.selectedFarmingItemId = currentItem.id;
-                });
-            }
 
             return items;
         },
@@ -1081,6 +1071,19 @@ export default {
             }
 
             return [];
+        }
+    },
+    watch: {
+        standardFarmingItems(newItems) {
+            // 自动选中逻辑：如果没有选中任何项目且列表非空，自动选中当前农事
+            if (!this.selectedFarmingItemId && newItems.length > 0) {
+                const currentItem = newItems.find(item => item.isCurrent);
+                if (currentItem) {
+                    this.$nextTick(() => {
+                        this.selectedFarmingItemId = currentItem.id;
+                    });
+                }
+            }
         }
     },
     mounted() {
