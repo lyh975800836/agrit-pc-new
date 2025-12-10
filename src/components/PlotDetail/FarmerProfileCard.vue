@@ -45,11 +45,7 @@ export default {
         },
         statusTags: {
             type: Array,
-            default: () => [
-                { label: '一般户', cssClass: 'status-general' },
-                { label: '未脱贫', cssClass: 'status-unpoverty' },
-                { label: '已脱贫', cssClass: 'status-poverty' }
-            ]
+            default: () => []
         }
     }
 };
@@ -89,7 +85,7 @@ export default {
 
 .farmer-name,
 .farmer-age {
-    font-family: SourceHanSansCN-Medium;
+    font-family: SourceHanSansCN-Medium, sans-serif;
     font-size: 17px;
     font-weight: 500;
     line-height: 16px;
@@ -125,7 +121,7 @@ export default {
 
 .status-tag {
     padding: 3px 8px;
-    font-family: SourceHanSansCN-Medium;
+    font-family: SourceHanSansCN-Medium, sans-serif;
     font-size: 10px;
     font-weight: 500;
     text-align: center;

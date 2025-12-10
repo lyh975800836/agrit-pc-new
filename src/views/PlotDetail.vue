@@ -40,11 +40,7 @@
           :farmer-age="farmerConfigData?.owner_age || plotData.farmerAge || defaultFarmerAge"
           :avatar-url="farmerAvatarUrl"
           :background-image="images.farmerProfile"
-          :status-tags="[
-            { label: '一般户', cssClass: 'status-general' },
-            { label: '未脱贫', cssClass: 'status-unpoverty' },
-            { label: '已脱贫', cssClass: 'status-poverty' }
-          ]"
+          :status-tags="dynamicStatusTags"
         />
         <!-- 地块统计数据 -->
         <PlotStatisticsGrid
@@ -919,6 +915,23 @@ export default {
                 return farmerInfo.avatar;
             }
             return this.FARMER_CONFIG.default.avatar;
+        },
+
+        // 动态状态标签 - 根据plot type和farmer config动态生成
+        dynamicStatusTags() {
+            const plotType = this.plotData?.type;
+
+            // 普通八角地块的状态标签
+            if (plotType !== 'factory' && plotType !== 'warehouse') {
+                return [
+                    { label: '一般户', cssClass: 'status-general' },
+                    { label: '未脱贫', cssClass: 'status-unpoverty' },
+                    { label: '已脱贫', cssClass: 'status-poverty' }
+                ];
+            }
+
+            // 仓库不显示状态标签
+            return [];
         }
     },
     mounted() {
