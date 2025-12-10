@@ -2436,6 +2436,8 @@ export default {
 
 /* 三农服务区域 */
 .farming-dynamics__services {
+    position: absolute;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     align-items: flex-start;

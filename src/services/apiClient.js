@@ -129,11 +129,45 @@ async function getPlotsList(options = {}) {
     return get('/api/v1/geoprocessing/plot-tiles/list', options);
 }
 
+/**
+ * 获取地块详情
+ * @param {string} plotId - 地块 ID
+ * @param {Object} options - 请求配置
+ */
+async function getPlotDetail(plotId, options = {}) {
+    return get(`/api/v1/geoprocessing/plot-tiles/detail/${plotId}`, options);
+}
+
+/**
+ * 获取农事列表
+ * @param {string} type - 农事类型（standard/warning/service）
+ * @param {Object} options - 请求配置
+ */
+async function getFarmingList(type, options = {}) {
+    return get(`/api/v1/farming/${type}`, options);
+}
+
+/**
+ * 获取八角价格
+ * @param {number} pageNum - 页码
+ * @param {number} pageSize - 每页数量
+ * @param {Object} options - 请求配置
+ */
+async function getSpicePrice(pageNum = 1, pageSize = 10, options = {}) {
+    return get('/api/v1/spice/price', {
+        ...options,
+        query: { pageNum, pageSize, ...options.query }
+    });
+}
+
 export default {
     request,
     get,
     getTileInfo,
     getPlotMarkers,
     getWmtsTile,
-    getPlotsList
+    getPlotsList,
+    getPlotDetail,
+    getFarmingList,
+    getSpicePrice
 };
