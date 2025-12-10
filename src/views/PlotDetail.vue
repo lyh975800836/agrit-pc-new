@@ -1040,18 +1040,97 @@ export default {
 
                 if (standardResult && standardResult.code === 0 && standardResult.data) {
                     this.apiStandardFarming = standardResult.data.list || [];
+                } else {
+                    console.warn('标准农事数据获取失败或格式错误，使用 fallback 数据');
+                    this.apiStandardFarming = this.getMockStandardFarming();
                 }
 
                 if (warningResult && warningResult.code === 0 && warningResult.data && warningResult.data.list) {
                     this.apiWarningFarming = warningResult.data.list[0] || null;
+                } else {
+                    console.warn('预警农事数据获取失败或格式错误，使用 fallback 数据');
+                    this.apiWarningFarming = this.getMockWarningFarming();
                 }
 
                 if (serviceResult && serviceResult.code === 0 && serviceResult.data && serviceResult.data.list) {
                     this.apiServiceFarming = serviceResult.data.list[0] || null;
+                } else {
+                    console.warn('三农服务数据获取失败或格式错误，使用 fallback 数据');
+                    this.apiServiceFarming = this.getMockServiceFarming();
                 }
             } catch (error) {
                 console.warn('Failed to load farming data:', error);
+                // 异常情况下加载 fallback 数据
+                this.apiStandardFarming = this.getMockStandardFarming();
+                this.apiWarningFarming = this.getMockWarningFarming();
+                this.apiServiceFarming = this.getMockServiceFarming();
             }
+        },
+
+        // Fallback mock 数据
+        getMockStandardFarming() {
+            return [
+                {
+                    id: 1,
+                    name: '冬季施肥',
+                    start_date: '12月01日',
+                    end_date: '12月30日',
+                    prescription: '复合肥',
+                    specification: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。'
+                },
+                {
+                    id: 2,
+                    name: '春季生物防治',
+                    start_date: '3月01日',
+                    end_date: '3月30日',
+                    prescription: '生物防治药剂',
+                    specification: '均匀喷洒叶面，注意天气条件。'
+                },
+                {
+                    id: 3,
+                    name: '春季强梢施肥',
+                    start_date: '4月01日',
+                    end_date: '4月30日',
+                    prescription: '强梢专用肥',
+                    specification: '围绕树根部施用，深度15-20cm。'
+                },
+                {
+                    id: 4,
+                    name: '夏季除草',
+                    start_date: '6月01日',
+                    end_date: '6月30日',
+                    prescription: '除草剂',
+                    specification: '避免接触树体，选择无风天气作业。'
+                },
+                {
+                    id: 5,
+                    name: '秋季保花施肥',
+                    start_date: '8月01日',
+                    end_date: '8月30日',
+                    prescription: '复合肥',
+                    specification: '要求在树根往外滴水的三分之二处，均匀绕树周围撒肥。'
+                }
+            ];
+        },
+
+        getMockWarningFarming() {
+            return {
+                id: 1,
+                name: '秋季保花施肥',
+                trigger_month: '8月',
+                level: 'high',
+                prescription: '多种复合配方加强版生物防治。',
+                processing_days: 30
+            };
+        },
+
+        getMockServiceFarming() {
+            return {
+                id: 1,
+                farm_tech: '农技专家团队',
+                farm_material: '农资供应中心',
+                farm_invest: '投融资服务部'
+            };
         },
 
         // 加载八角价格
