@@ -5,13 +5,6 @@
  */
 
 function getBaseUrl() {
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    if (isProduction) {
-    // 生产环境：使用后端服务的完整地址
-        return 'http://43.136.169.150:8000';
-    }
-
     // 开发环境：使用相对路径，vue.config.js 会代理
     return '';
 }
