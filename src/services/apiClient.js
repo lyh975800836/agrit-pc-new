@@ -1,7 +1,6 @@
 /**
- * API 客户端统一处理模块
- * 用于统一管理所有向服务端的请求
- * 支持环境切换、请求取消、错误处理
+ * Provide the base URL used by API requests.
+ * @returns {string} The base URL for requests; an empty string uses relative paths (for example when a development proxy is configured).
  */
 
 function getBaseUrl() {
@@ -10,14 +9,14 @@ function getBaseUrl() {
 }
 
 /**
- * 统一的 fetch 请求方法
- * @param {string} endpoint - API 端点（如 '/api/v1/tiles/info'）
- * @param {Object} options - 请求配置
- * @param {Object} options.query - 查询参数
- * @param {string} options.method - HTTP 方法 (GET, POST, etc.)
- * @param {string} options.body - 请求体
- * @param {AbortSignal} options.signal - 请求中止信号
- * @returns {Promise<Object>} 响应数据（JSON格式）
+ * Perform an HTTP request to the specified API endpoint and return the parsed JSON response.
+ * @param {string} endpoint - API endpoint path (e.g. '/api/v1/tiles/info').
+ * @param {Object} [options] - Request options.
+ * @param {Object} [options.query] - Query parameters to append to the URL.
+ * @param {string} [options.method] - HTTP method (e.g. 'GET', 'POST').
+ * @param {string|Object} [options.body] - Request body; when provided it will be sent with Content-Type `application/json`.
+ * @param {AbortSignal} [options.signal] - Signal used to cancel the request.
+ * @returns {Object} The parsed JSON response.
  */
 async function request(endpoint, options = {}) {
     const { query = {}, signal, method = 'GET', body } = options;
@@ -130,17 +129,21 @@ async function getWmtsTile(params, options = {}) {
 }
 
 /**
- * 获取地块列表
- * @param {Object} options - 请求配置
+ * Retrieve a list of plots.
+ * @param {Object} [options] - Optional request options. Common keys: `query` (object of query parameters) and `signal` (AbortSignal to cancel the request).
+ * @returns {Promise<Object>} Parsed JSON response containing the list of plots.
  */
 async function getPlotsList(options = {}) {
     return get('/api/v1/geoprocessing/plot-tiles/list', options);
 }
 
 /**
- * 获取地块详情 (新API)
- * @param {string} plotId - 地块 ID
- * @param {Object} options - 请求配置
+ * Retrieve plot details from the new API.
+ *
+ * The provided `plotId` is sent as the query parameter `id`; any properties in `options.query` are merged with this query.
+ * @param {string} plotId - Plot identifier to request.
+ * @param {Object} [options] - Request options; may include a `query` object to merge into the request query parameters.
+ * @returns {Object} The response JSON containing plot details.
  */
 async function getPlotDetail(plotId, options = {}) {
     // 使用 GET + query 参数方式保持一致性
@@ -151,9 +154,11 @@ async function getPlotDetail(plotId, options = {}) {
 }
 
 /**
- * 获取农事列表
- * @param {string} type - 农事类型（standard/warning/service）
- * @param {Object} options - 请求配置
+ * Fetches a paginated list of farming items for a given type.
+ *
+ * @param {string} type - Farming type: "standard", "warning", or "service".
+ * @param {Object} [options] - Request options. If `options.query` is provided it will be merged with the default query; defaults for this call are `page: 1` and `page_size: 100`.
+ * @returns {any} The parsed JSON response containing the farming items.
  */
 async function getFarmingList(type, options = {}) {
     return get('/api/v1/farming/list', {
@@ -163,10 +168,11 @@ async function getFarmingList(type, options = {}) {
 }
 
 /**
- * 获取八角价格
- * @param {number} pageNum - 页码
- * @param {number} pageSize - 每页数量
- * @param {Object} options - 请求配置
+ * Fetches a paginated list of spice prices.
+ * @param {number} pageNum - Page number, starting at 1.
+ * @param {number} pageSize - Number of items per page.
+ * @param {Object} options - Optional request configuration; `options.query` will be merged with pagination parameters.
+ * @returns {Object} The parsed JSON response containing the spice price list and pagination metadata.
  */
 async function getSpicePrice(pageNum = 1, pageSize = 10, options = {}) {
     return get('/api/v1/spice-price/list', {
