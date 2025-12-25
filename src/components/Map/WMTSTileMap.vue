@@ -61,8 +61,14 @@
 import TileImageManager from '@/components/Map/TileImageManager.vue';
 import MockMarkers from '@/components/Map/MockMarkers.vue';
 import apiClient from '@/services/apiClient';
+import { getCDNTileUrl, preloadTileImage } from '@/utils/tileUrlHelper';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
+
+// 瓦片加载模式配置
+// 'cdn' - 直接从CDN加载（推荐，性能更好）
+// 'proxy' - 通过后端代理加载（兼容旧系统）
+const TILE_LOAD_MODE = process.env.VUE_APP_TILE_LOAD_MODE || 'cdn';
 
 export default {
     name: 'WMTSTileMap',
@@ -422,6 +428,66 @@ export default {
                 return;
             }
 
+            // 根据配置选择加载模式
+            if (TILE_LOAD_MODE === 'cdn') {
+                await this.loadTileFromCDN(tileCol, tileRow, requestToken, key);
+            } else {
+                await this.loadTileFromProxy(tileCol, tileRow, requestToken, key);
+            }
+        },
+
+        /**
+         * 从CDN直接加载瓦片（推荐方式）
+         * 性能优势：
+         * 1. 减少一次网络跳转（不经过后端）
+         * 2. 使用原生图片加载，浏览器自动缓存
+         * 3. 减少后端负载
+         * 4. 避免base64编码开销
+         */
+        async loadTileFromCDN(tileCol, tileRow, requestToken, key) {
+            try {
+                // 生成CDN URL
+                const tileUrl = getCDNTileUrl(
+                    this.layerName,          // layer
+                    'default',               // style
+                    'GoogleMapsCompatible',  // tileMatrixSet
+                    this.zoomLevel,          // tileMatrix
+                    tileRow,                 // row
+                    tileCol,                 // col
+                    'png'                    // format
+                );
+
+                // 预加载图片
+                await preloadTileImage(tileUrl, this.requestAbortController?.signal);
+
+                if (this.currentRequestToken !== requestToken) {
+                    return;
+                }
+
+                // 直接使用URL（浏览器会缓存）
+                this.$set(this.tileImages, key, tileUrl);
+            }
+            catch (error) {
+                // 如果请求被取消，不输出错误日志
+                if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+                    return;
+                }
+                // eslint-disable-next-line no-console
+                console.error(`从CDN获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
+                if (this.currentRequestToken === requestToken) {
+                    this.$set(this.tileImages, key, 'error');
+                }
+            }
+        },
+
+        /**
+         * 通过后端代理加载瓦片（兼容旧系统）
+         * 缺点：
+         * 1. 多一次网络跳转
+         * 2. base64编码增加数据大小
+         * 3. 后端负载高
+         */
+        async loadTileFromProxy(tileCol, tileRow, requestToken, key) {
             try {
                 const result = await apiClient.getWmtsTile({
                     layer: this.layerName,
@@ -452,7 +518,7 @@ export default {
                     return;
                 }
                 // eslint-disable-next-line no-console
-                console.error(`获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
+                console.error(`通过代理获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
                 if (this.currentRequestToken === requestToken) {
                     this.$set(this.tileImages, key, 'error');
                 }

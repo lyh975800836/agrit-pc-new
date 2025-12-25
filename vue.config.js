@@ -20,11 +20,18 @@ module.exports = {
         },
         proxy: {
             '/api/v1': {
-                target: 'http://43.136.169.150:8000',
+                // 使用HTTPS协议确保传输安全
+                target: 'https://www.baiyanai.cn',
                 changeOrigin: true,
-                secure: false,
+                // 启用SSL证书验证 - 安全加固 (CRITICAL修复)
+                secure: true,
+                // 禁用WebSocket
+                ws: false,
                 logLevel: 'debug',
                 cookieDomainRewrite: '',
+                headers: {
+                    'Connection': 'keep-alive'
+                },
                 onProxyReq: function(proxyReq, req, res) {
                     console.log('Proxying request:', req.method, req.url, '-> ', proxyReq.path);
                     // 保留所有原始请求头
@@ -38,7 +45,7 @@ module.exports = {
                     proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
                 },
                 onError: function(err, req, res) {
-                    console.log('Proxy error:', err, req.url);
+                    console.error('Proxy error:', err.code, err.message, req.url);
                 }
             }
         }
