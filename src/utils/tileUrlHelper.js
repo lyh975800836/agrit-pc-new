@@ -7,7 +7,7 @@
  * CDN基础URL
  * 可以通过环境变量配置
  */
-const CDN_BASE_URL = process.env.VUE_APP_TILE_CDN_URL || 'http://image.baiyanai.cn/tiles';
+const CDN_BASE_URL = process.env.VUE_APP_TILE_CDN_URL || 'https://image.baiyanai.cn/tiles';
 
 /**
  * 生成CDN瓦片URL
@@ -22,7 +22,7 @@ const CDN_BASE_URL = process.env.VUE_APP_TILE_CDN_URL || 'http://image.baiyanai.
  * @returns {string} 完整的CDN瓦片URL
  *
  * @example
- * // 返回: http://image.baiyanai.cn/tiles/plot_1000_雷哥/default/GoogleMapsCompatible/4/5/3.png
+ * // 返回: https://image.baiyanai.cn/tiles/plot_1000_雷哥/default/GoogleMapsCompatible/4/5/3.png
  * getCDNTileUrl('plot_1000_雷哥', 'default', 'GoogleMapsCompatible', 4, 5, 3, 'png')
  */
 export function getCDNTileUrl(layer, style, tileMatrixSet, tileMatrix, row, col, format = 'png') {
