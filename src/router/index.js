@@ -1,11 +1,12 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Dashboard from '@/views/Dashboard.vue'
-import DataDashboard from '@/views/DataDashboard.vue'
-import DetailMap from '@/views/DetailMap.vue'
-import PlotDetail from '@/views/PlotDetail.vue'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import Dashboard from '@/views/Dashboard.vue';
+import DataDashboard from '@/views/DataDashboard.vue';
+import DetailMap from '@/views/DetailMap.vue';
+// import PlotDetail from '@/views/PlotDetail.vue'; // 原版本保留备份
+import PlotDetailV2 from '@/modules/plot/PlotDetailV2.vue';
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
   {
@@ -35,13 +36,13 @@ const routes = [
   {
     path: '/plot/:plotId',
     name: 'PlotDetail',
-    component: PlotDetail,
+    component: PlotDetailV2, // 直接使用新架构版本
     props: true,
     meta: {
       title: '地块详情'
     }
   }
-]
+];
 
 const router = new VueRouter({
   mode: 'hash', // 临时改为hash模式解决部署问题

@@ -2,14 +2,17 @@
   <div class="farmer-profile" :style="{ backgroundImage: `url(${backgroundImage})` }">
     <img class="farmer-avatar" :src="avatarUrl" />
     <div class="farmer-details">
-      <div class="farmer-name">农户：{{ farmerName }}</div>
+      <div class="farmer-name">{{ labelPrefix }}{{ farmerName }}</div>
       <img class="detail-divider" src="/images/divider.png" />
-      <div class="farmer-age">年龄：{{ farmerAge }}岁</div>
+      <div class="farmer-age">{{ ageLabel }}{{ farmerAge }}{{ ageSuffix }}</div>
       <div class="farmer-rating">
-        <span class="rating-filled">★★★★</span>
-        <span class="rating-empty">★</span>
+        <span
+          v-for="i in 5"
+          :key="i"
+          :class="i <= rating ? 'rating-filled' : 'rating-empty'"
+        >★</span>
       </div>
-      <div class="farmer-status">
+      <div v-if="statusTags && statusTags.length > 0" class="farmer-status">
         <div
           v-for="tag in statusTags"
           :key="tag.label"
@@ -32,7 +35,7 @@ export default {
             required: true
         },
         farmerAge: {
-            type: String,
+            type: [String, Number],
             required: true
         },
         avatarUrl: {
@@ -46,6 +49,27 @@ export default {
         statusTags: {
             type: Array,
             default: () => []
+        },
+        // 星级评分 (1-5)
+        rating: {
+            type: Number,
+            default: 4,
+            validator: (val) => val >= 0 && val <= 5
+        },
+        // 标签前缀 (如: "农户：", "所有人：", "管理员：")
+        labelPrefix: {
+            type: String,
+            default: '所有人：'
+        },
+        // 年龄标签 (如: "年龄：", "名下工厂数：", "管理仓库数：")
+        ageLabel: {
+            type: String,
+            default: '年龄：'
+        },
+        // 年龄后缀 (如: "岁", "个")
+        ageSuffix: {
+            type: String,
+            default: '岁'
         }
     }
 };
