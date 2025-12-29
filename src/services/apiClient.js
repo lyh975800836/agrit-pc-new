@@ -5,8 +5,10 @@
  */
 
 function getBaseUrl() {
-    // 开发环境：使用相对路径，vue.config.js 会代理
-    return '';
+    // 使用环境变量配置
+    // 生产环境：返回完整域名 https://ms.baiyanai.cn
+    // 开发环境：返回空字符串，使用 vue.config.js 代理
+    return process.env.VUE_APP_API_BASE_URL || '';
 }
 
 /**

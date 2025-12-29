@@ -24,7 +24,7 @@ module.exports = {
         proxy: {
             '/api/v1': {
                 // 使用HTTPS协议确保传输安全
-                target: 'https://www.baiyanai.cn',
+                target: 'https://ms.baiyanai.cn',
                 changeOrigin: true,
                 // 启用SSL证书验证 - 安全加固 (CRITICAL修复)
                 secure: true,

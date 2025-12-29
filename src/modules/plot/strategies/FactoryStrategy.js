@@ -41,7 +41,7 @@ class FactoryStrategy extends PlotStrategy {
         return {
             name: this._getConfigValue('owner_name', '未知'),
             factoryCount: this._getConfigValue('owner_factory_num', 0),
-            avatar: this._getConfigValue('owner_avatar', '/images/factory-owner-avatar.jpg'),
+            avatar: this._getConfigValue('owner_avatar', '/images/farmer-avatar.jpg'),
             rating: this._getConfigValue('owner_star_rank', 5)
         }
     }
