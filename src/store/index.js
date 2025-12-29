@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import createLogger from 'vuex/dist/logger';
+import dashboard from '@/modules/dashboard/store';
 
 Vue.use(Vuex);
 
@@ -196,7 +197,9 @@ const store = new Vuex.Store({
     mutations,
     actions,
 
-    modules: {},
+    modules: {
+        dashboard
+    },
 
     // 仅在开发环境下启用日志
     plugins: process.env.NODE_ENV === 'development' ? [createLogger()] : [],

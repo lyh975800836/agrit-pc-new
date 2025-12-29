@@ -8,6 +8,9 @@ module.exports = {
     outputDir: 'dist',
     assetsDir: 'static',
 
+    // 文件名哈希 - 启用缓存破坏
+    filenameHashing: true,
+
     // 开发服务器配置
     devServer: {
         port: 8080,
@@ -64,6 +67,11 @@ module.exports = {
     chainWebpack(config) {
     // 生产环境优化
         if (process.env.NODE_ENV === 'production') {
+            // 输出文件名配置 - 添加hash后缀
+            config.output
+                .filename('static/js/[name].[contenthash:8].js')
+                .chunkFilename('static/js/[name].[contenthash:8].js');
+
             // 移除console和debugger
             config.optimization.minimizer('terser').tap(args => {
                 args[0].terserOptions.compress.drop_console = true;
@@ -131,7 +139,10 @@ module.exports = {
 
     // CSS相关配置
     css: {
-        extract: process.env.NODE_ENV === 'production',
+        extract: process.env.NODE_ENV === 'production' ? {
+            filename: 'static/css/[name].[contenthash:8].css',
+            chunkFilename: 'static/css/[name].[contenthash:8].css'
+        } : false,
         sourceMap: process.env.NODE_ENV !== 'production',
         loaderOptions: {
             less: {

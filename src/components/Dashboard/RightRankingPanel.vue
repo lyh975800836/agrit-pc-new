@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import apiClient from '@/services/apiClient';
+import farmingApi from '@/infrastructure/api/farmingApi';
 import { getCategoryImages } from '@/utils/imageManager';
 import RankingSection from './RankingSection.vue';
 import QualitySection from './QualitySection.vue';
@@ -75,7 +75,7 @@ export default {
          */
         async loadFarmingList() {
             try {
-                const response = await apiClient.getFarmingList('standard');
+                const response = await farmingApi.getFarmingList('standard');
 
                 if (response && response.code === 0 && response.data) {
                     // 将后端返回的数据转换为组件需要的格式
