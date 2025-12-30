@@ -339,10 +339,14 @@ export default {
                 // 标记当前农事和下一个农事
                 if (i === middlePosition) {
                     item.isCurrent = true;
-                    item.icon = this.images.farmingWarm;
                 }
                 if (i === middlePosition + 1) {
                     item.isNext = true;
+                }
+
+                // 当前农事及其上面的所有农事使用 farming-warm.png（已执行）
+                // 下面的农事使用 farming-icon-1.png（未执行）
+                if (i <= middlePosition) {
                     item.icon = this.images.farmingWarm;
                 }
             }

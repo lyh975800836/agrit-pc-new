@@ -707,7 +707,12 @@ export default {
 }
 
 .farming-dynamics__standards {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
     width: 149px;
+    min-height: 28px;
     margin: 0 0 0 17px;
     font-family: SourceHanSansCN-Light, sans-serif;
     font-size: 10px;
@@ -720,7 +725,7 @@ export default {
 .farming-dynamics__view-details {
     display: flex;
     align-items: center;
-    margin: 7px 0 0 130px;
+    margin: 5px 0 0 130px;
 
     cursor: pointer;
 
