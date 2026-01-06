@@ -35,19 +35,19 @@ module.exports = {
                 headers: {
                     'Connection': 'keep-alive'
                 },
-                onProxyReq: function(proxyReq, req, res) {
+                onProxyReq: function(proxyReq, req) {
                     console.log('Proxying request:', req.method, req.url, '-> ', proxyReq.path);
                     // 保留所有原始请求头
                     if (req.headers.cookie) {
                         proxyReq.setHeader('cookie', req.headers.cookie);
                     }
                 },
-                onProxyRes: function(proxyRes, req, res) {
+                onProxyRes: function(proxyRes, req) {
                     console.log('Proxy response:', proxyRes.statusCode, req.url);
                     // 允许跨域携带 cookie
                     proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
                 },
-                onError: function(err, req, res) {
+                onError: function(err, req) {
                     console.error('Proxy error:', err.code, err.message, req.url);
                 }
             }

@@ -3,6 +3,8 @@
  * 集中管理所有地图相关配置
  */
 
+import { TIMEOUTS } from './timingConfig';
+
 // 瓦片服务提供商配置
 export const TILE_PROVIDERS = {
     // 高德地图服务
@@ -194,5 +196,62 @@ export const LOADING_CONFIG = {
         error: '地图加载失败',
         success: '地图加载完成'
     },
-    timeout: 10000 // 10秒超时
+    timeout: TIMEOUTS.API_REQUEST_NORMAL // 10秒超时
+};
+
+// 百色市地图专用配置
+export const BAISE_MAP_CONFIG = {
+    center: [23.9, 106.6], // 百色市中心坐标
+    zoom: 9,
+    minZoom: 8,
+    maxZoom: 12,
+    zoomControl: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    dragging: true,
+    attributionControl: false,
+    preferCanvas: true,
+    zoomSnap: 0.5,
+    wheelPxPerZoomLevel: 60
+};
+
+// 区域详情地图专用配置
+export const REGION_DETAIL_MAP_CONFIG = {
+    // 缩放级别配置
+    defaultZoom: 12,
+    minZoom: 8,
+    maxZoom: 16,
+    fitZoom: 14,
+    fallbackZoom: 13,
+
+    // 边距配置
+    centerPadding: [30, 30],
+    fitPadding: [50, 50],
+
+    // 加载配置
+    tileLoadTimeout: TIMEOUTS.TILE_LOAD,
+
+    // 区域遮罩配置
+    regionMaskMarginMultiplier: 3,
+
+    // 弹窗尺寸配置
+    popupWidth: 380,
+    popupHeight: 350,
+    popupOffsetAbove: 20,
+    popupMargin: 10,
+
+    // 地图控件配置
+    zoomControl: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    touchZoom: true,
+    boxZoom: false,
+    keyboard: true,
+    attributionControl: false,
+    preferCanvas: true,
+    zoomAnimationThreshold: 4,
+    fadeAnimation: true,
+    zoomAnimation: true,
+    zoomSnap: 0.5,
+    wheelPxPerZoomLevel: 60
 };

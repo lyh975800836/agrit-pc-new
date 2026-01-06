@@ -38,25 +38,14 @@
 </template>
 
 <script>
-import { getTypeIcon } from '@/utils/plotMarkerManager';
-import {
-    transformTilesToCoordinates,
-    createPlotData,
-    isValidFieldData
-} from '@/utils/tileDataProcessor';
-import {
-    generatePlotMarkerHtml,
-    getMarkerIconConfig
-} from '@/config/markerConfig';
+import { REGION_DETAIL_MAP_CONFIG, LOADING_CONFIG, TILE_PROVIDERS } from '@/config/mapConfig';
 import regionCoordinates from '@/config/regionCoordinates.json';
 import apiClient from '@/services/apiClient';
+import MapServiceManager from '@/services/map/MapServiceManager';
 import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
 import CategorySidebar from '@/components/Dialogs/CategorySidebar.vue';
 import CategoryPopup from '@/components/Dialogs/CategoryPopup.vue';
 import PlotDetailPopup from '@/components/Dialogs/PlotDetailPopup.vue';
-
-// 使用CDN引入的Leaflet (在index.html中已引入)
-const { L } = window;
 
 export default {
     name: 'RegionDetailMap',
@@ -74,34 +63,23 @@ export default {
     },
     data() {
         return {
+            // 服务管理器
+            mapServiceManager: null,
             // 页面状态
             isPlotDetailPage: false,
-            // 地图配置常量
-            mapConfig: {
-                defaultZoom: 12,
-                minZoom: 8,
-                maxZoom: 16,
-                fitZoom: 14,
-                fallbackZoom: 13,
-                centerPadding: [30, 30],
-                fitPadding: [50, 50],
-                tileLoadTimeout: 3000,
-                regionMaskMarginMultiplier: 3,
-                popupWidth: 380,
-                popupHeight: 350,
-                popupOffsetAbove: 20,
-                popupMargin: 10
-            },
-            // 地图实例及状态
+            // 地图配置常量（使用导入的配置）
+            mapConfig: REGION_DETAIL_MAP_CONFIG,
+            // 地图实例（通过服务管理器访问）
             map: null,
-            plotLayers: [],
-            plotMarkerLayers: [],
+            // 加载状态
             isLoading: true,
-            loadingText: '正在初始化地图...',
+            loadingText: LOADING_CONFIG.text.init,
             currentLoadedRegion: null,
+            // 弹窗状态
             showDetailPopup: false,
             popupPosition: { top: 0, left: 0 },
             popupData: null,
+            // 分类状态
             selectedCategory: null,
             selectedCategoryType: 'all'
         };
@@ -126,8 +104,9 @@ export default {
         });
     },
     beforeDestroy() {
-        if (this.map) {
-            this.map.remove();
+        // 使用服务管理器的销毁方法,会自动清理所有服务和地图实例
+        if (this.mapServiceManager) {
+            this.mapServiceManager.destroy();
         }
     },
     watch: {
@@ -155,16 +134,38 @@ export default {
                     return;
                 }
 
-                // 销毁已有地图实例
-                if (this.map) {
-                    this.map.remove();
-                    this.map = null;
+                // 销毁已有服务实例
+                if (this.mapServiceManager) {
+                    this.mapServiceManager.destroy();
+                    this.mapServiceManager = null;
                 }
 
-                // 重置状态并初始化地图
-                this.resetComponentState();
-                await this.initMap();
+                // 创建服务管理器
+                this.mapServiceManager = new MapServiceManager({
+                    containerId: 'leaflet-map',
+                    config: this.mapConfig,
+                    tileProvider: TILE_PROVIDERS.GAODE.SATELLITE, // 使用高德卫星地图
+                    autoFit: true,
+                    enableMarkerInteraction: true
+                });
+
+                // 初始化地图和服务 - 使用临时中心点,后续会通过 fitBounds 调整
+                this.loadingText = LOADING_CONFIG.text.init;
+                this.map = await this.mapServiceManager.initialize({
+                    center: regionCoordinates[this.regionName] || [23.9, 106.6],
+                    zoom: this.mapConfig.minZoom // 使用最小缩放级别,让 fitBounds 有更明显的效果
+                });
+
+                // 设置标记事件处理器
+                this.mapServiceManager.setMarkerEventHandlers({
+                    onClick: (marker, plotData) => {
+                        this.handleMarkerClick(plotData);
+                    }
+                });
+
+                // 加载区域数据
                 await this.loadRegionData();
+
                 this.isLoading = false;
             }
             catch (error) {
@@ -176,176 +177,35 @@ export default {
         async reinitializeForNewRegion() {
             this.isLoading = true;
             this.loadingText = '切换区域中...';
-
-            // 重置当前加载的区域
             this.currentLoadedRegion = null;
-
             await this.initializeMapComponent();
         },
 
-        // 重置组件状态
-        resetComponentState() {
-            this.plotLayers = [];
-            this.plotMarkerLayers = [];
-            this.currentLoadedRegion = null;
-            this.showDetailPopup = false;
-            this.popupData = null;
-        },
-
-        // 初始化Leaflet地图
-        initMap() {
-            return new Promise((resolve, reject) => {
-                try {
-                    const cfg = this.mapConfig;
-                    const center = regionCoordinates[this.regionName] || [23.9, 106.6];
-
-                    this.map = L.map('leaflet-map', {
-                        center,
-                        zoom: cfg.defaultZoom,
-                        minZoom: cfg.minZoom,
-                        maxZoom: cfg.maxZoom,
-                        zoomControl: true,
-                        scrollWheelZoom: true,
-                        doubleClickZoom: true,
-                        touchZoom: true,
-                        boxZoom: false,
-                        keyboard: true,
-                        attributionControl: false,
-                        preferCanvas: true,
-                        zoomAnimationThreshold: 4,
-                        fadeAnimation: true,
-                        zoomAnimation: true,
-                        zoomSnap: 0.5,
-                        wheelPxPerZoomLevel: 60
-                    });
-
-                    this.map.zoomControl.setPosition('bottomright');
-
-                    // 添加卫星底图
-                    this.addSatelliteLayer().then(() => {
-                        this.isLoading = false;
-                        resolve();
-                    })
-                        .catch(error => {
-                            this.handleError('卫星底图加载失败', error);
-                            reject(error);
-                        });
-                }
-                catch (error) {
-                    this.handleError('地图初始化失败', error);
-                    reject(error);
-                }
-            });
-        },
-
-        registerPlotMarker(layer, categoryCode) {
-            if (!layer) {
+        // 标记点击处理
+        handleMarkerClick(plotData) {
+            if (!plotData || !plotData.center) {
+                console.warn('标记数据不完整', plotData);
                 return;
             }
 
-            const entry = {
-                layer,
-                categoryCode: categoryCode || 'forest',
-                visible: true
-            };
+            // 使用服务计算弹窗位置
+            const popupInfo = this.mapServiceManager.calculatePopupPosition(
+                plotData.center,
+                {
+                    popupWidth: this.mapConfig.popupWidth,
+                    popupHeight: this.mapConfig.popupHeight
+                }
+            );
 
-            this.plotMarkerLayers.push(entry);
-
-            if (layer.on) {
-                layer.on('add', () => {
-                    this.updateMarkerVisibility(entry);
-                });
-            }
-
-            this.updateMarkerVisibility(entry);
+            this.popupPosition = popupInfo.position;
+            this.popupData = { ...plotData, photo: '/images/pop-banner.png' };
+            this.showDetailPopup = true;
         },
 
-        applyPlotFilter() {
-            if (!this.plotMarkerLayers.length) {
-                return;
-            }
 
-            this.plotMarkerLayers.forEach(entry => {
-                this.updateMarkerVisibility(entry);
-            });
-        },
 
-        updateMarkerVisibility(entry) {
-            if (!entry || !entry.layer) {
-                return;
-            }
 
-            const categoryCode = entry.categoryCode || 'forest';
-            const shouldShow = this.selectedCategoryType === 'all' || categoryCode === this.selectedCategoryType;
 
-            if (!this.map) {
-                entry.visible = shouldShow;
-                return;
-            }
-
-            const { layer } = entry;
-            this.setMarkerVisibility(layer, shouldShow);
-            entry.visible = shouldShow;
-        },
-
-        // 设置单个标记的可见性
-        setMarkerVisibility(layer, visible) {
-            const element = layer.getElement?.();
-            if (visible) {
-                if (!this.map.hasLayer(layer)) {
-                    layer.addTo(this.map);
-                }
-                if (element) {
-                    element.style.display = '';
-                }
-                if (layer.setOpacity) {
-                    layer.setOpacity(1);
-                }
-            }
-            else {
-                if (this.map.hasLayer(layer)) {
-                    this.map.removeLayer(layer);
-                }
-                if (element) {
-                    element.style.display = 'none';
-                }
-                if (layer.setOpacity) {
-                    layer.setOpacity(0);
-                }
-            }
-        },
-
-        // 添加卫星底图层 - 简化版本，使用固定超时
-        async addSatelliteLayer() {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tileLayer = L.tileLayer(
-                        'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
-                        {
-                            attribution: '© 高德地图',
-                            subdomains: ['1', '2', '3', '4'],
-                            maxZoom: 18,
-                            minZoom: 3,
-                            tileSize: 256,
-                            crossOrigin: true
-                        }
-                    );
-
-                    tileLayer.addTo(this.map);
-                    this.loadingText = '正在加载卫星地图...';
-
-                    // 简单超时方案 - 避免复杂事件跟踪
-                    setTimeout(() => {
-                        this.isLoading = false;
-                        resolve();
-                    }, this.mapConfig.tileLoadTimeout);
-                }
-                catch (error) {
-                    this.handleError('卫星图层加载失败', error);
-                    reject(error);
-                }
-            });
-        },
 
         async loadRegionData() {
             try {
@@ -355,252 +215,67 @@ export default {
                     return;
                 }
 
-                this.loadingText = '正在加载区域轮廓...';
-                this.clearPlotLayers();
+                this.loadingText = '正在加载区域数据...';
                 this.currentLoadedRegion = this.regionName;
 
-                // 动态导入地图数据
+                // 获取区域轮廓数据
                 const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json');
                 const baiseData = baiseDataImport.default || baiseDataImport;
-
-                // 查找当前区县的轮廓数据
                 const regionFeature = baiseData.features.find(feature =>
                     feature.properties.name === this.regionName);
 
-                if (regionFeature) {
-                    this.addRegionBoundary(regionFeature);
-                }
-                else {
+                if (!regionFeature) {
                     console.warn('未找到区域轮廓数据:', this.regionName);
+                    this.isLoading = false;
+                    return;
                 }
 
-                this.isLoading = false;
+                // 获取地块标记数据
+                const tilesData = await apiClient.getPlotsList();
+
+                // 使用服务管理器加载所有数据
+                await this.mapServiceManager.loadRegionData(
+                    regionFeature,
+                    tilesData,
+                    {
+                        addMask: true,
+                        fitBoundary: true,
+                        fitOptions: {
+                            padding: this.mapConfig.centerPadding,
+                            maxZoom: this.mapConfig.fitZoom,
+                            animate: true,
+                            duration: 1.0 // 使用较长的动画时间,让定位效果更明显
+                        }
+                    }
+                );
+
+                // 确保地图定位到区域边界 - 添加小延迟确保边界图层完全加载
+                setTimeout(() => {
+                    const bounds = this.mapServiceManager.getBounds();
+                    if (bounds) {
+                        this.mapServiceManager.fitBounds(bounds, {
+                            padding: this.mapConfig.centerPadding,
+                            maxZoom: this.mapConfig.fitZoom,
+                            animate: true,
+                            duration: 1.0
+                        });
+                    }
+                }, 100);
+
                 this.loadingText = '';
             }
             catch (error) {
-                this.handleError('加载区域轮廓失败，请刷新重试', error);
+                this.handleError('加载区域数据失败', error);
             }
         },
 
-        // 添加区域边界轮廓
-        addRegionBoundary(regionFeature) {
-            try {
-                // 创建区域轮廓图层
-                const regionLayer = L.geoJSON(regionFeature, {
-                    style: {
-                        color: '#c69c6d',
-                        weight: 3,
-                        opacity: 1,
-                        fillColor: 'rgba(76, 253, 235, 0.1)',
-                        fillOpacity: 0.1
-                    }
-                });
-
-                // 添加到地图
-                regionLayer.addTo(this.map);
-                this.plotLayers.push(regionLayer);
-
-                // 添加区域外遮罩层效果
-                this.addRegionMask(regionFeature);
-
-                // 调整地图视野至区域边界
-                this.fitMapToContent(regionLayer.getBounds(), this.mapConfig.centerPadding);
-
-                // 添加地块标记
-                this.addRealPlotMarkers();
-
-            }
-            catch (error) {
-                console.error('添加区域边界失败:', error);
-            }
-        },
-
-        // 添加区域外遮罩层
-        addRegionMask(regionFeature) {
-            try {
-                const regionBounds = L.geoJSON(regionFeature).getBounds();
-
-                // 扩大边界以确保完全覆盖
-                const mult = this.mapConfig.regionMaskMarginMultiplier;
-                const margin = Math.max(
-                    Math.abs(regionBounds.getNorth() - regionBounds.getSouth()) * mult,
-                    Math.abs(regionBounds.getEast() - regionBounds.getWest()) * mult
-                );
-
-                // 创建一个覆盖整个可视区域的大矩形
-                const outerRing = [
-                    [regionBounds.getSouth() - margin, regionBounds.getWest() - margin],
-                    [regionBounds.getSouth() - margin, regionBounds.getEast() + margin],
-                    [regionBounds.getNorth() + margin, regionBounds.getEast() + margin],
-                    [regionBounds.getNorth() + margin, regionBounds.getWest() - margin],
-                    [regionBounds.getSouth() - margin, regionBounds.getWest() - margin]
-                ];
-
-                // 获取区域的坐标（需要反转，作为内部洞）
-                let innerRings = [];
-                if (regionFeature.geometry.type === 'Polygon') {
-                    // 对于Polygon，使用第一个坐标环，并反转坐标顺序
-                    const coords = regionFeature.geometry.coordinates[0];
-                    innerRings = [coords.map(coord => [coord[1], coord[0]]).reverse()];
-                }
-                else if (regionFeature.geometry.type === 'MultiPolygon') {
-                    // 对于MultiPolygon，处理所有多边形
-                    regionFeature.geometry.coordinates.forEach(polygon => {
-                        const coords = polygon[0];
-                        innerRings.push(coords.map(coord => [coord[1], coord[0]]).reverse());
-                    });
-                }
-
-                // 创建带洞的多边形
-                const maskPolygon = L.polygon([outerRing, ...innerRings], {
-                    color: 'transparent',
-                    fillColor: 'rgba(0, 0, 0, 0.6)',
-                    fillOpacity: 0.6,
-                    weight: 0,
-                    interactive: false
-                });
-
-                // 添加遮罩到地图
-                maskPolygon.addTo(this.map);
-                this.plotLayers.push(maskPolygon);
 
 
-            }
-            catch (error) {
-                console.error('添加区域遮罩失败:', error);
-            }
-        },
 
-        // 基于真实坐标数据添加地块标记
-        async addRealPlotMarkers() {
-            try {
-                const tilesData = await apiClient.getPlotsList();
-
-                // 使用工具函数转换瓦片数据
-                const coordinateData = transformTilesToCoordinates(tilesData);
-                const allEntries = Object.entries(coordinateData);
-
-                allEntries.forEach(([key, fieldData]) => {
-                    const plotName = fieldData.displayName || fieldData.name || key;
-
-                    // 验证数据完整性
-                    if (!isValidFieldData(fieldData)) {
-                        return;
-                    }
-
-                    const plotData = createPlotData(fieldData, plotName);
-                    const [markerLat, markerLng] = fieldData.center;
-                    const markerHtml = generatePlotMarkerHtml(plotData, getTypeIcon);
-                    const iconConfig = getMarkerIconConfig(markerHtml);
-                    const customIcon = L.divIcon(iconConfig);
-
-                    const plotMarker = L.marker([markerLat, markerLng], { icon: customIcon }).addTo(this.map);
-
-                    // 点击事件：显示地块详情弹窗
-                    plotMarker.on('click', () => {
-                        this.setPlotDetailPopup(true, fieldData.center, plotData);
-                    });
-
-                    this.plotLayers.push(plotMarker);
-                    this.registerPlotMarker(plotMarker, plotData.property_category_code);
-                });
-
-                // 调整地图视野
-                this.fitMapToPlotMarkers();
-            }
-            catch (error) {
-                this.handleError('加载坐标数据失败', error);
-            }
-        },
-
-        // 调整地图视野以显示地块标记
-        fitMapToPlotMarkers() {
-            const plotCoordinates = [];
-            this.plotLayers.forEach(layer => {
-                if (layer.getLatLng) {
-                    const latlng = layer.getLatLng();
-                    plotCoordinates.push([latlng.lat, latlng.lng]);
-                }
-            });
-
-            if (plotCoordinates.length > 0) {
-                const bounds = L.latLngBounds(plotCoordinates);
-                this.fitMapToContent(bounds, this.mapConfig.fitPadding);
-            }
-            else {
-                this.setDefaultView();
-            }
-        },
-
-        // 统一的地图视野调整方法
-        fitMapToContent(bounds, padding = this.mapConfig.centerPadding) {
-            try {
-                this.map.fitBounds(bounds, {
-                    padding,
-                    maxZoom: this.mapConfig.fitZoom
-                });
-            }
-            catch (error) {
-                this.handleError('调整地图视野失败', error);
-                this.setDefaultView();
-            }
-        },
-
-        // 设置地图到默认视野
-        setDefaultView() {
-            const center = regionCoordinates[this.regionName] || [23.9, 106.6];
-            this.map.setView(center, this.mapConfig.fallbackZoom);
-        },
-
-        // 清除现有地块图层
-        clearPlotLayers() {
-            this.plotLayers.forEach(layer => {
-                this.map.removeLayer(layer);
-            });
-            this.plotLayers = [];
-            this.plotMarkerLayers = [];
-        },
-
-        // 显示/关闭地块详情弹窗
-        setPlotDetailPopup(show, plotCenter = null, plotData = null) {
-            if (!show) {
-                this.showDetailPopup = false;
-                this.popupData = null;
-                return;
-            }
-
-            try {
-                const cfg = this.mapConfig;
-                const mapContainer = document.getElementById('leaflet-map');
-                const mapRect = mapContainer.getBoundingClientRect();
-                const point = this.map.latLngToContainerPoint(plotCenter);
-                const screenX = mapRect.left + point.x;
-                const screenY = mapRect.top + point.y;
-
-                // 计算弹窗位置
-                let top = screenY - cfg.popupHeight - cfg.popupOffsetAbove;
-                if (top < cfg.popupMargin) {
-                    top = screenY + cfg.popupOffsetAbove;
-                }
-                if (top + cfg.popupHeight > window.innerHeight - cfg.popupMargin) {
-                    top = window.innerHeight - cfg.popupHeight - cfg.popupMargin;
-                }
-                top = Math.max(cfg.popupMargin, top);
-
-                let left = screenX - cfg.popupWidth / 2;
-                left = Math.max(cfg.popupMargin, Math.min(left, window.innerWidth - cfg.popupWidth - cfg.popupMargin));
-
-                this.popupPosition = { top, left };
-                this.popupData = { ...plotData, photo: '/images/pop-banner.png' };
-                this.showDetailPopup = true;
-            }
-            catch (error) {
-                this.handleError('显示地块详情弹窗失败', error);
-            }
-        },
 
         closePlotDetailPopup() {
-            this.setPlotDetailPopup(false);
+            this.showDetailPopup = false;
+            this.popupData = null;
         },
 
         // 跳转到地块详情页面
@@ -648,18 +323,16 @@ export default {
         handleError(message, error) {
             console.error(message, error);
             this.isLoading = false;
-            this.$notify({
-                title: '提示',
-                message,
-                type: 'warning',
-                duration: 3000
-            });
         },
 
         // 分类过滤相关方法
         filterMapByCategory(category) {
             this.selectedCategoryType = category.type;
-            this.applyPlotFilter();
+
+            // 使用服务管理器进行标记过滤
+            if (this.mapServiceManager) {
+                this.mapServiceManager.filterMarkers(category.type);
+            }
         },
 
         setCategoryPopup(show) {
@@ -1060,20 +733,24 @@ export default {
 </style>
 
 <!-- 全局样式，用于Leaflet动态生成的标记 -->
-<style>
+<style lang="less">
+@import '@/styles/components/leaflet-common.less';
+
+/* 组件特定动画 */
 @keyframes plot-detail-glow {
     from {
-        box-shadow: 0 0 20px #4cfcea80 !important;
+        box-shadow: 0 0 20px rgba(76, 253, 234, 0.5) !important;
     }
 
     to {
-        box-shadow: 0 0 30px #4cfceacc !important;
+        box-shadow: 0 0 30px rgba(76, 253, 234, 0.8) !important;
     }
 }
+
 @keyframes popup-fade-in {
     from {
         opacity: 0;
-        transform: translateY(-20px) scale(.9);
+        transform: translateY(-20px) scale(0.9);
     }
 
     to {
@@ -1082,62 +759,8 @@ export default {
     }
 }
 
-/* 移动端缩放控件调整 */
+/* 响应式调整 - 组件特定 */
 @media (max-width: 768px) {
-    .leaflet-control-zoom {
-        right: 15px !important;
-        bottom: 80px !important;
-    }
-
-    .leaflet-control-zoom a {
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 16px !important;
-        line-height: 26px !important;
-    }
-}
-
-/* 脉冲动画 */
-@keyframes pulse-gold {
-    0% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: .7;
-        transform: scale(1.3);
-    }
-
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-@keyframes pulse-blue {
-    0% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: .7;
-        transform: scale(1.3);
-    }
-
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .marker-label {
-        padding: 2px 6px !important;
-        font-size: 9px !important;
-    }
-
     .plot-filter-container {
         top: 12px;
     }
@@ -1191,27 +814,6 @@ export default {
     }
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* 响应式调整 - 分类弹窗 */
 @media (max-width: 768px) {
     .popup-content {
@@ -1237,6 +839,7 @@ export default {
     z-index: 1000 !important;
     border: none !important;
     background: none !important;
+    pointer-events: auto !important; /* 确保标记容器可以接收点击事件 */
 }
 
 /* 二级地图marker icon - 只显示分类图标 */
@@ -1255,6 +858,7 @@ export default {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    pointer-events: auto !important; /* 确保包装器可以接收点击事件 */
 
     gap: 2px;
 }
@@ -1275,6 +879,7 @@ export default {
     background-size: contain !important;
     transition: all .3s ease;
     cursor: pointer;
+    pointer-events: auto !important; /* 确保可以点击 */
 
     filter: drop-shadow(0 2px 4px #0000004d);
 }
@@ -1524,53 +1129,11 @@ export default {
     opacity: .9;
 }
 
-/* 自定义Leaflet缩放控件样式 */
+/* Leaflet 控件位置调整 - 组件特定 */
 .leaflet-control-zoom {
     position: absolute !important;
     right: 20px !important;
     bottom: 70px !important; /* 避免与底部导航条冲突 */
-    overflow: hidden !important;
-
-    border-radius: 8px !important;
-    box-shadow: 0 0 15px #4cfcea4d !important;
-}
-
-.leaflet-control-zoom a {
-    width: 32px !important;
-    height: 32px !important;
-    border: 1px solid #4cfcea66 !important;
-    font-size: 18px !important;
-    font-weight: bold !important;
-    line-height: 30px !important;
-    text-decoration: none !important;
-
-    color: #c69c6d !important;
-    border-radius: 0 !important;
-    background: linear-gradient(135deg, #102838e6 0%, #081c24f2 100%) !important;
-    transition: all .3s ease !important;
-
-    backdrop-filter: blur(10px) !important;
-}
-
-.leaflet-control-zoom a:hover {
-    border-color: #4cfceacc !important;
-    color: #fff !important;
-    background: linear-gradient(135deg, #4cfcea33 0%, #102838f2 100%) !important;
-    transform: scale(1.05) !important;
-}
-
-.leaflet-control-zoom a:first-child {
-    border-bottom: none !important;
-    border-radius: 8px 8px 0 0 !important;
-}
-
-.leaflet-control-zoom a:last-child {
-    border-radius: 0 0 8px 8px !important;
-}
-
-.leaflet-disabled {
-    opacity: .4 !important;
-    cursor: not-allowed !important;
 }
 
 /* 地块详情轮廓标签样式 */
@@ -1603,69 +1166,7 @@ export default {
     opacity: .9;
 }
 
-/* 地块标注样式 */
-
-/* 原始二级地图标记样式 */
-.custom-plot-marker {
-    border: none !important;
-    background: none !important;
-}
-
-.marker-wrapper {
-    position: relative;
-    text-align: center;
-}
-
-.marker-point {
-    width: 16px;
-    height: 16px;
-    margin: 0 auto 4px;
-    border: 2px solid #102838;
-
-    border-radius: 50%;
-    box-shadow: 0 0 15px #4cfceacc;
-}
-
-.marker-point.highlight {
-    background: radial-gradient(circle, #ffd700, #ffa000);
-    animation: pulse-gold 2s infinite;
-}
-
-.marker-point.normal {
-    background: radial-gradient(circle, #c69c6d, #00bcd4);
-    animation: pulse-blue 2s infinite;
-}
-
-.marker-label {
-    position: relative;
-    padding: 3px 8px;
-    border: 1px solid #4cfcea66;
-    font-size: 10px;
-    font-weight: bold;
-    white-space: nowrap;
-
-    color: #c69c6d;
-    border-radius: 4px;
-    background: linear-gradient(135deg, #102838f2, #081c24fa);
-    box-shadow: 0 2px 8px #0000004d;
-}
-
-/* 添加向下的三角形箭头 */
-.marker-label::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-top: 8px solid #081c24fa;
-    border-right: 6px solid transparent;
-    border-left: 6px solid transparent;
-
-    transform: translateX(-50%);
-}
-
-/* 分类弹窗 */
+/* 分类弹窗 - 组件特定样式 */
 .category-popup {
     position: fixed;
     z-index: 100;

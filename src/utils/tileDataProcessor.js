@@ -65,7 +65,8 @@ export function createPlotData(fieldData, plotName) {
         property_category_code: fieldData.property_category_code || 'forest',
         property_type_name: fieldData.property_type_name || '八角基地',
         lat: fieldData.center[0],
-        lng: fieldData.center[1]
+        lng: fieldData.center[1],
+        center: fieldData.center // 添加 center 属性,用于弹窗定位计算
     };
 }
 

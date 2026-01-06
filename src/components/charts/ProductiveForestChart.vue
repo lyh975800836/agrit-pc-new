@@ -6,9 +6,11 @@
 
 <script>
 import * as echarts from 'echarts';
+import chartResizeMixin from '@/mixins/chartResizeMixin';
 
 export default {
     name: 'ProductiveForestChart',
+    mixins: [chartResizeMixin],
     data() {
         return {
             chart: null,
@@ -24,10 +26,8 @@ export default {
     },
     mounted() {
         this.initChart();
-        window.addEventListener('resize', this.handleResize);
     },
     beforeDestroy() {
-        window.removeEventListener('resize', this.handleResize);
         if (this.chart) {
             this.chart.dispose();
         }
@@ -128,11 +128,6 @@ export default {
             };
 
             this.chart.setOption(option);
-        },
-        handleResize() {
-            if (this.chart) {
-                this.chart.resize();
-            }
         }
     }
 };

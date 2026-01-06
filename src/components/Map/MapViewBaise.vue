@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { BAISE_MAP_CONFIG, LOADING_CONFIG } from '@/config/mapConfig';
+
 // 使用CDN引入的Leaflet
 const { L } = window;
 
@@ -53,7 +55,7 @@ export default {
         return {
             map: null,
             isLoading: true,
-            loadingText: '正在初始化地图...',
+            loadingText: LOADING_CONFIG.text.init,
             regionLayers: [],
             markerLayers: [],
             labelLayers: [],
@@ -119,24 +121,21 @@ export default {
     // 初始化Leaflet地图
         initMap() {
             try {
-                this.loadingText = '初始化地图视图...';
-
-                // 百色市中心坐标
-                const baiseCenter = [23.9, 106.6];
+                this.loadingText = LOADING_CONFIG.text.loading;
 
                 this.map = L.map('baise-leaflet-map', {
-                    center: baiseCenter,
-                    zoom: 9,
-                    minZoom: 8,
-                    maxZoom: 12, // 限制最大缩放，避免过度放大
-                    zoomControl: true,
-                    scrollWheelZoom: true,
-                    doubleClickZoom: true,
-                    dragging: true,
-                    attributionControl: false,
-                    preferCanvas: true, // 提高性能
-                    zoomSnap: 0.5, // 允许半级缩放
-                    wheelPxPerZoomLevel: 60,
+                    center: BAISE_MAP_CONFIG.center,
+                    zoom: BAISE_MAP_CONFIG.zoom,
+                    minZoom: BAISE_MAP_CONFIG.minZoom,
+                    maxZoom: BAISE_MAP_CONFIG.maxZoom,
+                    zoomControl: BAISE_MAP_CONFIG.zoomControl,
+                    scrollWheelZoom: BAISE_MAP_CONFIG.scrollWheelZoom,
+                    doubleClickZoom: BAISE_MAP_CONFIG.doubleClickZoom,
+                    dragging: BAISE_MAP_CONFIG.dragging,
+                    attributionControl: BAISE_MAP_CONFIG.attributionControl,
+                    preferCanvas: BAISE_MAP_CONFIG.preferCanvas,
+                    zoomSnap: BAISE_MAP_CONFIG.zoomSnap,
+                    wheelPxPerZoomLevel: BAISE_MAP_CONFIG.wheelPxPerZoomLevel,
                     layers: [] // 明确指定不加载任何默认图层
                 });
 
@@ -835,272 +834,10 @@ export default {
 </style>
 
 <!-- 全局样式用于Leaflet动态生成的元素 -->
-<style>
-@keyframes pulse-gold {
-    0%,
-    100% {
-        box-shadow: 0 0 15px #ffd700cc;
-        transform: scale(1);
-    }
+<style lang="less">
+@import '@/styles/components/leaflet-common.less';
 
-    50% {
-        box-shadow: 0 0 25px #ffd700;
-        transform: scale(1.1);
-    }
-}
-@keyframes pulse-blue {
-    0%,
-    100% {
-        box-shadow: 0 0 15px #4cfcea99;
-        transform: scale(1);
-    }
-
-    50% {
-        box-shadow: 0 0 20px #4cfceae6;
-        transform: scale(1.05);
-    }
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-    .leaflet-control-zoom {
-        right: 15px !important;
-        bottom: 80px !important;
-    }
-
-    .leaflet-control-zoom a {
-        width: 30px !important;
-        height: 30px !important;
-        font-size: 16px !important;
-        line-height: 28px !important;
-    }
-
-    .marker-label {
-        padding: 2px 6px !important;
-        font-size: 9px !important;
-    }
-
-    .label-content,
-    .auto-label-content {
-        padding: 3px 8px !important;
-        font-size: 10px !important;
-    }
-}
-
-.region-tooltip {
-    padding: 6px 10px !important;
-    border: 1px solid #4cfcea99 !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
-
-    color: #c69c6d !important;
-    border-radius: 6px !important;
-    background: #102838f2 !important;
-    box-shadow: 0 4px 12px #0006 !important;
-}
-
-.region-tooltip::before {
-    border-top-color: #102838f2 !important;
-}
-
-/* 自定义标记样式 */
-.baise-custom-marker {
-    border: none !important;
-    background: none !important;
-}
-
-.marker-wrapper {
-    position: relative;
-    text-align: center;
-}
-
-.marker-point {
-    width: 16px;
-    height: 16px;
-    margin: 0 auto 4px;
-    border: 2px solid #102838;
-
-    border-radius: 50%;
-    box-shadow: 0 0 15px #4cfceacc;
-}
-
-.marker-point.highlight {
-    background: radial-gradient(circle, #ffd700, #ffa000);
-    animation: pulse-gold 2s infinite;
-}
-
-.marker-point.normal {
-    background: radial-gradient(circle, #c69c6d, #00bcd4);
-    animation: pulse-blue 2s infinite;
-}
-
-.marker-label {
-    padding: 3px 8px;
-    border: 1px solid #4cfcea66;
-    font-size: 10px;
-    font-weight: bold;
-    white-space: nowrap;
-
-    color: #c69c6d;
-    border-radius: 4px;
-    background: linear-gradient(135deg, #102838f2, #081c24fa);
-    box-shadow: 0 2px 8px #0000004d;
-
-    backdrop-filter: blur(5px);
-}
-
-/* 标记弹窗样式 */
-.baise-popup {
-    background: none !important;
-}
-
-.baise-popup .leaflet-popup-content-wrapper {
-    border: 1px solid #4cfcea99 !important;
-
-    border-radius: 8px !important;
-    background: linear-gradient(135deg, #102838f2, #081c24fa) !important;
-    box-shadow: 0 8px 32px #0006 !important;
-
-    backdrop-filter: blur(10px) !important;
-}
-
-.baise-popup .leaflet-popup-content {
-    margin: 0 !important;
-    color: #fff !important;
-}
-
-.marker-popup h4 {
-    margin: 0 0 8px !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    color: #c69c6d !important;
-}
-
-.marker-popup p {
-    margin: 0 !important;
-    font-size: 12px !important;
-    line-height: 1.4 !important;
-    color: #fff !important;
-}
-
-/* 区域标签样式 */
-.baise-region-label,
-.baise-auto-label {
-    border: none !important;
-    background: none !important;
-}
-
-.label-content,
-.auto-label-content {
-    padding: 0;
-    border: none;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
-    white-space: nowrap;
-
-    color: #c69c6d;
-    background: none;
-    box-shadow: none;
-    text-shadow: 1px 1px 2px #000c;
-    transition: none;
-
-    backdrop-filter: none;
-}
-
-/* 统一所有标签样式为纯文字 */
-.label-content.has-projects,
-.auto-label-content.has-projects,
-.label-content.no-projects,
-.auto-label-content.no-projects {
-    border: none;
-    color: #c69c6d;
-    background: none;
-    box-shadow: none;
-}
-
-/* 自定义Leaflet缩放控件样式 */
-.leaflet-control-zoom {
-    overflow: hidden !important;
-    border: 1px solid #4cfcea4d !important;
-    border-radius: 8px !important;
-    box-shadow: 0 0 20px #4cfcea66 !important;
-}
-
-.leaflet-control-zoom a {
-    width: 34px !important;
-    height: 34px !important;
-    border: none !important;
-    font-size: 18px !important;
-    font-weight: bold !important;
-    line-height: 32px !important;
-
-    color: #c69c6d !important;
-    background: linear-gradient(135deg, #102838f2 0%, #081c24fa 100%) !important;
-    transition: all .3s ease !important;
-
-    backdrop-filter: blur(10px) !important;
-}
-
-.leaflet-control-zoom a:hover {
-    color: #fff !important;
-    background: linear-gradient(135deg, #4cfcea4d 0%, #102838f2 100%) !important;
-    transform: scale(1.05) !important;
-}
-
-.leaflet-control-zoom a:first-child {
-    border-radius: 8px 8px 0 0 !important;
-}
-
-.leaflet-control-zoom a:last-child {
-    border-radius: 0 0 8px 8px !important;
-}
-
-.leaflet-disabled {
-    opacity: .4 !important;
-    cursor: not-allowed !important;
-}
-
-/* 区域提示框样式 */
-
-/* 确保Leaflet容器背景透明 */
-.leaflet-container {
-    background: transparent !important;
-}
-
-/* 农田图像相关样式 */
-.field-placeholder-marker {
-    border: none !important;
-    background: none !important;
-}
-
-.placeholder-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px;
-    border: 2px solid #c69c6d;
-    text-align: center;
-
-    border-radius: 8px;
-    background: linear-gradient(135deg, #102838f2, #081c24fa);
-
-    backdrop-filter: blur(5px);
-}
-
-.placeholder-icon {
-    margin-bottom: 4px;
-    font-size: 24px;
-}
-
-.placeholder-label {
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-    color: #c69c6d;
-}
-
-/* 农田图像弹窗样式 */
+/* 农田图像弹窗特定样式 */
 .field-image-popup h4 {
     margin: 0 0 8px !important;
     font-size: 14px !important;
@@ -1112,148 +849,5 @@ export default {
     margin: 4px 0 !important;
     font-size: 12px !important;
     color: #fff !important;
-}
-
-.popup-actions {
-    display: flex;
-    margin-top: 12px;
-    gap: 8px;
-}
-
-.popup-actions button {
-    padding: 4px 8px;
-    border: 1px solid #c69c6d;
-    font-size: 10px;
-
-    color: #c69c6d;
-    border-radius: 4px;
-    background: transparent;
-    transition: all .3s ease;
-    cursor: pointer;
-}
-
-.popup-actions button:hover {
-    color: #102838;
-    background: #c69c6d;
-}
-
-.field-placeholder-popup .error-msg {
-    font-style: italic;
-    color: #ff6b6b !important;
-}
-
-/* 地块边界提示框样式 */
-.field-polygon-tooltip {
-    padding: 6px 12px !important;
-    border: 2px solid #ffd700 !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-
-    color: #ffd700 !important;
-    border-radius: 8px !important;
-    background: linear-gradient(135deg, #102838f2, #081c24fa) !important;
-    box-shadow: 0 4px 16px #ffd7004d !important;
-
-    backdrop-filter: blur(8px) !important;
-}
-
-/* 地块详情弹窗样式 */
-.field-detail-popup {
-    min-width: 250px;
-}
-
-.field-detail-popup h4 {
-    margin: 0 0 12px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    text-align: center;
-
-    color: #ffd700 !important;
-}
-
-.field-info {
-    margin-bottom: 15px;
-}
-
-.field-info p {
-    margin: 6px 0 !important;
-    font-size: 12px !important;
-    line-height: 1.4;
-    color: #fff !important;
-}
-
-.field-info strong {
-    color: #c69c6d !important;
-}
-
-.field-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.field-actions button {
-    flex: 1;
-    padding: 6px 10px;
-    border: 1px solid #ffd700;
-    font-size: 11px;
-
-    color: #ffd700;
-    border-radius: 4px;
-    background: transparent;
-    transition: all .3s ease;
-    cursor: pointer;
-}
-
-.field-actions button:hover {
-    color: #102838;
-    background: #ffd700;
-    transform: translateY(-1px);
-}
-
-/* 三级地块提示框样式 */
-.third-level-tooltip {
-    padding: 6px 10px !important;
-    border: 2px solid #ffd700 !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-
-    color: #ffd700 !important;
-    border-radius: 6px !important;
-    background: linear-gradient(135deg, #102838f2, #081c24fa) !important;
-    box-shadow: 0 4px 12px #ffd70066 !important;
-
-    backdrop-filter: blur(8px) !important;
-}
-
-/* 农事标记样式 */
-.farming-marker {
-    border: none !important;
-    background: none !important;
-}
-
-.farming-marker-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.farming-icon {
-    padding: 4px 8px;
-    border: 1px solid #c69c6d;
-    font-size: 10px;
-    font-weight: bold;
-    text-align: center;
-    white-space: nowrap;
-
-    color: #000;
-    border-radius: 4px;
-    transition: all .3s ease;
-    cursor: pointer;
-}
-
-.farming-icon:hover {
-    box-shadow: 0 2px 8px #4cfdeb80;
-    transform: scale(1.1);
 }
 </style>

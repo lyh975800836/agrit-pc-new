@@ -6,9 +6,11 @@
 
 <script>
 import * as echarts from 'echarts';
+import chartResizeMixin from '@/mixins/chartResizeMixin';
 
 export default {
     name: 'ProductionChart',
+    mixins: [chartResizeMixin],
     data() {
         return {
             chart: null,
@@ -22,13 +24,11 @@ export default {
     },
     mounted() {
         this.initChart();
-        window.addEventListener('resize', this.handleResize);
     },
     beforeDestroy() {
         if (this.chart) {
             this.chart.dispose();
         }
-        window.removeEventListener('resize', this.handleResize);
     },
     methods: {
         initChart() {
@@ -195,12 +195,6 @@ export default {
             };
 
             this.chart.setOption(option);
-        },
-
-        handleResize() {
-            if (this.chart) {
-                this.chart.resize();
-            }
         }
     }
 };

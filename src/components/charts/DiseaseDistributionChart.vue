@@ -6,9 +6,11 @@
 
 <script>
 import * as echarts from 'echarts'
+import chartResizeMixin from '@/mixins/chartResizeMixin'
 
 export default {
   name: 'DiseaseDistributionChart',
+  mixins: [chartResizeMixin],
   data() {
     return {
       chart: null,
@@ -99,12 +101,6 @@ export default {
       }
       
       this.chart.setOption(option)
-    },
-    
-    handleResize() {
-      if (this.chart) {
-        this.chart.resize()
-      }
     }
   }
 }

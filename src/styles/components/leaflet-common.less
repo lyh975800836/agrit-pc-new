@@ -1,0 +1,434 @@
+/**
+ * Leaflet 地图组件公共样式
+ * 用于 MapViewBaise 和 RegionDetailMap 组件
+ * 包含标记、控件、动画等共享样式
+ */
+
+/* ========== 动画定义 ========== */
+
+@keyframes pulse-gold {
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 25px var(--map-yellow);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-blue {
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(76, 253, 234, 0.6);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(76, 253, 234, 0.9);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== Leaflet 控件样式 ========== */
+
+.leaflet-control-zoom {
+  overflow: hidden !important;
+  border: 1px solid rgba(76, 253, 234, 0.3) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 20px rgba(76, 253, 234, 0.4) !important;
+}
+
+.leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+  border: none !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  line-height: 32px !important;
+  text-decoration: none !important;
+  color: var(--map-gold) !important;
+  background: linear-gradient(135deg, var(--map-dark-overlay) 0%, var(--map-darker-overlay) 100%) !important;
+  transition: all 0.3s ease !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  color: #fff !important;
+  background: linear-gradient(135deg, rgba(76, 253, 234, 0.3) 0%, rgba(16, 40, 56, 0.95) 100%) !important;
+  transform: scale(1.05) !important;
+}
+
+.leaflet-control-zoom a:first-child {
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-radius: 0 0 8px 8px !important;
+}
+
+.leaflet-disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+/* ========== 标记点样式 ========== */
+
+.baise-custom-marker,
+.custom-plot-marker {
+  border: none !important;
+  background: none !important;
+}
+
+.marker-wrapper {
+  position: relative;
+  text-align: center;
+}
+
+.marker-point {
+  width: 16px;
+  height: 16px;
+  margin: 0 auto 4px;
+  border: 2px solid var(--map-dark-bg);
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(76, 253, 234, 0.8);
+}
+
+.marker-point.highlight {
+  background: radial-gradient(circle, var(--map-yellow), #ffa000);
+  animation: pulse-gold 2s infinite;
+}
+
+.marker-point.normal {
+  background: radial-gradient(circle, var(--map-gold), #00bcd4);
+  animation: pulse-blue 2s infinite;
+}
+
+.marker-label {
+  position: relative;
+  padding: 3px 8px;
+  border: 1px solid rgba(76, 253, 234, 0.4);
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: var(--map-gold);
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--map-dark-overlay), var(--map-darker-overlay));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+/* 向下的三角形箭头 */
+.marker-label::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-top: 8px solid var(--map-darker-overlay);
+  border-right: 6px solid transparent;
+  border-left: 6px solid transparent;
+  transform: translateX(-50%);
+}
+
+/* ========== 区域标签样式 ========== */
+
+.baise-region-label,
+.baise-auto-label {
+  border: none !important;
+  background: none !important;
+}
+
+.label-content,
+.auto-label-content {
+  padding: 0;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--map-gold);
+  background: none;
+  box-shadow: none;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  transition: none;
+  backdrop-filter: none;
+}
+
+/* 统一所有标签样式为纯文字 */
+.label-content.has-projects,
+.auto-label-content.has-projects,
+.label-content.no-projects,
+.auto-label-content.no-projects {
+  border: none;
+  color: var(--map-gold);
+  background: none;
+  box-shadow: none;
+}
+
+/* ========== Tooltip 样式 ========== */
+
+.region-tooltip {
+  padding: 6px 10px !important;
+  border: 1px solid rgba(76, 253, 234, 0.6) !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  color: var(--map-gold) !important;
+  border-radius: 6px !important;
+  background: var(--map-dark-overlay) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.region-tooltip::before {
+  border-top-color: var(--map-dark-overlay) !important;
+}
+
+.field-polygon-tooltip {
+  padding: 6px 12px !important;
+  border: 2px solid var(--map-yellow) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--map-yellow) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, var(--map-dark-overlay), var(--map-darker-overlay)) !important;
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.third-level-tooltip {
+  padding: 6px 10px !important;
+  border: 2px solid var(--map-yellow) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--map-yellow) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(135deg, var(--map-dark-overlay), var(--map-darker-overlay)) !important;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* ========== Popup 样式 ========== */
+
+.baise-popup {
+  background: none !important;
+}
+
+.baise-popup .leaflet-popup-content-wrapper {
+  border: 1px solid rgba(76, 253, 234, 0.6) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, var(--map-dark-overlay), var(--map-darker-overlay)) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.baise-popup .leaflet-popup-content {
+  margin: 0 !important;
+  color: #fff !important;
+}
+
+.marker-popup h4 {
+  margin: 0 0 8px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  color: var(--map-gold) !important;
+}
+
+.marker-popup p {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  color: #fff !important;
+}
+
+/* ========== 地块详情弹窗样式 ========== */
+
+.field-detail-popup {
+  min-width: 250px;
+}
+
+.field-detail-popup h4 {
+  margin: 0 0 12px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  text-align: center;
+  color: var(--map-yellow) !important;
+}
+
+.field-info {
+  margin-bottom: 15px;
+}
+
+.field-info p {
+  margin: 6px 0 !important;
+  font-size: 12px !important;
+  line-height: 1.4;
+  color: #fff !important;
+}
+
+.field-info strong {
+  color: var(--map-gold) !important;
+}
+
+.field-actions,
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.field-actions button,
+.popup-actions button {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--map-yellow);
+  font-size: 11px;
+  color: var(--map-yellow);
+  border-radius: 4px;
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.field-actions button:hover,
+.popup-actions button:hover {
+  color: var(--map-dark-bg);
+  background: var(--map-yellow);
+  transform: translateY(-1px);
+}
+
+.popup-actions button {
+  padding: 4px 8px;
+  border-color: var(--map-gold);
+  font-size: 10px;
+  color: var(--map-gold);
+}
+
+.popup-actions button:hover {
+  color: var(--map-dark-bg);
+  background: var(--map-gold);
+}
+
+/* ========== 农事标记样式 ========== */
+
+.farming-marker {
+  border: none !important;
+  background: none !important;
+}
+
+.farming-marker-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.farming-icon {
+  padding: 4px 8px;
+  border: 1px solid var(--map-gold);
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  color: #000;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.farming-icon:hover {
+  box-shadow: 0 2px 8px rgba(76, 253, 235, 0.5);
+  transform: scale(1.1);
+}
+
+/* ========== 地块占位符样式 ========== */
+
+.field-placeholder-marker {
+  border: none !important;
+  background: none !important;
+}
+
+.placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  border: 2px solid var(--map-gold);
+  text-align: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--map-dark-overlay), var(--map-darker-overlay));
+  backdrop-filter: blur(5px);
+}
+
+.placeholder-icon {
+  margin-bottom: 4px;
+  font-size: 24px;
+}
+
+.placeholder-label {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--map-gold);
+}
+
+.field-placeholder-popup .error-msg {
+  font-style: italic;
+  color: #ff6b6b !important;
+}
+
+/* ========== Leaflet 容器样式 ========== */
+
+.leaflet-container {
+  background: transparent !important;
+}
+
+/* ========== 响应式调整 ========== */
+
+@media (max-width: 768px) {
+  .leaflet-control-zoom {
+    right: 15px !important;
+    bottom: 80px !important;
+  }
+
+  .leaflet-control-zoom a {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 16px !important;
+    line-height: 28px !important;
+  }
+
+  .marker-label {
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+  }
+
+  .label-content,
+  .auto-label-content {
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+  }
+}

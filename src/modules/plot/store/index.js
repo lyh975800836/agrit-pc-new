@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import { plotApi } from '@/infrastructure'
+import { CACHE_TTL } from '@/config/cacheConfig'
 
 /**
  * Plot Store模块
  *
  * 功能:
  * - 地块数据管理
- * - 缓存机制 (TTL: 5分钟)
+ * - 缓存机制 (TTL: 从配置文件导入)
  * - 加载状态管理
  * - 错误处理
  */
@@ -16,8 +17,8 @@ const state = {
     selectedPlotId: null,
 
     // 缓存管理
-    plotCache: {},           // { plotId: { data, timestamp } }
-    cacheTTL: 5 * 60 * 1000, // 5分钟
+    plotCache: {},              // { plotId: { data, timestamp } }
+    cacheTTL: CACHE_TTL.PLOT,   // 地块数据缓存时间
 
     loading: {
         detail: false,
