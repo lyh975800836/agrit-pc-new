@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import Login from '@/views/Login.vue';
 import Dashboard from '@/views/Dashboard.vue';
 import DataDashboard from '@/views/DataDashboard.vue';
 import DetailMap from '@/views/DetailMap.vue';
@@ -10,11 +11,21 @@ Vue.use(VueRouter);
 
 const routes = [
   {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: {
+      title: '登录 - 八角数据管理平台',
+      requiresAuth: false
+    }
+  },
+  {
     path: '/',
     name: 'Dashboard',
     component: Dashboard,
     meta: {
-      title: '八角总览图'
+      title: '八角总览图',
+      requiresAuth: true
     }
   },
   {
@@ -22,7 +33,8 @@ const routes = [
     name: 'DataDashboard',
     component: DataDashboard,
     meta: {
-      title: '数据驾驶舱'
+      title: '数据驾驶舱',
+      requiresAuth: true
     }
   },
   {
@@ -30,7 +42,8 @@ const routes = [
     name: 'DetailMap',
     component: DetailMap,
     meta: {
-      title: '八角地块详情'
+      title: '八角地块详情',
+      requiresAuth: true
     }
   },
   {
@@ -39,7 +52,8 @@ const routes = [
     component: PlotDetailV2, // 直接使用新架构版本
     props: true,
     meta: {
-      title: '地块详情'
+      title: '地块详情',
+      requiresAuth: true
     }
   }
 ];
@@ -56,7 +70,19 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title
   }
-  next()
+
+  // 检查是否需要登录
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    // 需要登录但未登录，跳转到登录页
+    next({ name: 'Login' })
+  } else if (to.name === 'Login' && isAuthenticated) {
+    // 已登录，访问登录页时跳转到首页
+    next({ name: 'Dashboard' })
+  } else {
+    next()
+  }
 })
 
 export default router 

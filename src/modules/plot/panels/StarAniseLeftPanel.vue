@@ -30,12 +30,16 @@
       :background-image="'/images/price-info.png'"
     />
 
+    <!-- 林地健康指标 -->
+    <ForestHealthIndicators />
+
     <!-- 健康指标 -->
     <HealthIndicators
       v-if="healthIndicators.length > 0"
       :indicators="healthIndicators"
       @show-health-modal="$emit('show-health-modal')"
     />
+
   </div>
 </template>
 
@@ -45,6 +49,7 @@ import FarmerProfileCard from '@/components/PlotDetail/FarmerProfileCard.vue';
 import PlotStatisticsGrid from '@/components/PlotDetail/PlotStatisticsGrid.vue';
 import PriceInfoBox from '@/components/PlotDetail/PriceInfoBox.vue';
 import HealthIndicators from '@/components/PlotDetail/HealthIndicators.vue';
+import ForestHealthIndicators from '@/components/PlotDetail/ForestHealthIndicators.vue';
 
 /**
  * 八角地块左侧面板
@@ -61,7 +66,8 @@ export default {
         FarmerProfileCard,
         PlotStatisticsGrid,
         PriceInfoBox,
-        HealthIndicators
+        HealthIndicators,
+        ForestHealthIndicators
     },
     props: {
         // 策略实例

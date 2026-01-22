@@ -67,14 +67,33 @@
           <span class="title-text">{{ pageTitle }}</span>
         </div>
 
-        <!-- 用户头像和姓名 -->
-        <img
-          class="user-avatar"
-          referrerpolicy="no-referrer"
-          :src="getImagePath('HEADER', 'USER_AVATAR')"
-          alt="用户头像"
-        />
-        <span class="user-name">{{ user.name }}</span>
+        <!-- 用户信息区域 -->
+        <div class="user-section" v-click-outside="closeDropdown">
+          <div class="user-info" @click="toggleDropdown">
+            <img
+              class="user-avatar"
+              referrerpolicy="no-referrer"
+              :src="getImagePath('HEADER', 'USER_AVATAR')"
+              alt="用户头像"
+            />
+            <span class="user-name">{{ user.name }}</span>
+            <svg class="dropdown-icon" :class="{ 'is-open': showDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 4L6 8L10 4" stroke="#F6F4EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <!-- 下拉菜单 -->
+          <transition name="dropdown">
+            <div v-if="showDropdown" class="dropdown-menu">
+              <div class="dropdown-item" @click="handleLogout">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M5 13H2.33333C1.97971 13 1.64057 12.8595 1.39052 12.6095C1.14048 12.3594 1 12.0203 1 11.6667V2.33333C1 1.97971 1.14048 1.64057 1.39052 1.39052C1.64057 1.14048 1.97971 1 2.33333 1H5M9.66667 10.3333L13 7M13 7L9.66667 3.66667M13 7H5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>退出登录</span>
+              </div>
+            </div>
+          </transition>
+        </div>
       </div>
     </div>
 
@@ -99,8 +118,24 @@ export default {
             currentTime: '',
             currentDate: '',
             weekday: '',
-            timeTimer: null
+            timeTimer: null,
+            showDropdown: false
         };
+    },
+    directives: {
+        clickOutside: {
+            bind(el, binding) {
+                el.clickOutsideEvent = function(event) {
+                    if (!(el === event.target || el.contains(event.target))) {
+                        binding.value();
+                    }
+                };
+                document.addEventListener('click', el.clickOutsideEvent);
+            },
+            unbind(el) {
+                document.removeEventListener('click', el.clickOutsideEvent);
+            }
+        }
     },
     props: {
         weather: {
@@ -159,6 +194,23 @@ export default {
             // 更新星期
             const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
             this.weekday = days[now.getDay()];
+        },
+        toggleDropdown() {
+            this.showDropdown = !this.showDropdown;
+        },
+        closeDropdown() {
+            this.showDropdown = false;
+        },
+        handleLogout() {
+            // 关闭下拉菜单
+            this.closeDropdown();
+
+            // 清除登录状态
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('username');
+
+            // 跳转到登录页
+            this.$router.push({ name: 'Login' });
         }
     }
 };
@@ -169,6 +221,7 @@ export default {
 
 .dashboard-header {
     position: relative;
+    z-index: 100; // 确保 header 在侧边栏之上
     box-sizing: border-box;
     width: 100%;
     height: 100px;
@@ -338,11 +391,35 @@ export default {
     transform: translateY(-50%);
 }
 
+// 用户信息区域
+.user-section {
+    position: relative;
+    margin-left: 32px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(198, 156, 109, 0.15) 0%, rgba(198, 156, 109, 0.08) 100%);
+    border: 1px solid rgba(198, 156, 109, 0.3);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: linear-gradient(135deg, rgba(198, 156, 109, 0.25) 0%, rgba(198, 156, 109, 0.15) 100%);
+        border-color: rgba(198, 156, 109, 0.5);
+        box-shadow: 0 2px 8px rgba(198, 156, 109, 0.2);
+    }
+}
+
 .user-avatar {
     width: 28px;
     height: 28px;
-    margin: 0 5px 0 32px;
     border-radius: 50%;
+    border: 2px solid rgba(198, 156, 109, 0.4);
 }
 
 .user-name {
@@ -350,6 +427,67 @@ export default {
     font-size: 12px;
     white-space: nowrap;
     color: #F6F4EE;
+}
+
+.dropdown-icon {
+    transition: transform 0.3s ease;
+
+    &.is-open {
+        transform: rotate(180deg);
+    }
+}
+
+// 下拉菜单
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 140px;
+    background: linear-gradient(135deg, rgba(25, 35, 45, 0.98) 0%, rgba(20, 28, 36, 0.98) 100%);
+    border: 1px solid rgba(198, 156, 109, 0.4);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(198, 156, 109, 0.1);
+    overflow: hidden;
+    z-index: 10000; // 确保在所有元素之上
+    backdrop-filter: blur(10px);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    color: #c69c6d;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: linear-gradient(135deg, rgba(198, 156, 109, 0.2) 0%, rgba(198, 156, 109, 0.15) 100%);
+        color: #e0b885;
+    }
+
+    &:active {
+        background: linear-gradient(135deg, rgba(198, 156, 109, 0.3) 0%, rgba(198, 156, 109, 0.2) 100%);
+    }
+}
+
+// 下拉动画
+.dropdown-enter-active,
+.dropdown-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-enter,
+.dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
 }
 
 // 装饰元素
