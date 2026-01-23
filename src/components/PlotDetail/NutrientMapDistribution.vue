@@ -61,7 +61,7 @@
         <div class="element-popover-content">
           <NutrientTrendChart
             :indicator="selectedElement"
-            :indicator-index="selectedIndex"
+            :indicator-index="selectedElement ? selectedElement.chartIndex : selectedIndex"
           />
         </div>
       </div>
@@ -106,25 +106,32 @@ export default {
                             name: '有效钾',
                             range: '≥100 mg/kg',
                             color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
-                            note: '缺钾易致果实发育不良'
+                            note: '钾是"品质元素"。含量不足易导致八角果实发育不良、色泽差、油脂含量低，树体抗逆性减弱。',
+                            chartIndex: 2
                         },
                         {
                             symbol: 'P',
                             name: '有效磷',
                             range: '20–40 mg/kg',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '适量磷能促进根系发育与花芽分化。含量过高易被固定，过低则影响能量代谢与早期生长。',
+                            chartIndex: 3
                         },
                         {
                             symbol: 'N',
                             name: '碱解氮',
                             range: '80–120 mg/kg',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '反映土壤近期供氮水平。含量需平衡，过量易引起徒长，降低抗性；不足则限制枝叶生长与产量。',
+                            chartIndex: 4
                         },
                         {
                             symbol: 'Ca',
                             name: '交换性钙',
                             range: '≥400 mg/kg',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '充足的钙能稳定细胞壁，增强果实硬度与耐储性，并有助于调节土壤酸碱平衡。',
+                            chartIndex: 5
                         }
                     ]
                 },
@@ -135,31 +142,41 @@ export default {
                             symbol: 'Al',
                             name: '铝',
                             range: '0.5–2.0 mg/kg',
-                            backgroundImage: '/images/Al.png'
+                            backgroundImage: '/images/Al.png',
+                            note: '在酸性土壤中需关注其有效态含量，避免过量引发毒害。',
+                            chartIndex: 6
                         },
                         {
                             symbol: 'Zn',
                             name: '锌',
                             range: '1.0–3.0 mg/kg',
-                            backgroundImage: '/images/Zn.png'
+                            backgroundImage: '/images/Zn.png',
+                            note: '参与生长素合成。缺锌易导致"小叶病"，影响新梢生长与成花。',
+                            chartIndex: 7
                         },
                         {
                             symbol: 'Mn',
                             name: '锰',
                             range: '5–20 mg/kg',
-                            backgroundImage: '/images/Mn.png'
+                            backgroundImage: '/images/Mn.png',
+                            note: '参与光合作用与酶活化。在强酸性土壤中需防过量毒害。',
+                            chartIndex: 8
                         },
                         {
                             symbol: 'S',
                             name: '硫',
                             range: '20–50 mg/kg',
-                            backgroundImage: '/images/S.png'
+                            backgroundImage: '/images/S.png',
+                            note: '是合成香味物质的关键元素之一，对八角独特风味的形成有重要贡献。',
+                            chartIndex: 9
                         },
                         {
                             symbol: 'B',
                             name: '硼',
                             range: '25–60 mg/kg',
-                            backgroundImage: '/images/B.png'
+                            backgroundImage: '/images/B.png',
+                            note: '对花粉萌发、花粉管伸长及坐果至关重要。缺硼会导致花而不实、落果及果实畸形。',
+                            chartIndex: 10
                         }
                     ]
                 },
@@ -169,32 +186,37 @@ export default {
                         {
                             symbol: '',
                             name: '枯草芽孢杆菌',
-                            range: '≥1.0×10⁸',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            range: '≥1.0×10⁸ CFU/g',
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '能抑制土传病害、分解有机质、活化养分、促进根系生长。'
                         },
                         {
                             symbol: '',
                             name: '哈茨木霉菌',
-                            range: '≥5.0×10⁵',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            range: '≥5.0×10⁵ CFU/g',
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '具有抑制土传病害、分解有机质、活化养分的作用。'
                         },
                         {
                             symbol: '',
                             name: '放线菌',
-                            range: '≥1.0×10⁶',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            range: '≥1.0×10⁶ CFU/g',
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '能有效抑制病原菌、改善土壤结构。'
                         },
                         {
                             symbol: '',
                             name: '其它芽孢杆菌属菌株',
-                            range: '≥1.0×10⁷',
-                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)'
+                            range: '≥1.0×10⁷ CFU/g',
+                            color: 'linear-gradient(135deg, #00d9a3 0%, #00a67e 100%)',
+                            note: '多种芽孢杆菌协同作用，增强土壤生物活性。'
                         },
                         {
                             symbol: '',
                             name: '总有益菌群',
-                            range: '≥2.0×10⁸',
-                            color: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)'
+                            range: '≥2.0×10⁸ CFU/g',
+                            color: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+                            note: '构建健康的根际微生态系统，是八角可持续种植管理的核心。'
                         }
                     ]
                 }
