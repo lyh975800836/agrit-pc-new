@@ -78,15 +78,18 @@ export default {
     },
     data() {
         return {
-            currentAvatarUrl: this.avatarUrl,
             isDefaultUsed: false
         };
+    },
+    computed: {
+        currentAvatarUrl() {
+            return this.isDefaultUsed ? '/images/default-avator.jpg' : this.avatarUrl;
+        }
     },
     methods: {
         handleImageError() {
             // 只在第一次加载失败时切换到默认图片，防止闪烁和无限循环
             if (!this.isDefaultUsed) {
-                this.currentAvatarUrl = '/images/default-avator.jpg';
                 this.isDefaultUsed = true;
             }
         }
