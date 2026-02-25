@@ -1,6 +1,10 @@
 <template>
   <div class="farmer-profile" :style="{ backgroundImage: `url(${backgroundImage})` }">
-    <img class="farmer-avatar" :src="avatarUrl" />
+    <img
+      class="farmer-avatar"
+      :src="currentAvatarUrl"
+      @error="handleImageError"
+    />
     <div class="farmer-details">
       <div class="farmer-name">{{ labelPrefix }}{{ farmerName }}</div>
       <img class="detail-divider" src="/images/divider.png" />
@@ -71,6 +75,21 @@ export default {
             type: String,
             default: '岁'
         }
+    },
+    data() {
+        return {
+            currentAvatarUrl: this.avatarUrl,
+            isDefaultUsed: false
+        };
+    },
+    methods: {
+        handleImageError() {
+            // 只在第一次加载失败时切换到默认图片，防止闪烁和无限循环
+            if (!this.isDefaultUsed) {
+                this.currentAvatarUrl = '/images/default-avator.jpg';
+                this.isDefaultUsed = true;
+            }
+        }
     }
 };
 </script>
@@ -88,6 +107,7 @@ export default {
 }
 
 .farmer-avatar {
+    object-fit: cover;
     width: 145px;
     height: 153px;
 }

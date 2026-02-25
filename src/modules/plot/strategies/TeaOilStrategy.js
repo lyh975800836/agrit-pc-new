@@ -41,7 +41,7 @@ class TeaOilStrategy extends PlotStrategy {
         return {
             name: this._getConfigValue('owner_name', '未知'),
             age: this._getConfigValue('owner_age', 0),
-            avatar: this._getConfigValue('owner_avatar', '/images/farmer-avatar.jpg'),
+            avatar: this._getConfigValue('owner_avatar', '/images/default-avator.jpg'),
             rating: this._getConfigValue('owner_star_rank', 4)
         }
     }

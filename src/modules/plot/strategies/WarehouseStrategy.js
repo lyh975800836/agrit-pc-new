@@ -36,7 +36,7 @@ class WarehouseStrategy extends PlotStrategy {
         return {
             name: this._getConfigValue('owner_name', '未知'),
             warehouseCount: this._getConfigValue('manager_warehouse_num', 0),
-            avatar: this._getConfigValue('owner_avatar', '/images/warehouse-manager-avatar.jpg'),
+            avatar: this._getConfigValue('owner_avatar', '/images/default-avator.jpg'),
             rating: this._getConfigValue('owner_star_rank', 4)
         }
     }
