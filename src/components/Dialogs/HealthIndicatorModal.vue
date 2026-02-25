@@ -7,18 +7,18 @@
       <div class="top-section flex-row">
         <!-- 左侧：健康指标图表区域 -->
         <div class="chart-section">
-          <div class="section-title">健康指标</div>
+          <div class="section-title">{{ currentMetricTitle }}</div>
 
           <!-- 图表区域 -->
           <div class="chart-area">
             <div class="chart-container">
               <!-- Y轴标签 -->
               <div class="y-axis">
-                <span class="axis-label">100</span>
-                <span class="axis-label">80</span>
-                <span class="axis-label">60</span>
-                <span class="axis-label">40</span>
-                <span class="axis-label">20</span>
+                <span class="axis-label">{{ yAxisMax }}</span>
+                <span class="axis-label">{{ Math.round(yAxisMax * 0.8) }}</span>
+                <span class="axis-label">{{ Math.round(yAxisMax * 0.6) }}</span>
+                <span class="axis-label">{{ Math.round(yAxisMax * 0.4) }}</span>
+                <span class="axis-label">{{ Math.round(yAxisMax * 0.2) }}</span>
               </div>
 
               <!-- 图表内容 -->
@@ -37,18 +37,11 @@
                     fill="none"
                     stroke="#C69C6D"
                     stroke-width="2"
-                    points="18,90 56,75 94,82 132,70 170,65 208,68 246,62 284,58"
+                    :points="chartPoints"
                   />
 
                   <!-- 数据点 -->
-                  <circle cx="18" cy="90" r="3" fill="#C69C6D" />
-                  <circle cx="56" cy="75" r="3" fill="#C69C6D" />
-                  <circle cx="94" cy="82" r="3" fill="#C69C6D" />
-                  <circle cx="132" cy="70" r="3" fill="#C69C6D" />
-                  <circle cx="170" cy="65" r="3" fill="#C69C6D" />
-                  <circle cx="208" cy="68" r="3" fill="#C69C6D" />
-                  <circle cx="246" cy="62" r="3" fill="#C69C6D" />
-                  <circle cx="284" cy="58" r="3" fill="#C69C6D" />
+                  <circle v-for="(point, index) in currentMetricData.points" :key="index" :cx="point.x" :cy="point.y" r="3" fill="#C69C6D" />
                 </svg>
 
                 <!-- X轴标签 -->
@@ -83,7 +76,7 @@
             </div>
 
             <!-- 健康指数行 -->
-            <div class="table-data-row">
+            <div class="table-data-row" @click="selectMetric('healthIndex')" :class="{ active: selectedMetric === 'healthIndex' }">
               <span class="data-cell">健康指数</span>
               <span class="data-cell">86</span>
               <span class="data-cell">83</span>
@@ -95,16 +88,16 @@
             </div>
 
             <!-- 通风率评分行 -->
-            <div class="table-data-row">
+            <div class="table-data-row" @click="selectMetric('ventilationScore')" :class="{ active: selectedMetric === 'ventilationScore' }">
               <span class="data-cell">通风率评分</span>
-              <span class="data-cell">良好</span>
-              <span class="data-cell">一般</span>
-              <span class="data-cell">一般</span>
+              <span class="data-cell">85</span>
+              <span class="data-cell">75</span>
+              <span class="data-cell">75</span>
               <span class="data-cell">稳定</span>
             </div>
 
             <!-- 杂草覆盖率行 -->
-            <div class="table-data-row">
+            <div class="table-data-row" @click="selectMetric('weedCoverage')" :class="{ active: selectedMetric === 'weedCoverage' }">
               <span class="data-cell">杂草覆盖率</span>
               <span class="data-cell">12%</span>
               <span class="data-cell">18%</span>
@@ -116,11 +109,11 @@
             </div>
 
             <!-- 病虫害评分行 -->
-            <div class="table-data-row">
+            <div class="table-data-row" @click="selectMetric('pestScore')" :class="{ active: selectedMetric === 'pestScore' }">
               <span class="data-cell">病虫害评分</span>
-              <span class="data-cell">优</span>
-              <span class="data-cell">良</span>
-              <span class="data-cell">良</span>
+              <span class="data-cell">95</span>
+              <span class="data-cell">90</span>
+              <span class="data-cell">90</span>
               <span class="data-cell">微降</span>
             </div>
           </div>
@@ -185,6 +178,30 @@ const images = {
     adviceBg: '/images/advice-bg.png'
 };
 
+// 指标数据定义
+const metricsData = {
+    healthIndex: {
+        title: '健康指数趋势',
+        yAxisMax: 100,
+        values: [86, 83, 80, 78, 75, 72, 70, 68] // 8周数据
+    },
+    ventilationScore: {
+        title: '通风率评分趋势',
+        yAxisMax: 100,
+        values: [85, 80, 75, 78, 82, 80, 85, 88] // 8周数据
+    },
+    weedCoverage: {
+        title: '杂草覆盖率趋势',
+        yAxisMax: 50,
+        values: [12, 15, 18, 20, 24, 26, 28, 30] // 8周数据，单位为%
+    },
+    pestScore: {
+        title: '病虫害评分趋势',
+        yAxisMax: 100,
+        values: [95, 93, 91, 90, 88, 87, 86, 85] // 8周数据
+    }
+};
+
 export default {
     name: 'HealthIndicatorModal',
     props: {
@@ -198,13 +215,49 @@ export default {
         return {
             images,
             sliderPosition: 50, // 分割线初始位置 (百分比)
-            isDragging: false
+            isDragging: false,
+            selectedMetric: 'healthIndex' // 默认选中健康指数
         };
+    },
+    computed: {
+        currentMetricData() {
+            return metricsData[this.selectedMetric];
+        },
+        currentMetricTitle() {
+            return this.currentMetricData.title;
+        },
+        yAxisMax() {
+            return this.currentMetricData.yAxisMax;
+        },
+        chartPoints() {
+            // 将数据值转换为 SVG 坐标
+            const values = this.currentMetricData.values;
+            const maxValue = this.currentMetricData.yAxisMax;
+            const chartWidth = 300;
+            const chartHeight = 150;
+            const padding = 10;
+
+            const xStep = (chartWidth - 2 * padding) / (values.length - 1);
+
+            const points = values.map((value, index) => {
+                const x = padding + index * xStep;
+                // 值越大，y 坐标越小（SVG 坐标系从上到下）
+                const y = chartHeight - (value / maxValue) * (chartHeight - 2 * padding);
+                return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+            });
+
+            return points.map(p => `${p.x},${p.y}`).join(' ');
+        }
     },
     methods: {
         handleClose() {
             this.$emit('update:visible', false);
             this.$emit('close');
+        },
+
+        // 选择指标
+        selectMetric(metricKey) {
+            this.selectedMetric = metricKey;
         },
 
         // 开始拖动
@@ -413,11 +466,18 @@ export default {
     align-items: center;
     padding: 8px 5px;
     border-bottom: 1px solid #4cfcea22;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .table-header-row {
     font-weight: 500;
     background: #4cfcea1a;
+}
+
+.table-data-row.active {
+    background: #4cfcea2a !important;
+    border-left: 3px solid #c69c6d;
 }
 
 .table-cell,

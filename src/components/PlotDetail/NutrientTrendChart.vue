@@ -322,6 +322,16 @@ export default {
             return this.configs[this.indicatorIndex] || this.configs[0];
         }
     },
+    watch: {
+        // 监听 indicatorIndex 变化，重新初始化图表
+        indicatorIndex(newVal, oldVal) {
+            if (newVal !== oldVal) {
+                this.$nextTick(() => {
+                    this.initChart();
+                });
+            }
+        }
+    },
     mounted() {
         this.$nextTick(() => {
             this.initChart();
