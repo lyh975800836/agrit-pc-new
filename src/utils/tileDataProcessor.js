@@ -1,50 +1,95 @@
 /**
  * 地块瓦片数据处理工具
- * 用于转换后端瓦片数据为前端地图坐标格式
+ * 基于新 API：POST /api/v2/plot/list 返回格式
  */
 
 /**
- * 将后端瓦片数据转换为坐标格式
- * @param {Object} tilesData - 后端返回的瓦片数据
- * @returns {Object} 转换后的坐标数据
+ * 解析 location_info GeoJSON 字符串，返回边界和中心点
+ * @param {string|Object} locationInfo
+ * @returns {{ center: [number, number], leafletPolygon: Array }|null}
  */
-export function transformTilesToCoordinates(tilesData) {
-    const result = {};
-    const margin = 0.002; // 边界边距
+function parseLocationInfo(locationInfo) {
+    if (!locationInfo) return null;
 
-    if (!tilesData || !tilesData.data || !Array.isArray(tilesData.data)) {
-        console.warn('瓦片数据格式不正确');
+    let geojson;
+    try {
+        geojson = typeof locationInfo === 'string' ? JSON.parse(locationInfo) : locationInfo;
+    } catch (e) {
+        console.warn('[tileDataProcessor] 解析 location_info 失败:', e);
+        return null;
+    }
+
+    if (!geojson.coordinates || !geojson.coordinates.length) return null;
+
+    // 兼容两种 coordinates 格式：
+    // A. 自定义扁平对象数组: [{longitude, latitude}, ...]  ← 本项目 API 实际返回
+    // B. 标准 GeoJSON 嵌套数组: [[[lng, lat], ...]]
+    let rawCoords;
+    const first = geojson.coordinates[0];
+    if (first && typeof first === 'object' && !Array.isArray(first) && 'longitude' in first) {
+        // 格式 A：直接是坐标对象数组
+        rawCoords = geojson.coordinates;
+    } else if (Array.isArray(first)) {
+        // 格式 B：标准 GeoJSON，取第一个 ring
+        rawCoords = first;
+    } else {
+        return null;
+    }
+
+    if (!rawCoords.length) return null;
+
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    const leafletCoords = [];
+
+    rawCoords.forEach(coord => {
+        const lng = Array.isArray(coord) ? coord[0] : coord.longitude;
+        const lat = Array.isArray(coord) ? coord[1] : coord.latitude;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        leafletCoords.push([lat, lng]);
+    });
+
+    const center = [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
+
+    // Leaflet 坐标格式: [[lat, lng], ...]
+    const leafletPolygon = [leafletCoords];
+
+    return { center, leafletPolygon };
+}
+
+/**
+ * 将新 API 地块列表数据转换为坐标格式
+ * @param {Object} plotListResponse - POST /api/v2/plot/list 的完整响应
+ * @returns {Object} 以地块 name 为 key 的坐标映射
+ */
+export function transformTilesToCoordinates(plotListResponse) {
+    const result = {};
+
+    const list = plotListResponse?.data?.list || plotListResponse?.data || [];
+    if (!Array.isArray(list)) {
+        console.warn('地块列表数据格式不正确');
         return result;
     }
 
-    tilesData.data.forEach(tile => {
-        const name = tile.plot_name || tile.layer_name || `Plot_${tile.plot_id}`;
+    list.forEach(plot => {
+        const parsed = parseLocationInfo(plot.location_info);
+        if (!parsed) return;
 
-        // 创建矩形边界坐标
-        const leafletPolygon = [[
-            [tile.min_lat - margin, tile.min_lon - margin],
-            [tile.min_lat - margin, tile.max_lon + margin],
-            [tile.max_lat + margin, tile.max_lon + margin],
-            [tile.max_lat + margin, tile.min_lon - margin],
-            [tile.min_lat - margin, tile.min_lon - margin]
-        ]];
-
-        // 计算中心点
-        const center = [
-            (tile.min_lat + tile.max_lat) / 2,
-            (tile.min_lon + tile.max_lon) / 2
-        ];
-
+        const name = plot.name;
         result[name] = {
+            id: plot.id,
             name,
-            displayName: tile.plot_name || name,
-            center,
-            leafletPolygon,
-            area: tile.plot_area ? String(tile.plot_area) : '0',
-            property_category_code: tile.property_category_code,
-            property_category_name: tile.property_category_name,
-            property_type_name: tile.property_type_name,
-            tileData: tile
+            displayName: name,
+            center: parsed.center,
+            leafletPolygon: parsed.leafletPolygon,
+            area: String(plot.area || '0'),
+            property_category: plot.property_category,
+            property_category_name: plot.property_category_name,
+            property_type: plot.property_type,
+            property_type_name: plot.property_type_name,
+            tileData: plot
         };
     });
 
@@ -52,29 +97,33 @@ export function transformTilesToCoordinates(tilesData) {
 }
 
 /**
- * 构建地块数据对象
- * @param {Object} fieldData - 转换后的地块字段数据
- * @returns {Object} 地块展示数据
+ * 构建地块展示数据对象
+ * @param {Object} fieldData - transformTilesToCoordinates 中单条数据
+ * @returns {Object}
  */
 export function createPlotData(fieldData, plotName) {
+    const category = fieldData.property_category || 'forest';
     return {
-        name: plotName || fieldData.displayName || fieldData.name,
-        displayName: plotName || fieldData.displayName || fieldData.name,
-        area: fieldData.area || '30',
-        output: '1970',
-        property_category_code: fieldData.property_category_code || 'forest',
-        property_type_name: fieldData.property_type_name || '八角基地',
+        id: fieldData.id,
+        name: plotName || fieldData.name,
+        displayName: plotName || fieldData.displayName,
+        area: fieldData.area || '0',
+        property_category: category,
+        property_category_code: category,           // 兼容 MarkerManager / plotMarkerManager 使用的字段名
+        property_category_name: fieldData.property_category_name || '',
+        property_type: fieldData.property_type || 'bajiao_base',
+        property_type_name: fieldData.property_type_name || '八角',
         lat: fieldData.center[0],
         lng: fieldData.center[1],
-        center: fieldData.center // 添加 center 属性,用于弹窗定位计算
+        center: fieldData.center
     };
 }
 
 /**
- * 验证瓦片数据完整性
- * @param {Object} fieldData - 地块数据
- * @returns {Boolean} 数据是否有效
+ * 验证地块数据完整性
+ * @param {Object} fieldData
+ * @returns {boolean}
  */
 export function isValidFieldData(fieldData) {
-    return fieldData && fieldData.center && (fieldData.leaflet_polygon || fieldData.leafletPolygon);
+    return fieldData && fieldData.center && fieldData.leafletPolygon;
 }

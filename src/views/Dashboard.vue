@@ -38,10 +38,24 @@ export default {
         MapViewBaise,
         DashboardLayout
     },
+    computed: {
+        user() {
+            try {
+                const raw = localStorage.getItem('user_info');
+                if (raw) {
+                    const u = JSON.parse(raw);
+                    return { name: u.real_name || u.username || '管理员', avatar: u.avatar || '/images/user-avatar.png' };
+                }
+            } catch (e) { /* ignore */ }
+            return { name: '管理员', avatar: '/images/user-avatar.png' };
+        }
+    },
     data() {
+        // eslint-disable-next-line no-unused-vars
+        const { user: _user, ...rest } = sharedDashboardData;
         return {
             // 使用共享数据源
-            ...sharedDashboardData,
+            ...rest,
 
             // 地图相关数据
             mapData: null,

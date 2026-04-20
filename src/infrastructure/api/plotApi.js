@@ -20,9 +20,7 @@ class PlotApi {
    */
   async getPlotDetail(plotId) {
     try {
-      const response = await httpClient.get('/api/v1/p/detail', {
-        params: { id: plotId }
-      });
+      const response = await httpClient.post('/api/v2/plot/detail', { id: String(plotId) });
 
       // 数据转换: 后端格式 → 前端格式
       return this._transformPlotDetail(response.data);
@@ -37,13 +35,14 @@ class PlotApi {
    *
    * @returns {Promise<Array>} 地块列表
    */
-  async getPlotsList() {
+  async getPlotsList(params = {}) {
     try {
-      const response = await httpClient.get('/api/v1/geoprocessing/plot-tiles/list');
+      const response = await httpClient.post('/api/v2/plot/list', { page: 1, page_size: 100, ...params });
 
-      // 转换每个地块数据
-      if (Array.isArray(response.data)) {
-        return response.data.map(plot => this._transformPlotDetail(plot));
+      // 新API返回 { list, total } 结构
+      const list = response.data?.list || response.data || [];
+      if (Array.isArray(list)) {
+        return list.map(plot => this._transformPlotDetail(plot));
       }
 
       return [];
@@ -77,9 +76,7 @@ class PlotApi {
    */
   async getPlotStatistics(plotId) {
     try {
-      const response = await httpClient.get('/api/v1/p/statistics', {
-        params: { id: plotId }
-      });
+      const response = await httpClient.post('/api/v2/plot/detail', { id: String(plotId) });
 
       return response.data;
     } catch (error) {
@@ -91,13 +88,15 @@ class PlotApi {
   /**
    * 数据转换: 后端格式 → 前端格式
    *
-   * 后端数据格式:
+   * 后端数据格式 (POST /api/v2/plot/detail):
    * {
-   *   id: "plot-123",
-   *   plot_name: "千户十亩",
-   *   property_type_name: "八角基地",
-   *   area: "1200",
-   *   config_data: "{\"owner_name\":\"张三\",...}"
+   *   id: "100",
+   *   name: "八角林A区",
+   *   area: 150.5,
+   *   location_info: "{GeoJSON}",
+   *   property_type: "bajiao",
+   *   property_category: "forest",
+   *   config_data: "{...}"
    * }
    *
    * 前端数据格式:
@@ -133,32 +132,24 @@ class PlotApi {
     }
 
     // 推断地块类型
-    const type = this._inferPlotType(rawData, configData);
+    const type = this._inferPlotType(rawData);
 
     return {
-      // 基础信息
       id: rawData.id,
-      name: rawData.plot_name,
+      name: rawData.name,
       type: type,
-
-      // 几何信息
       area: parseFloat(rawData.area || 0),
-      coordinates: rawData.coordinates,
-      centerPoint: rawData.center_point,
-
-      // 分类信息
-      propertyType: rawData.property_type_name,
-      region: rawData.region,
-      district: rawData.district,
+      location_info: rawData.location_info,
+      property_type: rawData.property_type,
+      property_type_name: rawData.property_type_name,
+      property_category: rawData.property_category,
+      property_category_name: rawData.property_category_name,
+      ownership: rawData.ownership,
       status: rawData.status,
-
-      // WMTS瓦片图层
-      layer: rawData.layer_name,
-
-      // 配置数据
+      owner_username: rawData.owner_username,
+      owner_real_name: rawData.owner_real_name,
+      current_farming_stage_id: rawData.current_farming_stage_id,
       configData: configData,
-
-      // 保留原始数据供特殊需求使用
       _raw: rawData
     };
   }
@@ -166,11 +157,8 @@ class PlotApi {
   /**
    * 推断地块类型
    *
-   * 优先级:
-   * 1. 根据 property_type_name 推断
-   * 2. 根据 config_data.facility_type 推断
-   * 3. 根据其他字段推断
-   * 4. 默认返回 'star-anise'
+   * 使用 property_type / property_category 字段直接映射
+   * 默认返回 'star-anise'
    *
    * 地块类型:
    * - 'star-anise': 八角地块
@@ -183,47 +171,17 @@ class PlotApi {
    * @returns {string} 地块类型
    * @private
    */
-  _inferPlotType(rawData, configData) {
-    const propertyType = rawData.property_type_name || '';
+  _inferPlotType(rawData) {
+    // 使用新 API 的 property_type 字段，property_category 辅助判断
+    const propertyType = rawData.property_type || '';
+    const propertyCategory = rawData.property_category || '';
 
-    // 方式1: 根据 property_type_name 推断
-    if (propertyType.includes('八角')) {
-      return 'star-anise';
-    }
-    if (propertyType.includes('工厂') || propertyType.includes('烘干')) {
-      return 'factory';
-    }
-    if (propertyType.includes('仓库')) {
-      return 'warehouse';
-    }
-    if (propertyType.includes('茶油')) {
-      return 'tea-oil';
-    }
-
-    // 方式2: 根据 config_data.facility_type 推断
-    if (configData.facility_type) {
-      const facilityType = configData.facility_type.toLowerCase();
-
-      if (facilityType === 'factory') {
-        return 'factory';
-      }
-      if (facilityType === 'warehouse') {
-        return 'warehouse';
-      }
-    }
-
-    // 方式3: 根据其他特征推断
-    // 如果有施工计划相关字段,可能是工厂
-    if (configData.construction_calendar || configData.schedule) {
-      return 'factory';
-    }
-
-    // 如果有库存相关字段,可能是仓库
-    if (configData.inventory || configData.storage_capacity) {
-      return 'warehouse';
-    }
-
-    // 默认类型: 八角地块
+    // 优先用 property_category 区分林/厂/仓
+    if (propertyCategory === 'factory') return 'factory';
+    if (propertyCategory === 'warehouse') return 'warehouse';
+    // forest 子类型区分
+    if (propertyType === 'chayou_base') return 'tea-oil';
+    // bajiao_base 及其他林地
     return 'star-anise';
   }
 
@@ -236,7 +194,7 @@ class PlotApi {
    */
   async updatePlot(plotId, data) {
     try {
-      const response = await httpClient.put(`/api/v1/p/detail/${plotId}`, data);
+      const response = await httpClient.post(`/api/v2/plot/update`, { id: String(plotId), ...data });
       return this._transformPlotDetail(response.data);
     } catch (error) {
       console.error(`[PlotApi] 更新地块失败 (ID: ${plotId}):`, error);
@@ -252,7 +210,7 @@ class PlotApi {
    */
   async deletePlot(plotId) {
     try {
-      await httpClient.delete(`/api/v1/p/detail/${plotId}`);
+      await httpClient.post(`/api/v2/plot/delete`, { id: String(plotId) });
       return true;
     } catch (error) {
       console.error(`[PlotApi] 删除地块失败 (ID: ${plotId}):`, error);

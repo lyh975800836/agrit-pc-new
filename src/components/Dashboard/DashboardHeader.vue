@@ -73,7 +73,7 @@
             <img
               class="user-avatar"
               referrerpolicy="no-referrer"
-              :src="getImagePath('HEADER', 'USER_AVATAR')"
+              :src="user.avatar || getImagePath('HEADER', 'USER_AVATAR')"
               alt="用户头像"
             />
             <span class="user-name">{{ user.name }}</span>
@@ -205,9 +205,11 @@ export default {
             // 关闭下拉菜单
             this.closeDropdown();
 
-            // 清除登录状态
+            // 清除登录状态和缓存
             localStorage.removeItem('isAuthenticated');
             localStorage.removeItem('username');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_info');
 
             // 跳转到登录页
             this.$router.push({ name: 'Login' });

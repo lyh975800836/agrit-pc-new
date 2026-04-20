@@ -72,13 +72,19 @@ export default {
         date: '2025年07月22日',
         weekday: '星期四'
       },
-      user: {
-        name: '管理员',
-        role: 'admin'
-      }
     };
   },
   computed: {
+    user() {
+      try {
+        const raw = localStorage.getItem('user_info');
+        if (raw) {
+          const u = JSON.parse(raw);
+          return { name: u.real_name || u.username || '管理员', avatar: u.avatar || '/images/user-avatar.png' };
+        }
+      } catch (e) { /* ignore */ }
+      return { name: '管理员', avatar: '/images/user-avatar.png' };
+    },
     ...mapGetters('dashboard', [
       'statistics',
       'selectedPeriod',

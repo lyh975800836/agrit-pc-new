@@ -35,11 +35,11 @@ class HttpClient {
       config => {
         console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
 
-        // 可以在这里添加认证token
-        // const token = localStorage.getItem('auth_token');
-        // if (token) {
-        //   config.headers['Authorization'] = `Bearer ${token}`;
-        // }
+        // 添加认证token
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
 
         return config;
       },

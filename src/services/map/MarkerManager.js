@@ -122,28 +122,26 @@ export class MarkerManager {
             // 注册标记
             this.registerMarker(marker, plotData.property_category_code);
 
-            // 等待 DOM 元素创建后，直接在元素上绑定事件（divIcon 需要这样处理）
+            if (this.options.enableInteraction && options.enableInteraction !== false) {
+                // 使用 Leaflet 原生事件 —— 挂在 Leaflet 对象上，removeLayer/addTo 后不会丢失
+                marker.on('click', (e) => {
+                    e.originalEvent?.stopPropagation();
+                    this.handleMarkerClick(marker, plotData, e.originalEvent);
+                });
+                marker.on('mouseover', (e) => {
+                    this.handleMarkerHover(marker, plotData, e.originalEvent);
+                });
+                marker.on('mouseout', (e) => {
+                    this.handleMarkerOut(marker, plotData, e.originalEvent);
+                });
+            }
+
+            // 等待 DOM 元素创建后设置 pointer-events（divIcon 默认可能为 none）
             setTimeout(() => {
                 const element = marker.getElement();
-                if (element && this.options.enableInteraction && options.enableInteraction !== false) {
-                    // 确保元素可点击
+                if (element) {
                     element.style.pointerEvents = 'auto';
                     element.style.cursor = 'pointer';
-
-                    // 直接在 DOM 元素上绑定点击事件
-                    element.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.handleMarkerClick(marker, plotData, e);
-                    });
-
-                    // 悬停事件
-                    element.addEventListener('mouseenter', (e) => {
-                        this.handleMarkerHover(marker, plotData, e);
-                    });
-
-                    element.addEventListener('mouseleave', (e) => {
-                        this.handleMarkerOut(marker, plotData, e);
-                    });
                 }
             }, 0);
 
@@ -289,6 +287,14 @@ export class MarkerManager {
             // 显示标记
             if (!this.map.hasLayer(marker)) {
                 marker.addTo(this.map);
+                // re-add 后 DOM 元素重建，需要重新设置 pointer-events
+                setTimeout(() => {
+                    const el = marker.getElement?.();
+                    if (el) {
+                        el.style.pointerEvents = 'auto';
+                        el.style.cursor = 'pointer';
+                    }
+                }, 0);
             }
             if (element) {
                 element.style.display = '';

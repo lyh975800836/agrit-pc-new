@@ -177,10 +177,8 @@ export default {
             plotData: {
                 id: '',
                 name: '',
-                district: '',
                 area: '',
-                type: '',
-                layer: ''
+                type: ''
             },
             // 地图数据
             tileMetrics: null,
@@ -263,13 +261,20 @@ export default {
         },
 
         /**
-         * 用户信息
+         * 用户信息 - 从登录响应缓存读取
          */
         user() {
-            return {
-                name: '管理员',
-                avatar: this.images.userAvatar
-            };
+            try {
+                const raw = localStorage.getItem('user_info');
+                if (raw) {
+                    const u = JSON.parse(raw);
+                    return {
+                        name: u.real_name || u.username || '管理员',
+                        avatar: u.avatar || this.images.userAvatar
+                    };
+                }
+            } catch (e) { /* ignore */ }
+            return { name: '管理员', avatar: this.images.userAvatar };
         },
 
         /**
@@ -280,8 +285,8 @@ export default {
                 return null;
             }
             return {
-                price: this.apiSpicePrice.todayPrice,
-                unit: this.apiSpicePrice.skuUnit
+                price: this.apiSpicePrice.today_price,
+                unit: this.apiSpicePrice.sku_unit
             };
         },
 
@@ -455,42 +460,38 @@ export default {
          * 施工计划日历数据 - 从 config_data.work_schedule 提取
          */
         constructionCalendarData() {
+            if (this.plotData.type !== 'factory') return null;
+            // 优先从 work_schedule 提取（year/month 索引格式）
             const configData = this.farmerConfigData;
-            if (!configData || !configData.work_schedule) {
-                return null;
+            if (configData && configData.work_schedule) {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1;
+                let yearData = configData.work_schedule[currentYear];
+                if (!yearData) {
+                    const years = Object.keys(configData.work_schedule).map(Number).filter(Boolean).sort((a, b) => b - a);
+                    yearData = years.length ? configData.work_schedule[years[0]] : null;
+                }
+                if (yearData) {
+                    const monthStr = String(currentMonth).padStart(2, '0');
+                    const monthData = yearData[currentMonth] || yearData[monthStr];
+                    if (monthData && Array.isArray(monthData)) {
+                        const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+                        return {
+                            monthDisplay: `${currentMonth}月`,
+                            daysInMonth: Array.from({ length: daysInMonth }, (_, i) => i + 1),
+                            scheduledDays: monthData
+                                .map((v, i) => (v === 1 ? i + 1 : null))
+                                .filter((d) => d !== null && d <= daysInMonth)
+                        };
+                    }
+                }
             }
-
-            // 获取当前日期
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1; // 月份从 1-12
-
-            // 获取本月的工作计划
-            const yearData = configData.work_schedule[currentYear];
-            if (!yearData) {
-                return null;
+            // 降级：用 strategy 的 getConstructionCalendar()（读 scheduled_days，无数据时返回空格子）
+            if (this.plotStrategy && typeof this.plotStrategy.getConstructionCalendar === 'function') {
+                return this.plotStrategy.getConstructionCalendar();
             }
-
-            const monthStr = String(currentMonth).padStart(2, '0');
-            const monthData = yearData[currentMonth] || yearData[monthStr];
-
-            if (!monthData || !Array.isArray(monthData)) {
-                return null;
-            }
-
-            // 计算本月天数
-            const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-
-            // 提取有工作安排的日期（值为 1 表示有工作）
-            const scheduledDays = monthData
-                .map((value, index) => (value === 1 ? index + 1 : null))
-                .filter((day) => day !== null && day <= daysInMonth);
-
-            return {
-                monthDisplay: `${currentMonth}月`,
-                daysInMonth: Array.from({ length: daysInMonth }, (_, i) => i + 1),
-                scheduledDays
-            };
+            return null;
         },
 
         /**
@@ -507,6 +508,16 @@ export default {
         /**
          * 获取任务状态 - 根据任务索引判断
          */
+        /** 将新 API property_type/property_category 映射到前端类型字符串 */
+        _mapPropertyType(propertyType, propertyCategory) {
+            // 优先用 property_category 区分林/厂/仓
+            if (propertyCategory === 'factory') return 'factory';
+            if (propertyCategory === 'warehouse') return 'warehouse';
+            // forest 子类型区分
+            if (propertyType === 'chayou_base') return 'tea-oil';
+            return 'star-anise'; // bajiao_base 及其他林地
+        },
+
         getTaskStatus(index, totalItems) {
             if (index < totalItems / 2) {
                 return 'completed';
@@ -528,51 +539,42 @@ export default {
                 // 从路由参数获取区域名称和地块数据
                 this.regionName = this.$route.query.region || '右江区';
 
-                // 解码plotId参数（处理中文字符）
+                // 从路由获取地块名称（入口只传名称，ID 通过 plot/list 接口获取）
                 const encodedPlotId = this.$route.params.plotId;
-                const decodedPlotId = encodedPlotId ? decodeURIComponent(encodedPlotId) : null;
+                const plotName = this.$route.query.plotName
+                    || (encodedPlotId ? decodeURIComponent(encodedPlotId) : null)
+                    || '千户十亩-大楞乡基地';
 
-                // 从query参数获取地块数据
-                const plotName = this.$route.query.plotName || decodedPlotId || '千户十亩-大楞乡基地';
-                const area = this.$route.query.area || String(DEFAULT_PLOT_DATA.area);
-                const output = this.$route.query.output || String(DEFAULT_PLOT_DATA.output);
-                const type = this.$route.query.type || 'star-anise';
-
-                // 从后端获取plot tiles列表，根据plotName找到真实的plot_id和layer_name
+                // Step 1: 用 plot/list 找到地块记录，获取真实数字 ID
                 const tileRecord = await this.fetchPlotTileRecord(plotName);
-
-                // plotId优先级：后端返回的ID > 路由参数中解码后的ID
-                let plotId = tileRecord?.plot_id || decodedPlotId;
+                const plotId = tileRecord?.id;
                 if (!plotId) {
-                    console.warn('无法获取有效的plotId，使用默认值1000');
-                    plotId = '1000';
+                    throw new Error(`未找到地块：${plotName}`);
                 }
 
-                // 基础地块数据
-                const outputNum = parseFloat(output) || DEFAULT_PLOT_DATA.output;
-                const areaNum = parseFloat(area) || DEFAULT_PLOT_DATA.area;
+                // 从 list 记录取 area / type，不再依赖路由参数
+                const area = tileRecord.area != null ? String(tileRecord.area) : String(DEFAULT_PLOT_DATA.area);
+                const type = this._mapPropertyType(tileRecord.property_type, tileRecord.property_category);
+
+                // 基础地块数据（Step 2/3 在下方：loadPlotDetail → getTileInfo 由 WMTSTileMap 触发）
                 this.plotData = {
                     id: plotId,
                     name: plotName,
                     district: this.regionName,
                     area,
-                    yield: Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / DEFAULT_PLOT_DATA.conversionDivisor) || DEFAULT_PLOT_DATA.yield,
-                    unitYield: output ? Math.floor(outputNum * DEFAULT_PLOT_DATA.conversionFactor / areaNum) : DEFAULT_PLOT_DATA.unitYield,
-                    type,
-                    layer: tileRecord?.layer_name
+                    type
                 };
 
-                // 八角地块：优先加载农事数据
-                if (type !== 'factory' && type !== 'warehouse') {
+                // Step 2: 加载完整地块详情（含 config_data）
+                // Step 3: WMTSTileMap 挂载后会自动触发 getTileInfo(plotId)
+                if (type === 'factory' || type === 'warehouse') {
+                    await this.loadPlotDetail(plotId);
+                } else {
                     await Promise.all([
                         this.loadPlotDetail(plotId),
                         this.loadFarmingData()
                     ]);
-                    // 价格数据后台加载
                     this.loadSpicePrice();
-                } else {
-                    // 工厂/仓库：只加载基本信息
-                    await this.loadPlotDetail(plotId);
                 }
 
                 this.isLoading = false;
@@ -636,9 +638,9 @@ export default {
          */
         async loadSpicePrice() {
             try {
-                const result = await apiClient.getSpicePrice(1, 1);
-                if (result && result.code === 0 && result.data && result.data.list) {
-                    this.apiSpicePrice = result.data.list[0] || null;
+                const result = await apiClient.getSpicePriceBajiao();
+                if (result && result.code === 0 && result.data) {
+                    this.apiSpicePrice = result.data;
                 }
             } catch (error) {
                 console.warn('Failed to load spice price:', error);
@@ -650,9 +652,10 @@ export default {
          */
         async fetchPlotTileRecord(plotName) {
             try {
-                const result = await apiClient.getPlotsList();
-                if (result && result.code === 0 && Array.isArray(result.data)) {
-                    const record = result.data.find((item) => item.plot_name === plotName);
+                const result = await apiClient.getPlotsList({ keyword: plotName });
+                if (result && result.code === 0) {
+                    const list = Array.isArray(result.data) ? result.data : (result.data?.list || []);
+                    const record = list.find((item) => item.name === plotName);
                     return record || null;
                 }
             } catch (error) {

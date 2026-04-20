@@ -13,7 +13,7 @@ function getBaseUrl() {
 
 /**
  * 统一的 fetch 请求方法
- * @param {string} endpoint - API 端点（如 '/api/v1/tiles/info'）
+ * @param {string} endpoint - API 端点（如 '/api/v2/tiles/info'）
  * @param {Object} options - 请求配置
  * @param {Object} options.query - 查询参数
  * @param {string} options.method - HTTP 方法 (GET, POST, etc.)
@@ -39,17 +39,22 @@ async function request(endpoint, options = {}) {
             url += `?${ params.toString() }`;
         }
 
+        // 构建请求头
+        const headers = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         // 构建 fetch 选项
         const fetchOptions = {
             signal,
-            method
+            method,
+            headers
         };
 
         // 添加请求体（如果有）
         if (body) {
-            fetchOptions.headers = {
-                'Content-Type': 'application/json'
-            };
             fetchOptions.body = body;
         }
 
@@ -92,9 +97,10 @@ async function get(endpoint, options = {}) {
  * @param {Object} options - 请求配置
  */
 async function getTileInfo(plotId, options = {}) {
-    return get('/api/v1/geoprocessing/plot-tiles/info', {
+    return request('/api/v2/geoprocessing/plot-tiles/info', {
         ...options,
-        query: { plot_id: plotId, ...options.query }
+        method: 'POST',
+        body: JSON.stringify({ plot_id: String(plotId) })
     });
 }
 
@@ -104,76 +110,71 @@ async function getTileInfo(plotId, options = {}) {
  * @param {Object} options - 请求配置
  */
 async function getPlotMarkers(plotId, options = {}) {
-    return get(`/api/v1/markers/plot/${ plotId }`, options);
+    return get(`/api/v2/markers/plot/${ plotId }`, options);
 }
 
+
 /**
- * 获取 WMTS 瓦片图像
- * @param {Object} params - 瓦片参数
- * @param {string} params.layer - 图层名称
- * @param {number} params.tilematrix - 瓦片矩阵（缩放级别）
- * @param {number} params.tilerow - 瓦片行号
- * @param {number} params.tilecol - 瓦片列号
+ * 获取地块列表
+ * @param {Object} params - 筛选参数
  * @param {Object} options - 请求配置
  */
-async function getWmtsTile(params, options = {}) {
-    const query = {
-        service: 'WMTS',
-        request: 'GetTile',
-        version: '1.0.0',
-        format: 'image/png',
-        ...params
-    };
-
-    return get('/api/v1/wmts/request', {
+async function getPlotsList(params = {}, options = {}) {
+    return request('/api/v2/plot/list', {
         ...options,
-        query
+        method: 'POST',
+        body: JSON.stringify({ page: 1, page_size: 100, ...params })
     });
 }
 
 /**
- * 获取地块列表
- * @param {Object} options - 请求配置
- */
-async function getPlotsList(options = {}) {
-    return get('/api/v1/geoprocessing/plot-tiles/list', options);
-}
-
-/**
- * 获取地块详情 (新API)
+ * 获取地块详情
  * @param {string} plotId - 地块 ID
  * @param {Object} options - 请求配置
  */
 async function getPlotDetail(plotId, options = {}) {
-    // 使用 GET + query 参数方式保持一致性
-    return get('/api/v1/p/detail', {
+    return request('/api/v2/plot/detail', {
         ...options,
-        query: { id: plotId, ...options.query }
+        method: 'POST',
+        body: JSON.stringify({ id: String(plotId) })
     });
 }
 
 /**
- * 获取农事列表
- * @param {string} type - 农事类型（standard/warning/service）
+ * 获取农情列表
+ * @param {string} type - 农情类型（standard/warning/service）
  * @param {Object} options - 请求配置
  */
 async function getFarmingList(type, options = {}) {
-    return get('/api/v1/farming/list', {
+    return get('/api/v2/farming-activity/list', {
         ...options,
         query: { type, page: 1, page_size: 100, ...options.query }
     });
 }
 
 /**
- * 获取八角价格
+ * 获取香料价格列表
  * @param {number} pageNum - 页码
  * @param {number} pageSize - 每页数量
  * @param {Object} options - 请求配置
  */
 async function getSpicePrice(pageNum = 1, pageSize = 10, options = {}) {
-    return get('/api/v1/spice-price/list', {
+    return request('/api/v2/spice-price/list', {
         ...options,
-        query: { pageNum, pageSize, ...options.query }
+        method: 'POST',
+        body: JSON.stringify({ page: pageNum, page_size: pageSize })
+    });
+}
+
+/**
+ * 获取最新八角价格
+ * @param {Object} options - 请求配置
+ */
+async function getSpicePriceBajiao(options = {}) {
+    return request('/api/v2/spice-price/bajiao', {
+        ...options,
+        method: 'POST',
+        body: JSON.stringify({})
     });
 }
 
@@ -182,9 +183,9 @@ export default {
     get,
     getTileInfo,
     getPlotMarkers,
-    getWmtsTile,
     getPlotsList,
     getPlotDetail,
     getFarmingList,
-    getSpicePrice
+    getSpicePrice,
+    getSpicePriceBajiao
 };

@@ -104,14 +104,27 @@ export default {
       this.errorMessage = '';
 
       try {
-        // TODO: 调用登录API
-        // const response = await login(this.loginForm);
+        const baseUrl = process.env.VUE_APP_API_BASE_URL || '';
+        const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: this.loginForm.username,
+            password: this.loginForm.password,
+            platform: 1
+          })
+        });
 
-        // 模拟登录请求
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const result = await response.json();
 
-        // 保存登录状态
+        if (result.code !== 0) {
+          throw new Error(result.message || '用户名或密码错误');
+        }
+
+        // 保存 token、用户信息和登录状态
+        localStorage.setItem('auth_token', result.data.token);
         localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user_info', JSON.stringify(result.data.user));
         if (this.loginForm.rememberMe) {
           localStorage.setItem('username', this.loginForm.username);
         }

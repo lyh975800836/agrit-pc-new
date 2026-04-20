@@ -31,12 +31,10 @@ export function getCDNTileUrl(layer, style, tileMatrixSet, tileMatrix, row, col,
         throw new Error('layer parameter is required');
     }
 
-    // URL编码layer参数（处理中文字符）
-    const encodedLayer = encodeURIComponent(layer);
-
     // 构建URL路径
-    // 格式: {baseUrl}/{layer}/{style}/{tileMatrixSet}/{tileMatrix}/{row}/{col}.{format}
-    const url = `${ CDN_BASE_URL }/${ encodedLayer }/${ style }/${ tileMatrixSet }/${ tileMatrix }/${ row }/${ col }.${ format }`;
+    // 格式: {baseUrl}/{tile_dir}/{style}/{tileMatrixSet}/{tileMatrix}/{row}/{col}.{format}
+    // tile_dir 为 "plot_XXXX" 纯 ASCII 格式，不需要编码
+    const url = `${ CDN_BASE_URL }/${ layer }/${ style }/${ tileMatrixSet }/${ tileMatrix }/${ row }/${ col }.${ format }`;
 
     return url;
 }

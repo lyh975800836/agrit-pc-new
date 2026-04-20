@@ -35,13 +35,24 @@ export default {
         RegionDetailMap
     },
     data() {
+        // eslint-disable-next-line no-unused-vars
+        const { user: _user, ...rest } = sharedDashboardData;
         return {
             regionName: this.$route.params.region || '右江区',
-            // 使用共享数据源
-            ...sharedDashboardData
+            ...rest
         };
     },
     computed: {
+        user() {
+            try {
+                const raw = localStorage.getItem('user_info');
+                if (raw) {
+                    const u = JSON.parse(raw);
+                    return { name: u.real_name || u.username || '管理员', avatar: u.avatar || '/images/user-avatar.png' };
+                }
+            } catch (e) { /* ignore */ }
+            return { name: '管理员', avatar: '/images/user-avatar.png' };
+        },
         currentTime() {
             const now = new Date();
             return now.toLocaleTimeString('zh-CN', {

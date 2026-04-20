@@ -22,13 +22,10 @@ module.exports = {
             }
         },
         proxy: {
-            '/api/v1': {
-                // 使用HTTPS协议确保传输安全
-                target: 'https://ms.baiyanai.cn',
+            '/api': {
+                target: 'http://47.109.129.99:8081',
                 changeOrigin: true,
-                // 启用SSL证书验证 - 安全加固 (CRITICAL修复)
-                secure: true,
-                // 禁用WebSocket
+                secure: false,
                 ws: false,
                 logLevel: 'debug',
                 cookieDomainRewrite: '',
@@ -37,14 +34,12 @@ module.exports = {
                 },
                 onProxyReq: function(proxyReq, req) {
                     console.log('Proxying request:', req.method, req.url, '-> ', proxyReq.path);
-                    // 保留所有原始请求头
                     if (req.headers.cookie) {
                         proxyReq.setHeader('cookie', req.headers.cookie);
                     }
                 },
                 onProxyRes: function(proxyRes, req) {
                     console.log('Proxy response:', proxyRes.statusCode, req.url);
-                    // 允许跨域携带 cookie
                     proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
                 },
                 onError: function(err, req) {
