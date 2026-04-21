@@ -27,6 +27,7 @@
       label="今日价格："
       :value="String(priceData?.price || '0')"
       :unit="priceData?.unit || '元/斤'"
+      :change="priceData?.change ?? null"
       :background-image="'/images/price-info.png'"
     />
 

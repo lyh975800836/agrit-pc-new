@@ -56,6 +56,11 @@ class HttpClient {
         const duration = Date.now() - (response.config._startTime || Date.now());
         console.log(`[HTTP] ${response.config.url} - ${response.status} (${duration}ms)`);
 
+        // 业务层 401：token 失效
+        if (response.data && response.data.code === 401) {
+          this._handleAuthExpired();
+        }
+
         return response;
       },
       this.handleError.bind(this)
@@ -111,6 +116,20 @@ class HttpClient {
     );
 
     return Promise.reject(error);
+  }
+
+  /**
+   * token 失效处理：清除本地状态并跳转登录页
+   * @private
+   */
+  _handleAuthExpired() {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('user_info');
+    // 避免在登录页重复跳转
+    if (window.location.hash !== '#/login' && !window.location.pathname.endsWith('/login')) {
+      window.location.href = '/#/login';
+    }
   }
 
   /**

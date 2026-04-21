@@ -285,8 +285,9 @@ export default {
                 return null;
             }
             return {
-                price: this.apiSpicePrice.today_price,
-                unit: this.apiSpicePrice.sku_unit
+                price: this.apiSpicePrice.todayPrice,
+                unit: this.apiSpicePrice.skuUnit,
+                change: this.apiSpicePrice.dailyPriceChangeAmount
             };
         },
 

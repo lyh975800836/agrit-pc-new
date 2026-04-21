@@ -2,7 +2,7 @@
   <div class="price-info" :style="{ backgroundImage: `url(${backgroundImage})` }">
     <div class="price-display">
       <span class="price-label">{{ label }}</span>
-      <img class="down-arrow" src="/images/down-arrow.png" />
+      <img class="down-arrow" :src="arrowImage" />
       <span class="price-value">{{ value }}</span>
       <span class="price-unit">{{ unit }}</span>
     </div>
@@ -28,6 +28,18 @@ export default {
         backgroundImage: {
             type: String,
             required: true
+        },
+        // 日涨跌幅，正数涨、负数跌、null/0 默认向下
+        change: {
+            type: Number,
+            default: null
+        }
+    },
+    computed: {
+        arrowImage() {
+            return this.change > 0
+                ? '/images/trend-up-arrow.png'
+                : '/images/trend-down-arrow.png';
         }
     }
 };

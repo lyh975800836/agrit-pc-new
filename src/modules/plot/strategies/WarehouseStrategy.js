@@ -21,7 +21,7 @@ class WarehouseStrategy extends PlotStrategy {
         return [
             {
                 label: '总面积(平方米)：',
-                value: this._getConfigValue('warehouse_area', '0'),
+                value: this._getConfigValue('total_area', '0'),
                 type: 'area'
             },
             {
@@ -63,15 +63,8 @@ class WarehouseStrategy extends PlotStrategy {
     }
 
     getInventoryRatio() {
-        // 存储量占比 = 当前库存 / 总存储量
-        const totalStorage = parseFloat(this._getConfigValue('total_storage', 0))
-        const currentInventory = parseFloat(this._getConfigValue('current_inventory', 0))
-        const storagePercentage = totalStorage > 0 ? Math.round((currentInventory / totalStorage) * 100) : 78
-
-        // 容积占比 = 使用体积 / 总体积
-        const totalVolume = parseFloat(this._getConfigValue('total_volume', 0))
-        const usedVolume = parseFloat(this._getConfigValue('used_volume', 0))
-        const volumePercentage = totalVolume > 0 ? Math.round((usedVolume / totalVolume) * 100) : 65
+        const storagePercentage = parseFloat(this._getConfigValue('stock_ratio', 0))
+        const volumePercentage = parseFloat(this._getConfigValue('volume_ratio', 0))
 
         return [
             { label: '存储量', percentage: storagePercentage },

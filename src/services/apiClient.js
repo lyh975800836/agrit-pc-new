@@ -68,6 +68,17 @@ async function request(endpoint, options = {}) {
 
         // 解析JSON响应
         const data = await response.json();
+
+        // 业务层 401：token 失效，清除状态并跳转登录页
+        if (data && data.code === 401) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('user_info');
+            if (window.location.hash !== '#/login' && !window.location.pathname.endsWith('/login')) {
+                window.location.href = '/#/login';
+            }
+        }
+
         return data;
     }
     catch (error) {
