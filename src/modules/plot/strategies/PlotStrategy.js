@@ -109,6 +109,14 @@ class PlotStrategy {
     }
 
     /**
+     * 获取认证图标列表
+     * @returns {Array<{src: string, alt: string}>} 图标列表
+     */
+    getCertIcons() {
+        return []
+    }
+
+    /**
      * 获取额外数据 (用于右侧面板)
      * @returns {Object} 额外数据对象
      */

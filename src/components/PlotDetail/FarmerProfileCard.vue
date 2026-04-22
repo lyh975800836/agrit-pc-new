@@ -27,6 +27,15 @@
         </div>
       </div>
     </div>
+    <div v-if="certIcons && certIcons.length > 0" class="cert-icons-row">
+      <img
+        v-for="icon in certIcons"
+        :key="icon.src"
+        class="cert-icon"
+        :src="icon.src"
+        :alt="icon.alt"
+      />
+    </div>
   </div>
 </template>
 
@@ -74,6 +83,11 @@ export default {
         ageSuffix: {
             type: String,
             default: '岁'
+        },
+        // 认证图标列表 [{src, alt}]
+        certIcons: {
+            type: Array,
+            default: () => []
         }
     },
     data() {
@@ -99,10 +113,11 @@ export default {
 
 <style lang="less" scoped>
 .farmer-profile {
+    position: relative;
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     width: 330px;
-    height: 173px;
     margin: 21px 0 17px;
     padding: 8px 0 11px 13px;
 
@@ -191,5 +206,19 @@ export default {
 .status-poverty {
     color: #c69c6d;
     background: #424821;
+}
+
+.cert-icons-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 14px 4px 0;
+}
+
+.cert-icon {
+    width: 49px;
+    height: 65px;
+    object-fit: contain;
 }
 </style>

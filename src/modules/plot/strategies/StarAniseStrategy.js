@@ -86,6 +86,20 @@ class StarAniseStrategy extends PlotStrategy {
         ]
     }
 
+    getCertIcons() {
+        const icons = this._getConfigValue('cert_icons', null)
+        if (Array.isArray(icons) && icons.length > 0) {
+            return icons
+        }
+        return [
+            { src: '/images/cert-gap.png', alt: 'GAP认证' },
+            { src: '/images/cert-organic.png', alt: '有机认证' },
+            { src: '/images/cert-baiyan.png', alt: '百燕认证' },
+            { src: '/images/cert-digital-warehouse.png', alt: '数字仓认证' },
+            { src: '/images/cert-routine.png', alt: '常规认证' }
+        ]
+    }
+
     getExtraData() {
         return {
             currentStage: this._getConfigValue('current_stage', null),
