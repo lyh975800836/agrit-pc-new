@@ -20,7 +20,11 @@
           ref="wmtsTileMap"
           :region-name="regionName"
           :plot-data="plotData"
+          :analysis-tile="analysisTileInfo"
+          :tree-tiles="analysisTreeTiles"
+          :source-tile-size="analysisSourceTileSize"
           @tile-metrics="handleTileMetrics"
+          @tree-click="handleTreeClick"
         />
       </template>
 
@@ -32,6 +36,7 @@
           :plot-name="plotData.name"
           :region-name="regionName"
           :price-data="spicePriceDisplay"
+          :analysis-summary="apiAnalysisSummary"
           @show-health-modal="showHealthModal"
         />
 
@@ -116,6 +121,49 @@
       :farming-item="farmingDetailDialogContent"
       @close="closeFarmingDetailDialog"
     />
+
+    <!-- 单树详情浮层 -->
+    <div v-if="showTreeDetail" class="tree-detail-overlay" @click.self="showTreeDetail = false">
+      <div class="tree-detail-panel">
+        <button class="tree-detail-close" @click="showTreeDetail = false">✕</button>
+        <h4 class="tree-detail-title">树冠详情</h4>
+        <div v-if="!selectedTreeDetail" class="tree-detail-loading">暂无数据</div>
+        <template v-else>
+        <div class="tree-detail-row"><span class="tree-detail-label">树 ID</span><span>{{ selectedTreeDetail.tree_id }}</span></div>
+        <div class="tree-detail-row">
+          <span class="tree-detail-label">经纬度</span>
+          <span>{{ Number(selectedTreeDetail.longitude).toFixed(6) }}, {{ Number(selectedTreeDetail.latitude).toFixed(6) }}</span>
+        </div>
+        <div class="tree-detail-row">
+          <span class="tree-detail-label">状态</span>
+          <span v-if="!selectedTreeDetail.pest" class="tree-tag tree-tag--healthy">健康</span>
+          <span v-else-if="!selectedTreeDetail.has_detection_geometry" class="tree-tag tree-tag--warn">病虫害（缺检测几何）</span>
+          <span v-else class="tree-tag tree-tag--pest">病虫害</span>
+        </div>
+        <div v-if="selectedTreeDetail.yield_value" class="tree-detail-row">
+          <span class="tree-detail-label">产量</span><span>{{ Number(selectedTreeDetail.yield_value).toFixed(2) }} kg</span>
+        </div>
+        <div v-if="selectedTreeDetail.tree_area" class="tree-detail-row">
+          <span class="tree-detail-label">冠层面积</span><span>{{ Number(selectedTreeDetail.tree_area).toFixed(2) }} m²</span>
+        </div>
+        <div v-if="selectedTreeDetail.detected_at" class="tree-detail-row">
+          <span class="tree-detail-label">检测时间</span><span>{{ formatDetectedAt(selectedTreeDetail.detected_at) }}</span>
+        </div>
+        <template v-if="selectedTreeDetail.detection_geometries && selectedTreeDetail.detection_geometries.length">
+          <div class="tree-detail-divider"></div>
+          <div v-for="(dg, i) in selectedTreeDetail.detection_geometries" :key="i" class="tree-detection-item">
+            <div class="tree-detail-row"><span class="tree-detail-label">类型</span><span>{{ dg.detection_type }}</span></div>
+            <div v-if="dg.confidence != null" class="tree-detail-row">
+              <span class="tree-detail-label">置信度</span><span>{{ (dg.confidence * 100).toFixed(1) }}%</span>
+            </div>
+            <div v-if="dg.anomaly_reason" class="tree-detail-row">
+              <span class="tree-detail-label">异常原因</span><span>{{ dg.anomaly_reason }}</span>
+            </div>
+          </div>
+        </template>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -172,6 +220,15 @@ export default {
             apiWarningFarming: null,
             apiServiceFarming: null,
             apiSpicePrice: null,
+            // 分析批次数据
+            apiAnalysisSummary: null,
+            analysisTreeTiles: [],
+            analysisSourceTileSize: 512,
+            // 单树详情
+            selectedTreeDetail: null,
+            showTreeDetail: false,
+            treeDetailLoading: false,
+            currentAnalysisId: null,
             // 地块数据
             regionName: '',
             plotData: {
@@ -500,6 +557,13 @@ export default {
          */
         factoryProductionData() {
             return this.plotStrategy.getExtraData();
+        },
+
+        /**
+         * 批次专属底图信息 - 传给 WMTSTileMap
+         */
+        analysisTileInfo() {
+            return this.apiAnalysisSummary?.analysis_tile || null;
         }
     },
     mounted() {
@@ -576,6 +640,8 @@ export default {
                         this.loadFarmingData()
                     ]);
                     this.loadSpicePrice();
+                    // 非阻塞加载分析批次（八角/茶油林地）
+                    this.loadAnalysisData(plotId);
                 }
 
                 this.isLoading = false;
@@ -666,6 +732,112 @@ export default {
         },
 
         /**
+         * 加载分析批次数据（wuda-summary + wuda-tiles/trees）
+         */
+        async loadAnalysisData(plotId) {
+            try {
+                // 1. 拉已完成的批次列表，取最新一条
+                const listResult = await apiClient.getAnalysisList({
+                    // eslint-disable-next-line camelcase
+                    plot_id: String(plotId),
+                    // eslint-disable-next-line camelcase
+                    factory_type: 'wuda',
+                    status: 2
+                });
+                const list = listResult?.data?.list;
+                if (!list || !list.length) return;
+
+                const latestBatch = list[0];
+                this.currentAnalysisId = latestBatch.id;
+
+                // 2. 拿概览（含批次专属底图信息）
+                const summaryResult = await apiClient.getWudaSummary(plotId, latestBatch.id);
+                if (!summaryResult?.data) return;
+                this.apiAnalysisSummary = summaryResult.data;
+
+                const at = summaryResult.data.analysis_tile;
+                if (!at) return; // 旧批次无专属底图，地图继续用 plot_tiles
+
+                // 3. 拉全量树冠数据
+                const treesResult = await apiClient.getWudaTileTrees({
+                    // eslint-disable-next-line camelcase
+                    plot_id: String(plotId),
+                    // eslint-disable-next-line camelcase
+                    analysis_id: String(latestBatch.id),
+                    // eslint-disable-next-line camelcase
+                    plot_tile_id: '0',
+                    zoom: at.max_zoom_level,
+                    // eslint-disable-next-line camelcase
+                    tile_range: {
+                        // eslint-disable-next-line camelcase
+                        min_tile_x: 0,
+                        // eslint-disable-next-line camelcase
+                        min_tile_y: 0,
+                        // eslint-disable-next-line camelcase
+                        max_tile_x: at.max_tile_x,
+                        // eslint-disable-next-line camelcase
+                        max_tile_y: at.max_tile_y
+                    },
+                    // eslint-disable-next-line camelcase
+                    source_layer: 'base'
+                });
+                if (!treesResult?.data?.tiles) return;
+                this.analysisTreeTiles = treesResult.data.tiles;
+                this.analysisSourceTileSize = treesResult.data.source_tile_size || 512;
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn('Failed to load analysis data:', error);
+            }
+        },
+
+        /**
+         * 处理树冠点击 - 拉取单树详情并展示
+         */
+        async handleTreeClick(tree) {
+            if (!tree) {
+                this.showTreeDetail = false;
+                this.selectedTreeDetail = null;
+                return;
+            }
+            // 立即展示面板并用瓦片内已有的 tree 数据填充，API 回来后再补充
+            this.showTreeDetail = true;
+            this.selectedTreeDetail = tree;
+            const analysisId = this.currentAnalysisId;
+            if (!analysisId) {
+                // eslint-disable-next-line no-console
+                console.warn('handleTreeClick: currentAnalysisId is null');
+                return;
+            }
+            this.treeDetailLoading = true;
+            try {
+                const result = await apiClient.getWudaTreeDetail(this.plotData.id, analysisId, tree.tree_id);
+                if (result?.data) {
+                    this.selectedTreeDetail = result.data;
+                }
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to load tree detail:', error);
+            } finally {
+                this.treeDetailLoading = false;
+            }
+        },
+
+        /**
+         * 格式化检测时间
+         */
+        formatDetectedAt(detectedAt) {
+            if (!detectedAt) return '-';
+            try {
+                return new Date(detectedAt).toLocaleString('zh-CN', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                return detectedAt;
+            }
+        },
+
+        /**
          * 处理瓦片指标
          */
         handleTileMetrics(metrics) {
@@ -750,5 +922,94 @@ export default {
     font-size: 18px;
     color: #c69c6d;
     background: #041f1d;
+}
+
+/* 单树详情浮层 */
+.tree-detail-overlay {
+    position: fixed;
+    z-index: 1100;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.tree-detail-panel {
+    position: absolute;
+    top: 50%;
+    right: 420px;
+    transform: translateY(-50%);
+    width: 260px;
+    padding: 20px 18px 18px;
+    border: 1px solid rgba(198, 156, 109, 0.35);
+    border-radius: 8px;
+    background: #0d2a28;
+    color: #c69c6d;
+}
+
+.tree-detail-title {
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2c59a;
+}
+
+.tree-detail-loading {
+    padding: 20px 0;
+    font-size: 12px;
+    color: rgba(198, 156, 109, 0.65);
+    text-align: center;
+}
+
+.tree-detail-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    padding: 0;
+    border: none;
+    font-size: 14px;
+    line-height: 1;
+    color: #c69c6d;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.7;
+
+    &:hover { opacity: 1; }
+}
+
+.tree-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    font-size: 12px;
+    gap: 8px;
+}
+
+.tree-detail-label {
+    flex-shrink: 0;
+    color: rgba(198, 156, 109, 0.6);
+}
+
+.tree-tag {
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+
+    &--healthy { background: rgba(0, 200, 83, 0.2); color: #00c853; }
+    &--pest    { background: rgba(255, 23, 68, 0.2); color: #ff1744; }
+    &--warn    { background: rgba(255, 145, 0, 0.2); color: #ff9100; }
+}
+
+.tree-detail-divider {
+    height: 1px;
+    margin: 10px 0;
+    background: rgba(198, 156, 109, 0.2);
+}
+
+.tree-detection-item {
+    padding-left: 8px;
+    border-left: 2px solid rgba(198, 156, 109, 0.3);
+    margin-bottom: 10px;
 }
 </style>

@@ -84,6 +84,29 @@
       @category-change="$emit('price-category-change', $event)"
     />
 
+    <!-- 监测批次统计 -->
+    <div v-if="analysisSummary" class="analysis-stats">
+      <div class="analysis-stats-title">监测概况</div>
+      <div class="analysis-stats-grid">
+        <div class="analysis-stat-item">
+          <span class="analysis-stat-value">{{ analysisSummary.total_trees }}</span>
+          <span class="analysis-stat-label">总树数</span>
+        </div>
+        <div class="analysis-stat-item analysis-stat-item--healthy">
+          <span class="analysis-stat-value">{{ analysisSummary.healthy_trees }}</span>
+          <span class="analysis-stat-label">健康</span>
+        </div>
+        <div class="analysis-stat-item analysis-stat-item--pest">
+          <span class="analysis-stat-value">{{ analysisSummary.pest_trees }}</span>
+          <span class="analysis-stat-label">病虫害</span>
+        </div>
+        <div class="analysis-stat-item">
+          <span class="analysis-stat-value">{{ analysisSummary.yield_avg ? Number(analysisSummary.yield_avg).toFixed(1) : '-' }}</span>
+          <span class="analysis-stat-label">均产(kg/棵)</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 林地健康指标 -->
     <ForestHealthIndicators />
 
@@ -127,7 +150,9 @@ export default {
         strategy: { type: Object, required: true },
         plotName: { type: String, required: true },
         regionName: { type: String, required: true },
-        priceData: { type: Object, default: null }
+        priceData: { type: Object, default: null },
+        /** wuda-summary 响应，用于展示监测批次统计 */
+        analysisSummary: { type: Object, default: null }
     },
     emits: ['show-health-modal', 'action-click', 'price-category-change'],
     data() {
@@ -177,11 +202,11 @@ export default {
 
         presaleItems() {
             return [
-                { name: '广东明诚生物科技有限公司', capacity: '25万顿', color: '#1a5c35' },
-                { name: '玉林广京生物科技有限公司', capacity: '31万顿', color: '#2e8b57' },
-                { name: '广西冠宁生物有限公司',     capacity: '23万顿', color: '#52b788' },
-                { name: '南方香料生物科技有限公司', capacity: '16万顿', color: '#95d5b2' },
-                { name: '河北广庆环保有限公司',     capacity: '10万顿', color: '#74c69d' }
+                { name: '广东明诚生物科技有限公司', capacity: '25万吨', color: '#1a5c35' },
+                { name: '玉林广京生物科技有限公司', capacity: '31万吨', color: '#2e8b57' },
+                { name: '广西冠宁生物有限公司',     capacity: '23万吨', color: '#52b788' },
+                { name: '南方香料生物科技有限公司', capacity: '16万吨', color: '#95d5b2' },
+                { name: '河北广庆环保有限公司',     capacity: '10万吨', color: '#74c69d' }
             ];
         },
 
@@ -407,6 +432,54 @@ export default {
         border-left: 8px solid transparent;
         content: '';
     }
+}
+
+/* 监测批次统计 */
+.analysis-stats {
+    padding: 10px 12px;
+    border: 1px solid rgba(198, 156, 109, 0.25);
+    border-radius: 6px;
+    background: rgba(4, 31, 29, 0.5);
+}
+
+.analysis-stats-title {
+    margin-bottom: 10px;
+    font-family: SourceHanSansCN-Medium, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(198, 156, 109, 0.7);
+    letter-spacing: 0.5px;
+}
+
+.analysis-stats-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.analysis-stat-item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.analysis-stat-value {
+    font-family: BebasNeueRegular, sans-serif;
+    font-size: 26px;
+    line-height: 1;
+    color: #c69c6d;
+}
+
+.analysis-stat-item--healthy .analysis-stat-value { color: #00c853; }
+.analysis-stat-item--pest .analysis-stat-value    { color: #ff1744; }
+
+.analysis-stat-label {
+    font-family: SourceHanSansCN-Medium, sans-serif;
+    font-size: 10px;
+    color: rgba(198, 156, 109, 0.65);
 }
 
 /* 左侧地块详情面板 */

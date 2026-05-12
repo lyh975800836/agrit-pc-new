@@ -189,6 +189,64 @@ async function getSpicePriceBajiao(options = {}) {
     });
 }
 
+/**
+ * 获取地块分析批次列表
+ * @param {Object} params - 筛选参数 (plot_id, factory_type, status, page, page_size)
+ * @param {Object} options - 请求配置
+ */
+function getAnalysisList(params = {}, options = {}) {
+    return request('/api/v2/plot-analysis/list', {
+        ...options,
+        method: 'POST',
+        // eslint-disable-next-line camelcase
+        body: JSON.stringify({ page: 1, page_size: 20, ...params })
+    });
+}
+
+/**
+ * 获取 wuda 批次概览（含批次专属底图信息）
+ * @param {string} plotId - 地块 ID
+ * @param {string} analysisId - 分析批次 ID
+ * @param {Object} options - 请求配置
+ */
+function getWudaSummary(plotId, analysisId, options = {}) {
+    return request('/api/v2/plot-analysis/wuda-summary', {
+        ...options,
+        method: 'POST',
+        // eslint-disable-next-line camelcase
+        body: JSON.stringify({ plot_id: String(plotId), analysis_id: String(analysisId) })
+    });
+}
+
+/**
+ * 按瓦片范围批量拉取树冠投影
+ * @param {Object} params - 请求参数 (plot_id, analysis_id, plot_tile_id, zoom, tile_range, source_layer)
+ * @param {Object} options - 请求配置
+ */
+function getWudaTileTrees(params, options = {}) {
+    return request('/api/v2/plot-analysis/wuda-tiles/trees', {
+        ...options,
+        method: 'POST',
+        body: JSON.stringify(params)
+    });
+}
+
+/**
+ * 获取单棵树详情及病虫害检测几何
+ * @param {string} plotId - 地块 ID
+ * @param {string} analysisId - 分析批次 ID
+ * @param {string} treeId - 树 ID
+ * @param {Object} options - 请求配置
+ */
+function getWudaTreeDetail(plotId, analysisId, treeId, options = {}) {
+    return request('/api/v2/plot-analysis/wuda-tree/detail', {
+        ...options,
+        method: 'POST',
+        // eslint-disable-next-line camelcase
+        body: JSON.stringify({ plot_id: String(plotId), analysis_id: String(analysisId), tree_id: String(treeId) })
+    });
+}
+
 export default {
     request,
     get,
@@ -198,5 +256,9 @@ export default {
     getPlotDetail,
     getFarmingList,
     getSpicePrice,
-    getSpicePriceBajiao
+    getSpicePriceBajiao,
+    getAnalysisList,
+    getWudaSummary,
+    getWudaTileTrees,
+    getWudaTreeDetail
 };

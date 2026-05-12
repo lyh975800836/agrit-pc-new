@@ -25,18 +25,23 @@ const CDN_BASE_URL = process.env.VUE_APP_TILE_CDN_URL || 'https://image.baiyanai
  * // 返回: https://image.baiyanai.cn/tiles/plot_1000_雷哥/default/GoogleMapsCompatible/4/5/3.png
  * getCDNTileUrl('plot_1000_雷哥', 'default', 'GoogleMapsCompatible', 4, 5, 3, 'png')
  */
-export function getCDNTileUrl(layer, style, tileMatrixSet, tileMatrix, row, col, format = 'png') {
+export function getCDNTileUrl(layer, style, tileMatrixSet, tileMatrix, row, col, format = 'png', pathPrefix = '') {
     // 参数验证
     if (!layer) {
         throw new Error('layer parameter is required');
     }
 
-    // 构建URL路径
-    // 格式: {baseUrl}/{tile_dir}/{style}/{tileMatrixSet}/{tileMatrix}/{row}/{col}.{format}
-    // tile_dir 为 "plot_XXXX" 纯 ASCII 格式，不需要编码
-    const url = `${ CDN_BASE_URL }/${ layer }/${ style }/${ tileMatrixSet }/${ tileMatrix }/${ row }/${ col }.${ format }`;
+    // 有 pathPrefix 时（测试环境 analysis_tile.tile_path_prefix = "test"）：
+    //   URL = {cdnHost}/{prefix}/tiles/{layer}/...
+    // 无 pathPrefix 时沿用原有格式（CDN_BASE_URL 末尾已含 /tiles）：
+    //   URL = {CDN_BASE_URL}/{layer}/...
+    if (pathPrefix) {
+        const sanitizedPrefix = pathPrefix.replace(/^\/+|\/+$/g, '');
+        const cdnHost = CDN_BASE_URL.replace(/\/tiles\/?$/, '');
+        return `${ cdnHost }/${ sanitizedPrefix }/tiles/${ layer }/${ style }/${ tileMatrixSet }/${ tileMatrix }/${ row }/${ col }.${ format }`;
+    }
 
-    return url;
+    return `${ CDN_BASE_URL }/${ layer }/${ style }/${ tileMatrixSet }/${ tileMatrix }/${ row }/${ col }.${ format }`;
 }
 
 /**

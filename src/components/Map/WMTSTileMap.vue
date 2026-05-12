@@ -1,7 +1,28 @@
 <template>
   <div class="tile-map-container">
+
+    <!-- 树木筛选控制栏（相对 tile-map-container 定位，不受 tile-grid 滚动影响） -->
+    <div v-if="analysisTile" class="map-controls" :class="{ 'map-controls--collapsed': filterCollapsed }">
+      <button class="filter-toggle" @click="filterCollapsed = !filterCollapsed">
+        <span class="filter-toggle-icon">{{ filterCollapsed ? '▼' : '▲' }}</span>
+      </button>
+      <template v-if="!filterCollapsed">
+        <button
+          v-for="f in treeFilterOptions"
+          :key="f.value"
+          class="filter-btn"
+          :class="{ 'filter-btn--active': treeFilter === f.value }"
+          @click="treeFilter = f.value"
+        >{{ f.label }}</button>
+        <div class="controls-divider"></div>
+        <button class="zoom-btn" :disabled="!canZoomOut" @click="zoomOut">−</button>
+        <span class="zoom-label">{{ zoomLabel }}</span>
+        <button class="zoom-btn" :disabled="!canZoomIn" @click="zoomIn">+</button>
+      </template>
+    </div>
+
     <div class="tile-grid" ref="tileGrid">
-      <div class="tile-grid-inner" :style="mapDimensions">
+      <div class="tile-grid-inner" :style="tileGridStyle">
         <template v-if="tileGridRows.length">
           <div
             v-for="(row, rowIndex) in tileGridRows"
@@ -34,6 +55,47 @@
               >
                 {{ getTileImageCount(tile.col, tile.row) }}
               </div>
+
+              <!-- 瓦片内树冠覆盖层（源像素坐标系，由 treeLayerStyle CSS scale 统一缩放） -->
+              <div
+                v-if="tileTreeData[`${tile.col}_${tile.row}`]"
+                class="tile-tree-layer"
+                :style="treeLayerStyle"
+              >
+                <!-- 有冠层多边形的树：每棵树一个独立 SVG，局部定位 -->
+                <svg
+                  v-for="(item, pi) in tileTreeData[`${tile.col}_${tile.row}`].polygons"
+                  :key="`poly-${item.tree.tree_id}-${pi}`"
+                  :width="item.svgW"
+                  :height="item.svgH"
+                  class="tile-tree-svg"
+                  :style="{
+                    left: item.svgX + 'px',
+                    top:  item.svgY + 'px',
+                  }"
+                  @click.stop="$emit('tree-click', item.tree)"
+                >
+                  <polygon
+                    v-for="(pts, ri) in item.pointsAttrs"
+                    :key="ri"
+                    :points="pts"
+                    fill="transparent"
+                    :stroke="item.color"
+                    :stroke-width="treeStrokeWidth"
+                    stroke-linejoin="round"
+                    class="tile-tree-polygon"
+                  />
+                </svg>
+
+                <!-- 无冠层几何的树：圆形 div 兜底，transform 定位 -->
+                <div
+                  v-for="item in tileTreeData[`${tile.col}_${tile.row}`].circles"
+                  :key="`circle-${item.tree.tree_id}`"
+                  class="tile-tree-circle"
+                  :style="item.style"
+                  @click.stop="$emit('tree-click', item.tree)"
+                />
+              </div>
             </div>
           </div>
         </template>
@@ -64,6 +126,15 @@ import apiClient from '@/services/apiClient';
 import { getCDNTileUrl, preloadTileImage } from '@/utils/tileUrlHelper';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
+const OVER_ZOOM_MAX  = 2; // 允许超过 maxZoomLevel 2 层（CSS scale 放大）
+const UNDER_ZOOM_MAX = 4; // 允许低于 maxZoomLevel 4 层（CSS scale 缩小）
+// 静态常量，不随组件状态变化
+const TREE_FILTER_OPTIONS = [
+    { label: '全部',   value: 'all'     },
+    { label: '病树',   value: 'pest'    },
+    { label: '健康',   value: 'healthy' },
+    { label: '疑似病', value: 'missing' }
+];
 
 // 瓦片加载模式配置
 // 'cdn' - 直接从CDN加载（推荐，性能更好）
@@ -79,6 +150,21 @@ export default {
         plotData: {
             type: Object,
             default: () => ({})
+        },
+        /** wuda-summary 返回的 analysis_tile 对象；有值时用批次专属底图替代 plot_tiles */
+        analysisTile: {
+            type: Object,
+            default: null
+        },
+        /** wuda-tiles/trees 返回的 tiles 数组，用于渲染树冠覆盖层 */
+        treeTiles: {
+            type: Array,
+            default: () => []
+        },
+        /** 源瓦片尺寸（来自 wuda-tiles/trees 响应的 source_tile_size），默认 512 */
+        sourceTileSize: {
+            type: Number,
+            default: 512
         }
     },
     data() {
@@ -104,7 +190,13 @@ export default {
             resizeObserver: null,
             // 从API获取的最大瓦片坐标（用于动态计算网格大小）
             maxTileX: null,
-            maxTileY: null
+            maxTileY: null,
+            // 缩放偏移量（相对于 effectiveMaxZoomLevel，0 = native size）
+            displayZoomOffset: 0,
+            // 树木筛选：'all' | 'pest' | 'healthy' | 'missing'
+            treeFilter: 'all',
+            filterCollapsed: false,
+            treeFilterOptions: TREE_FILTER_OPTIONS
         };
     },
     computed: {
@@ -131,6 +223,10 @@ export default {
             return name || null;
         },
         layerName() {
+            // 批次专属底图优先
+            if (this.analysisTile?.layer_name) {
+                return this.analysisTile.layer_name;
+            }
             // 优先使用 tile_dir（CDN 存储目录），其次 layer_name
             if (this.tileInfo?.tile_dir) {
                 return this.tileInfo.tile_dir;
@@ -141,8 +237,179 @@ export default {
             // 兜底：按约定格式构造（仅使用数字 ID，避免中文导致 CDN 404）
             return `plot_${ this.plotId }`;
         },
+        tilePathPrefix() {
+            return this.analysisTile?.tile_path_prefix || '';
+        },
         tileFormat() {
-            return this.tileInfo?.tile_format || 'png';
+            return this.analysisTile?.tile_format || this.tileInfo?.tile_format || 'png';
+        },
+
+        /** 有效最大缩放级别（来自批次底图或 plot_tiles） */
+        effectiveMaxZoomLevel() {
+            return this.analysisTile?.max_zoom_level ?? this.tileInfo?.max_zoom_level ?? this.zoomLevel;
+        },
+        /** 当前 CSS scale 值 */
+        displayScale() {
+            return Math.pow(2, this.displayZoomOffset);
+        },
+        canZoomIn() {
+            return this.displayZoomOffset < OVER_ZOOM_MAX;
+        },
+        canZoomOut() {
+            return this.displayZoomOffset > -UNDER_ZOOM_MAX;
+        },
+        zoomLabel() {
+            return Math.round(this.displayScale * 100) + '%';
+        },
+        /** CSS scale 因子：将源像素坐标系映射到显示像素 */
+        tileScale() {
+            return this.tileSizePx / this.sourceTileSize;
+        },
+
+        /** 线宽补偿值：源像素单位，保证显示坐标系下约 2.5px 宽
+         *  需同时除以 displayScale：treeLayerStyle 做一次 scale(tileScale)，
+         *  tileGridStyle 再做一次 scale(displayScale)，两者叠乘才是最终视觉宽度。
+         */
+        compensatedLineWidth() {
+            return Math.max(0.5, 2.5 / (this.tileScale * this.displayScale));
+        },
+
+        /** 树冠覆盖层样式：在源像素坐标系中绝对定位，统一 scale 缩放 */
+        treeLayerStyle() {
+            const sz = this.sourceTileSize + 'px';
+            return {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: sz,
+                height: sz,
+                transform: `scale(${this.tileScale})`,
+                transformOrigin: 'top left',
+                pointerEvents: 'none',  // 各子元素自行处理 pointer-events
+                '--tree-line-w': this.compensatedLineWidth  // 供子元素通过 CSS 变量读取
+            };
+        },
+
+        /** SVG 多边形 stroke-width（源像素单位） */
+        treeStrokeWidth() {
+            return this.compensatedLineWidth;
+        },
+
+        /**
+         * 每瓦片树冠渲染数据（源像素坐标系，不依赖 tileSizePx）
+         * 由 treeLayerStyle 的 CSS scale 统一换算到显示坐标
+         * 返回 { "${col}_${row}": { polygons: [...], circles: [...] } }
+         */
+        tileTreeData() {
+            if (!this.analysisTile || !this.treeTiles || !this.treeTiles.length) return {};
+
+            const at = this.analysisTile;
+            const pxPerLon = at.pixel_per_lon_degree;
+            const pxPerLat = at.pixel_per_lat_degree;
+            const srcPxPerTile = this.sourceTileSize;
+            // 在源像素坐标系计算（不依赖 tileSizePx），由 CSS transform: scale(tileScale) 统一缩放
+            const displayTileSize = srcPxPerTile;
+            // 地面分辨率（m/px）用于圆形半径计算
+            const metersPerSourcePx = pxPerLat > 0 ? 111320 / pxPerLat : 0;
+
+            const result = {};
+
+            for (const tile of this.treeTiles) {
+                const tileOriginX = tile.tile_x * srcPxPerTile;
+                const tileOriginY = tile.tile_y * srcPxPerTile;
+
+                // 经纬度 → 瓦片内局部像素坐标（源像素坐标系）
+                const lonLatToLocal = (lon, lat) => [
+                    (lon - at.min_lon) * pxPerLon - tileOriginX,
+                    (at.max_lat - lat) * pxPerLat - tileOriginY
+                ];
+
+                const polygons = [];
+                const circles  = [];
+
+                for (const tree of (tile.trees || [])) {
+                    // 筛选逻辑
+                    if (this.treeFilter === 'pest'    && !tree.pest) continue;
+                    if (this.treeFilter === 'healthy' &&  tree.pest) continue;
+                    if (this.treeFilter === 'missing' && !(tree.pest && !tree.has_detection_geometry)) continue;
+
+                    const color = tree.pest
+                        ? (tree.has_detection_geometry ? '#ff1744' : '#ff9100')
+                        : '#00c853';
+
+                    const rings = this.parseCrownRings(tree.crown_geometry_json);
+                    if (rings && rings.length) {
+                        // --- 多边形渲染 ---
+                        const localRings = rings.map(ring =>
+                            ring.map(([lon, lat]) => lonLatToLocal(lon, lat))
+                        );
+
+                        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                        localRings.forEach(ring => ring.forEach(([px, py]) => {
+                            if (px < minX) minX = px; if (py < minY) minY = py;
+                            if (px > maxX) maxX = px; if (py > maxY) maxY = py;
+                        }));
+
+                        const pad  = 1;
+                        const svgX = minX - pad;
+                        const svgY = minY - pad;
+                        const svgW = (maxX - minX) + pad * 2;
+                        const svgH = (maxY - minY) + pad * 2;
+
+                        // 完全在瓦片外则跳过
+                        if (svgX + svgW < 0 || svgY + svgH < 0 || svgX > displayTileSize || svgY > displayTileSize) continue;
+
+                        const pointsAttrs = localRings.map(ring =>
+                            ring.map(([px, py]) => `${(px - svgX).toFixed(2)},${(py - svgY).toFixed(2)}`).join(' ')
+                        );
+
+                        polygons.push({ tree, color, svgX, svgY, svgW, svgH, pointsAttrs });
+                    } else {
+                        // --- 圆形兜底 ---
+                        // pixel_x/pixel_y 已是瓦片内局部坐标（0 ~ sourceTileSize），直接使用
+                        const pointX = tree.pixel_x ?? 0;
+                        const pointY = tree.pixel_y ?? 0;
+
+                        // 用 tree_area（m²）推算冠幅半径（源像素单位），最小 6px 保证可点击
+                        let crownRadius = 6;
+                        if (tree.tree_area > 0 && metersPerSourcePx > 0) {
+                            const radiusM = Math.sqrt(tree.tree_area / Math.PI);
+                            crownRadius = Math.max(6, radiusM / metersPerSourcePx);
+                        }
+
+                        const sz = crownRadius * 2;
+                        // 避免超出瓦片边界
+                        const cl = Math.max(crownRadius, Math.min(displayTileSize - crownRadius, pointX));
+                        const ct = Math.max(crownRadius, Math.min(displayTileSize - crownRadius, pointY));
+
+                        circles.push({
+                            tree,
+                            style: {
+                                position: 'absolute',
+                                boxSizing: 'border-box',
+                                left: 0,
+                                top: 0,
+                                transform: `translate(${(cl - crownRadius).toFixed(1)}px, ${(ct - crownRadius).toFixed(1)}px)`,
+                                width: sz + 'px',
+                                height: sz + 'px',
+                                zIndex: 45,
+                                borderRadius: '50%',
+                                borderStyle: 'solid',
+                                borderColor: color,
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                pointerEvents: 'auto'
+                            }
+                        });
+                    }
+                }
+
+                if (polygons.length || circles.length) {
+                    result[`${tile.tile_x}_${tile.tile_y}`] = { polygons, circles };
+                }
+            }
+
+            return result;
         },
         tileSize() {
             return this.tileSizePx;
@@ -184,6 +451,14 @@ export default {
                 '--tile-size': sizeValue
             };
         },
+        tileGridStyle() {
+            return {
+                ...this.mapDimensions,
+                transform: `scale(${ this.displayScale })`,
+                transformOrigin: 'top left',
+                transition: 'transform 0.2s ease-out'
+            };
+        },
         visibleCols() {
             if (!this.$refs.tileGrid) {
                 return 12;
@@ -202,13 +477,19 @@ export default {
     watch: {
         plotData: {
             handler() {
-                this.loadMapData();
+                this.scheduleLoadMapData();
+            },
+            deep: true,
+            immediate: true
+        },
+        analysisTile: {
+            handler() {
+                this.scheduleLoadMapData();
             },
             deep: true
         }
     },
     mounted() {
-        this.loadMapData();
         window.addEventListener('resize', this.handleResize);
         this.$nextTick(() => {
             this.observeTileGrid();
@@ -217,6 +498,8 @@ export default {
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.handleResize);
+        clearTimeout(this._loadMapDataTimer);
+        clearTimeout(this._resizeDebouncTimer);
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
@@ -227,12 +510,18 @@ export default {
         }
     },
     methods: {
+        /** 防抖：plotData 和 analysisTile 同帧变化时只触发一次 loadMapData */
+        scheduleLoadMapData() {
+            clearTimeout(this._loadMapDataTimer);
+            this._loadMapDataTimer = setTimeout(() => {
+                this.loadMapData();
+            }, 0);
+        },
+
         async loadMapData() {
-            if (!this.plotId) {
+            if (!this.analysisTile && !this.plotId) {
                 return;
             }
-
-            this.resetTileState();
 
             // 取消之前的请求
             if (this.requestAbortController) {
@@ -241,19 +530,46 @@ export default {
             // 创建新的 AbortController
             this.requestAbortController = new AbortController();
 
+            // 同一地块切换分析批次时：保留旧瓦片图片以避免闪烁，允许新图覆盖
+            // 切换地块时：完全重置，防止显示上一个地块的内容
+            const sameplot = this._lastLoadedPlotId !== null && this._lastLoadedPlotId === String(this.plotId);
+            this._lastLoadedPlotId = String(this.plotId);
+            if (sameplot && this.analysisTile) {
+                // 软重置：只重置布局和元数据，保留 tileImages
+                this.tileInfo = null;
+                this.tileBounds = null;
+                this.tileGridRowsCache = [];
+                this.maxTileX = null;
+                this.maxTileY = null;
+                this.displayZoomOffset = 0;
+                this.treeFilter = 'all';
+                this.filterCollapsed = false;
+                this._forceReloadTiles = true;
+            } else {
+                this.resetTileState();
+                this._forceReloadTiles = false;
+            }
+
             const requestToken = Symbol('tile-load');
             this.currentRequestToken = requestToken;
 
             try {
                 this.tileLoading = true;
-                await this.loadTileInfo(requestToken);
-                if (this.currentRequestToken !== requestToken) {
-                    return;
+
+                if (this.analysisTile) {
+                    // 批次专属底图：直接用 analysis_tile 信息，跳过 plot-tiles 接口
+                    this.applyAnalysisTileInfo(this.analysisTile);
+                } else {
+                    await this.loadTileInfo(requestToken);
+                    if (this.currentRequestToken !== requestToken) {
+                        return;
+                    }
+                    await this.loadMarkers(requestToken);
+                    if (this.currentRequestToken !== requestToken) {
+                        return;
+                    }
                 }
-                await this.loadMarkers(requestToken);
-                if (this.currentRequestToken !== requestToken) {
-                    return;
-                }
+
                 this.buildTileGrid();
 
                 // 在后台加载瓦片，不阻塞主流程
@@ -279,6 +595,40 @@ export default {
             }
         },
 
+        /** 将 analysis_tile 对象应用为当前瓦片信息，跳过 plot-tiles 接口调用 */
+        applyAnalysisTileInfo(at) {
+            this.tileInfo = at;
+            this.zoomLevel = at.max_zoom_level;
+            this.maxTileX = at.max_tile_x;
+            this.maxTileY = at.max_tile_y;
+            this.tileBounds = {
+                minX: 0,
+                minY: 0,
+                maxX: at.max_tile_x,
+                maxY: at.max_tile_y
+            };
+        },
+
+        /** 解析 crown_geometry_json 为本地坐标环数组 */
+        parseCrownRings(geomJson) {
+            if (!geomJson) return null;
+            try {
+                const g = JSON.parse(geomJson);
+                if (g && g.type === 'Polygon' && Array.isArray(g.coordinates)) {
+                    return g.coordinates;
+                }
+                if (g && g.type === 'MultiPolygon' && Array.isArray(g.coordinates)) {
+                    return g.coordinates.reduce((acc, poly) => acc.concat(poly), []);
+                }
+            } catch (e) {
+                if (process.env.NODE_ENV !== 'production') {
+                    // eslint-disable-next-line no-console
+                    console.warn('[parseCrownRings] JSON parse failed', e);
+                }
+            }
+            return null;
+        },
+
         resetTileState() {
             this.tileImages = {};
             this.tileInfo = null;
@@ -286,6 +636,21 @@ export default {
             this.tileGridRowsCache = [];
             this.maxTileX = null;
             this.maxTileY = null;
+            this.displayZoomOffset = 0;
+            this.treeFilter = 'all';
+            this.filterCollapsed = false;
+        },
+
+        zoomIn() {
+            if (this.canZoomIn) {
+                this.displayZoomOffset = Math.min(OVER_ZOOM_MAX, this.displayZoomOffset + 1);
+            }
+        },
+
+        zoomOut() {
+            if (this.canZoomOut) {
+                this.displayZoomOffset = Math.max(-UNDER_ZOOM_MAX, this.displayZoomOffset - 1);
+            }
         },
 
         async loadTileInfo(requestToken) {
@@ -422,7 +787,8 @@ export default {
 
         async loadTileImage(tileCol, tileRow, requestToken) {
             const key = this.getTileKey(tileCol, tileRow);
-            if (this.tileImages[key]) {
+            // 软重置模式下强制重新加载，覆盖同地块旧瓦片；普通模式跳过已加载的
+            if (this.tileImages[key] && !this._forceReloadTiles) {
                 return;
             }
             await this.loadTileFromCDN(tileCol, tileRow, requestToken, key);
@@ -430,15 +796,16 @@ export default {
 
         async loadTileFromCDN(tileCol, tileRow, requestToken, key) {
             try {
-                // 生成CDN URL
+                // 生成CDN URL（analysis 瓦片需传 tile_path_prefix）
                 const tileUrl = getCDNTileUrl(
-                    this.layerName,          // tile_dir（CDN 存储目录）
+                    this.layerName,          // tile_dir / layer_name
                     'default',               // style
                     'GoogleMapsCompatible',  // tileMatrixSet
                     this.zoomLevel,          // tileMatrix（max_zoom_level）
                     tileRow,                 // row
                     tileCol,                 // col
-                    this.tileFormat          // tile_format from API
+                    this.tileFormat,         // tile_format from API
+                    this.tilePathPrefix      // analysis_tile.tile_path_prefix（测试环境为 "test"）
                 );
 
                 // 预加载图片
@@ -464,10 +831,6 @@ export default {
             }
         },
 
-
-        getZoomLimit(zoom) {
-            return (2 ** zoom) - 1;
-        },
 
         getTileKey(tileCol, tileRow) {
             return `${ tileCol }-${ tileRow }`;
@@ -503,7 +866,10 @@ export default {
         },
 
         handleResize() {
-            this.recalculateTileSize();
+            clearTimeout(this._resizeDebouncTimer);
+            this._resizeDebouncTimer = setTimeout(() => {
+                this.recalculateTileSize();
+            }, 80);
         },
 
         // 瓦片图片管理相关方法
@@ -558,7 +924,11 @@ export default {
                 this.resizeObserver.disconnect();
             }
             this.resizeObserver = new ResizeObserver(() => {
-                this.recalculateTileSize();
+                // 防抖：避免 ResizeObserver 连续触发导致 tileTreeData 级联重算
+                clearTimeout(this._resizeDebouncTimer);
+                this._resizeDebouncTimer = setTimeout(() => {
+                    this.recalculateTileSize();
+                }, 80);
             });
             this.resizeObserver.observe(container);
         },
@@ -596,8 +966,7 @@ export default {
 
 <style scoped>
 .tile-map-container {
-    display: flex;
-    flex-direction: column;
+    position: relative;
     width: 100%;
     height: 100%;
     font-family: "Helvetica Neue", Arial, sans-serif;
@@ -608,7 +977,6 @@ export default {
 .tile-grid {
     position: relative;
     overflow: auto;
-    flex: 1;
     width: 100%;
     height: 100%;
 
@@ -618,8 +986,8 @@ export default {
 .tile-grid-inner {
     position: relative;
     display: inline-block;
+    /* 不设 min-height: 100%，避免缩小时布局盒子撑满容器导致空白区域 */
     min-width: min-content;
-    min-height: 100%;
 }
 
 .tile-row {
@@ -658,6 +1026,147 @@ export default {
     color: #ff6b6b;
 }
 
+/* 筛选控制栏 — 绝对定位居中，悬浮在瓦片格顶部，不受左右面板遮挡影响 */
+.map-controls {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    padding: 3px 6px;
+    border: 1px solid rgba(198, 156, 109, 0.3);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.65);
+    gap: 6px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
+}
+
+/* 展开/收起触发按钮 */
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.filter-toggle-icon {
+    font-size: 9px;
+    color: rgba(198, 156, 109, 0.8);
+    transition: color 0.15s;
+}
+
+.filter-toggle:hover .filter-toggle-icon {
+    color: #c69c6d;
+}
+
+.filter-btn {
+    padding: 2px 10px;
+    border: 1px solid rgba(198, 156, 109, 0.4);
+    border-radius: 3px;
+    font-size: 11px;
+    color: rgba(198, 156, 109, 0.7);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: #c69c6d;
+        color: #c69c6d;
+    }
+}
+
+.filter-btn--active {
+    border-color: #c69c6d;
+    color: #0d2a28;
+    background: #c69c6d;
+}
+
+/* 筛选区与缩放区之间的分隔线 */
+.controls-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(198, 156, 109, 0.3);
+}
+
+.zoom-btn {
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(198, 156, 109, 0.4);
+    border-radius: 3px;
+    font-size: 16px;
+    line-height: 1;
+    color: #c69c6d;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover:not(:disabled) {
+        border-color: #c69c6d;
+        background: rgba(198, 156, 109, 0.15);
+    }
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+}
+
+.zoom-label {
+    font-size: 11px;
+    color: rgba(198, 156, 109, 0.7);
+    min-width: 36px;
+    text-align: center;
+}
+
+/* 树冠覆盖层容器：源像素坐标系，CSS scale 统一缩放 */
+.tile-tree-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none; /* 各子元素自行处理 */
+}
+
+/* 瓦片内树冠 SVG（每棵树独立定位，局部坐标） */
+.tile-tree-svg {
+    position: absolute;
+    overflow: visible;
+    cursor: pointer;
+    pointer-events: all; /* SVG bbox 即点击区域，无需依赖 polygon 冒泡 */
+    z-index: 45;
+}
+
+.tile-tree-polygon {
+    transition: stroke-width 0.15s ease;
+
+    &:hover {
+        stroke-width: calc(var(--tree-line-w, 3) * 1.6);
+    }
+}
+
+/* 圆形兜底（无冠层几何）*/
+.tile-tree-circle {
+    position: absolute;
+    box-sizing: border-box;
+    z-index: 45;
+    /* border-width 由 --tree-line-w CSS 变量（来自 treeLayerStyle）控制，补偿 CSS scale 压缩 */
+    border-width: calc(var(--tree-line-w, 3) * 1px);
+    pointer-events: auto;
+    transition: border-width 0.15s ease;
+
+    &:hover {
+        border-width: calc(var(--tree-line-w, 3) * 1.6px) !important;
+    }
+}
+
 /* 瓦片图片数量徽章样式 */
 .tile-image-count {
     position: absolute;
@@ -685,409 +1194,4 @@ export default {
     filter: drop-shadow(0 4px 10px #ff47578c);
 }
 
-/* 瓦片图片管理弹窗样式 */
-.tile-image-modal {
-    position: relative;
-    display: flex;
-    overflow: hidden;
-    flex-direction: column;
-    box-sizing: border-box;
-    width: 50%;
-    max-width: 92vw;
-    max-height: 88vh;
-    padding: 26px 12px 32px;
-    border: 1px solid #4cfcea40;
-
-    color: #c7b299;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #102838f2 0%, #081c24f2 100%);
-    box-shadow: 0 18px 46px #000000b8;
-
-    gap: 20px;
-}
-
-.tile-image-modal .modal-body {
-    display: flex;
-    overflow-x: hidden;
-    overflow-y: auto;
-    flex: 1;
-    flex-direction: column;
-    max-height: calc(88vh - 120px);
-
-    gap: 20px;
-    scrollbar-width: none;
-}
-
-.tile-image-modal .modal-body::-webkit-scrollbar {
-    display: none;
-}
-
-/* 通用按钮样式 */
-.btn {
-    padding: 8px 16px;
-    border: none;
-    font-size: 14px;
-
-    border-radius: 4px;
-    transition: all .2s;
-    cursor: pointer;
-}
-
-.btn-primary {
-    color: #fff;
-    background: #667eea;
-}
-
-.btn-primary:hover {
-    background: #5568d3;
-}
-
-/* 模态框基础样式 */
-.modal-overlay {
-    position: fixed;
-    z-index: 1000;
-    top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-
-    background: #00000080;
-}
-
-.modal-content {
-    border-radius: 12px;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 42px 14px 24px;
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-family: SourceHanSansCN-Medium, sans-serif;
-    font-size: 20px;
-    font-weight: 500;
-
-    color: #c7b299;
-}
-
-.close-btn {
-    position: absolute;
-    top: 18px;
-    right: 22px;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: 1px solid #c7b29973;
-    font-size: 18px;
-    line-height: 26px;
-    text-align: center;
-
-    color: #c7b299;
-    border-radius: 50%;
-    background: #081c24a6;
-    transition: transform .2s ease, background .2s ease;
-    cursor: pointer;
-}
-
-.close-btn:hover {
-    background: #c7b2992e;
-    transform: scale(1.05);
-}
-
-/* 预览视图样式 */
-.preview-view {
-    display: flex;
-    flex-direction: column;
-
-    border-radius: 12px;
-    background: #0c26368c;
-
-    gap: 18px;
-}
-
-.preview-navigation {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 300px;
-    max-height: 52vh;
-}
-
-.preview-image-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-
-    border-radius: 12px;
-}
-
-.preview-image-container img {
-    width: 100%;
-    height: 100%;
-
-    border-radius: 8px;
-    box-shadow: 0 10px 24px #00000073;
-    cursor: zoom-in;
-}
-
-.preview-navigation .nav-prev {
-    left: 12px;
-}
-
-.preview-navigation .nav-next {
-    right: 12px;
-}
-
-.fullscreen-image-overlay {
-    position: fixed;
-    z-index: 1500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-
-    background: #040c121a;
-
-    backdrop-filter: blur(2px);
-    inset: 0;
-}
-
-.fullscreen-image-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    max-width: 100%;
-
-    gap: 28px;
-}
-
-.fullscreen-image-overlay img {
-    max-width: 88vw;
-    max-height: 88vh;
-
-    border-radius: 12px;
-    box-shadow: 0 18px 48px #0009;
-    cursor: zoom-out;
-
-    object-fit: contain;
-}
-
-.fullscreen-nav-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 56px;
-    height: 56px;
-    border: 1px solid #c7b29973;
-    font-size: 26px;
-    line-height: 1;
-
-    color: #c7b299;
-    border-radius: 50%;
-    background: #081c24b3;
-    transition: transform .2s ease, background .2s ease;
-    cursor: pointer;
-}
-
-.fullscreen-nav-btn:disabled {
-    opacity: .35;
-    cursor: not-allowed;
-}
-
-.fullscreen-nav-btn:hover:not(:disabled) {
-    background: #c7b29933;
-    transform: scale(1.08);
-}
-
-.fullscreen-nav-btn:active:not(:disabled) {
-    transform: scale(.95);
-}
-
-.fullscreen-nav-prev,
-.fullscreen-nav-next {
-    flex-shrink: 0;
-}
-
-.fullscreen-close-btn {
-    position: absolute;
-    top: 26px;
-    right: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 1px solid #c7b29973;
-    font-size: 24px;
-    line-height: 1;
-
-    color: #c7b299;
-    border-radius: 50%;
-    background: #081c24b3;
-    transition: transform .2s ease, background .2s ease;
-    cursor: pointer;
-}
-
-.fullscreen-close-btn:hover {
-    background: #c7b29933;
-    transform: scale(1.05);
-}
-
-.fullscreen-close-btn:active {
-    transform: scale(.92);
-}
-
-.nav-btn {
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    border: 1px solid #c7b29959;
-    font-size: 20px;
-
-    color: #c7b299;
-    border-radius: 50%;
-    background: #081c24a6;
-    cursor: pointer;
-}
-
-.nav-btn:disabled {
-    opacity: .35;
-    cursor: not-allowed;
-}
-
-.preview-navigation .nav-btn {
-    position: absolute;
-    z-index: 10;
-    top: 50%;
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    border: 1px solid #c7b29959;
-    font-size: 20px;
-
-    color: #c7b299;
-    border-radius: 50%;
-    background: #081c24a6;
-    transform: translateY(-50%);
-    cursor: pointer;
-}
-
-.preview-actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 6px;
-}
-
-.btn-secondary {
-    padding: 8px 24px;
-    border: 1px solid #c7b29959;
-
-    color: #c7b299;
-    border-radius: 6px;
-    background: #081c24a6;
-    transition: background .2s ease, transform .2s ease;
-}
-
-.btn-secondary:hover {
-    background: #c7b2992e;
-    transform: translateY(-1px);
-}
-
-/* 农事建议样式 */
-.farming-suggestion {
-    position: relative;
-    margin-top: 14px;
-    padding: 24px 32px;
-
-    color: #c7b299;
-    border-radius: 18px;
-    background-color: #081c24a6;
-    background-image: url("/public/images/ai-advice.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 100% 100%;
-}
-
-.suggestion-header {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 12px;
-
-    color: #c7b299;
-}
-
-.suggestion-title {
-    position: absolute;
-    top: 10px;
-    left: 1.5vw;
-    display: flex;
-    flex-direction: column;
-    font-size: 38px;
-    line-height: 1.1;
-    text-align: center;
-}
-
-.suggestion-title span {
-    display: inline-block;
-    white-space: nowrap;
-}
-
-.suggestion-title span + span {
-    margin-top: 6px;
-}
-
-.suggestion-content {
-    padding-left: 9vw;
-    line-height: 1.8;
-}
-
-.suggestion-content p {
-    margin: 6px 0;
-    padding-left: 4px;
-    font-size: 18px;
-    color: #c7b299;
-}
-
-.suggestion-content p:first-child {
-    margin-top: 0;
-}
-
-.suggestion-content p:last-child {
-    margin-bottom: 0;
-}
-
-.suggestion-back {
-    position: absolute;
-    top: 50%;
-    right: 20px;
-    width: 160px;
-    height: 50px;
-    font-weight: 600;
-    line-height: 50px;
-    text-align: center;
-
-    color: #d8af87;
-    border-radius: 14px;
-    background-image: url("/public/images/back-list.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 100% 100%;
-    text-shadow: 0 1px 1px #ffffff59;
-    transform: translate(0, -40%);
-    cursor: pointer;
-}
 </style>
