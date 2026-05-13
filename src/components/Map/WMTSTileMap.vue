@@ -21,7 +21,14 @@
       </template>
     </div>
 
-    <div class="tile-grid" ref="tileGrid">
+    <div
+      class="tile-grid"
+      ref="tileGrid"
+      @pointerdown="onPanStart"
+      @pointermove="onPanMove"
+      @pointerup="onPanEnd"
+      @pointercancel="onPanEnd"
+    >
       <div class="tile-grid-inner" :style="tileGridStyle">
         <template v-if="tileGridRows.length">
           <div
@@ -196,7 +203,13 @@ export default {
             // 树木筛选：'all' | 'pest' | 'healthy' | 'missing'
             treeFilter: 'all',
             filterCollapsed: false,
-            treeFilterOptions: TREE_FILTER_OPTIONS
+            treeFilterOptions: TREE_FILTER_OPTIONS,
+            // 拖拽平移状态
+            panActive: false,
+            panStartX: 0,
+            panStartY: 0,
+            panScrollLeft: 0,
+            panScrollTop: 0
         };
     },
     computed: {
@@ -261,17 +274,14 @@ export default {
         zoomLabel() {
             return Math.round(this.displayScale * 100) + '%';
         },
-        /** CSS scale 因子：将源像素坐标系映射到显示像素 */
+        /** 源像素坐标系 → 显示像素的 scale 因子（已含 zoom） */
         tileScale() {
-            return this.tileSizePx / this.sourceTileSize;
+            return this.tileSize / this.sourceTileSize;
         },
 
-        /** 线宽补偿值：源像素单位，保证显示坐标系下约 2.5px 宽
-         *  需同时除以 displayScale：treeLayerStyle 做一次 scale(tileScale)，
-         *  tileGridStyle 再做一次 scale(displayScale)，两者叠乘才是最终视觉宽度。
-         */
+        /** 线宽补偿值：源像素单位，保证视觉宽度约 2.5px（tileScale 已含 zoom 因子） */
         compensatedLineWidth() {
-            return Math.max(0.5, 2.5 / (this.tileScale * this.displayScale));
+            return Math.max(0.5, 2.5 / this.tileScale);
         },
 
         /** 树冠覆盖层样式：在源像素坐标系中绝对定位，统一 scale 缩放 */
@@ -411,8 +421,9 @@ export default {
 
             return result;
         },
+        /** 显示尺寸 = 基础尺寸 × zoom 倍数，物理撑大 grid，使 overflow:auto 产生真正的可滚动溢出 */
         tileSize() {
-            return this.tileSizePx;
+            return this.tileSizePx * this.displayScale;
         },
         tileGridRows() {
             return this.tileGridRowsCache;
@@ -454,9 +465,7 @@ export default {
         tileGridStyle() {
             return {
                 ...this.mapDimensions,
-                transform: `scale(${ this.displayScale })`,
-                transformOrigin: 'top left',
-                transition: 'transform 0.2s ease-out'
+                transition: 'width 0.2s ease-out, height 0.2s ease-out'
             };
         },
         visibleCols() {
@@ -510,6 +519,44 @@ export default {
         }
     },
     methods: {
+        // ---- 拖拽平移（pointer drag to pan） ----
+        onPanStart(e) {
+            // 只响应主键（鼠标左键 / 单指触摸）；忽略发生在交互子元素上的点击
+            if (e.button !== undefined && e.button !== 0) return;
+            if (e.target.closest('.tile-image-count, .filter-btn, .zoom-btn, .filter-toggle, .tile-tree-polygon, .tile-tree-circle')) return;
+
+            const el = this.$refs.tileGrid;
+            if (!el) return;
+
+            this.panActive = true;
+            this.panStartX = e.clientX;
+            this.panStartY = e.clientY;
+            this.panScrollLeft = el.scrollLeft;
+            this.panScrollTop = el.scrollTop;
+            el.setPointerCapture(e.pointerId);
+            el.style.cursor = 'grabbing';
+        },
+
+        onPanMove(e) {
+            if (!this.panActive) return;
+            const el = this.$refs.tileGrid;
+            if (!el) return;
+
+            const dx = e.clientX - this.panStartX;
+            const dy = e.clientY - this.panStartY;
+            el.scrollLeft = this.panScrollLeft - dx;
+            el.scrollTop  = this.panScrollTop  - dy;
+        },
+
+        onPanEnd(e) {
+            if (!this.panActive) return;
+            this.panActive = false;
+            const el = this.$refs.tileGrid;
+            if (!el) return;
+            el.releasePointerCapture(e.pointerId);
+            el.style.cursor = '';
+        },
+
         /** 防抖：plotData 和 analysisTile 同帧变化时只触发一次 loadMapData */
         scheduleLoadMapData() {
             clearTimeout(this._loadMapDataTimer);
@@ -979,6 +1026,7 @@ export default {
     overflow: auto;
     width: 100%;
     height: 100%;
+    cursor: grab;
 
     background: transparent;
 }
