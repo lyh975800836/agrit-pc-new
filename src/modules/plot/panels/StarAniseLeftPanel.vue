@@ -194,9 +194,8 @@ export default {
 
         techServiceItems() {
             return [
-                { name: '南方香料生物科技有限公司', jin: 48,  yield: 1200 },
-                { name: '广西冠宁生物有限公司',     jin: 36,  yield: 980  },
-                { name: '玉林广京生物科技有限公司', jin: 62,  yield: 1560 }
+                { name: '百色市右江区仕德劳务服务部', jin: 48,  yield: 1200 },
+                { name: '百色市顺达农林科技有限公司',     jin: 36,  yield: 980  },
             ];
         },
 
