@@ -50,6 +50,14 @@ export default {
             type: Object,
             default: null
         },
+        clickableRegions: {
+            type: Boolean,
+            default: true
+        },
+        regionStats: {
+            type: Object,
+            default: () => ({})
+        },
     },
     data() {
         return {
@@ -110,6 +118,14 @@ export default {
         selectedRegion() {
             this.updateSelectedRegion();
         },
+        regionStats: {
+            handler() {
+                if (this.map && this.regions.length > 0) {
+                    this.loadMapData();
+                }
+            },
+            deep: true
+        },
         markers() {
             this.updateMarkers();
         },
@@ -147,9 +163,7 @@ export default {
 
                 // 加载业务数据（区域边界、农田图像等）
                 this.loadingText = '准备加载区域数据...';
-                setTimeout(() => {
-                    this.loadMapData();
-                }, 300);
+                this.loadMapData();
 
             }
             catch (error) {
@@ -199,9 +213,7 @@ export default {
                 this.fitMapToBaise();
 
                 this.loadingText = '地图加载完成';
-                setTimeout(() => {
-                    this.isLoading = false;
-                }, 500);
+                this.isLoading = false;
 
             }
             catch (error) {
@@ -257,12 +269,11 @@ export default {
                     layer.addTo(this.map);
                     this.regionLayers.push(layer);
 
-                    // 为有三级地块的区县添加圆点标记
-                    if (this.hasThirdLevelPlots(region)) {
-                        const bounds = L.geoJSON(region).getBounds();
-                        const center = bounds.getCenter();
+                    // 接口聚合数量已在区县标签中展示，避免和历史圆点标记重叠
+                    if (this.shouldShowLegacyThirdLevelDot(region)) {
+                        const center = this.getRegionLabelLatLng(region);
 
-                        const dotMarker = L.circleMarker([center.lat, center.lng], {
+                        const dotMarker = L.circleMarker(center, {
                             radius: 8,
                             fillColor: '#FFD700',
                             color: '#FFD700',
@@ -422,21 +433,22 @@ export default {
         autoGenerateLabels() {
             this.regions.forEach(region => {
                 try {
-                    const bounds = L.geoJSON(region).getBounds();
-                    const center = bounds.getCenter();
+                    const center = this.getRegionLabelLatLng(region);
                     const hasProjects = this.hasProjects(region);
+                    const plotCount = this.getRegionPlotCount(region);
 
 
                     const labelIcon = L.divIcon({
                         className: 'baise-auto-label',
                         html: `<div class="auto-label-content ${ hasProjects ? 'has-projects' : 'no-projects' }">
-              ${ region.properties.name }
+              <span>${ region.properties.name }</span>
+              ${ plotCount > 0 ? `<strong>${ plotCount }</strong>` : '' }
             </div>`,
                         iconSize: [100, 20],
                         iconAnchor: [50, 10]
                     });
 
-                    const labelMarker = L.marker([center.lat, center.lng], {
+                    const labelMarker = L.marker(center, {
                         icon: labelIcon,
                         interactive: false,
                         zIndexOffset: 1800
@@ -450,6 +462,96 @@ export default {
                     console.error('自动生成标签失败:', region.properties.name, error);
                 }
             });
+        },
+
+        getRegionLabelLatLng(region) {
+            const labelPoint = region?.properties?.centroid || region?.properties?.center;
+
+            if (Array.isArray(labelPoint) && labelPoint.length >= 2) {
+                return [labelPoint[1], labelPoint[0]];
+            }
+
+            const geometryPoint = this.calculateGeometryCentroid(region?.geometry);
+            if (geometryPoint) {
+                return [geometryPoint[1], geometryPoint[0]];
+            }
+
+            const bounds = L.geoJSON(region).getBounds();
+            const center = bounds.getCenter();
+            return [center.lat, center.lng];
+        },
+
+        calculateGeometryCentroid(geometry) {
+            if (!geometry?.coordinates) {
+                return null;
+            }
+
+            if (geometry.type === 'Polygon') {
+                return this.calculatePolygonCentroid(geometry.coordinates);
+            }
+
+            if (geometry.type === 'MultiPolygon') {
+                let largestPolygon = null;
+                let largestArea = 0;
+
+                geometry.coordinates.forEach(polygon => {
+                    const area = Math.abs(this.calculateRingArea(polygon[0]));
+                    if (area > largestArea) {
+                        largestArea = area;
+                        largestPolygon = polygon;
+                    }
+                });
+
+                return largestPolygon ? this.calculatePolygonCentroid(largestPolygon) : null;
+            }
+
+            return null;
+        },
+
+        calculatePolygonCentroid(polygon) {
+            const ring = polygon?.[0];
+
+            if (!Array.isArray(ring) || ring.length < 3) {
+                return null;
+            }
+
+            let twiceArea = 0;
+            let centroidX = 0;
+            let centroidY = 0;
+
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+                const [x0, y0] = ring[j];
+                const [x1, y1] = ring[i];
+                const factor = x0 * y1 - x1 * y0;
+
+                twiceArea += factor;
+                centroidX += (x0 + x1) * factor;
+                centroidY += (y0 + y1) * factor;
+            }
+
+            if (Math.abs(twiceArea) < 1e-10) {
+                return null;
+            }
+
+            return [
+                centroidX / (3 * twiceArea),
+                centroidY / (3 * twiceArea)
+            ];
+        },
+
+        calculateRingArea(ring) {
+            if (!Array.isArray(ring) || ring.length < 3) {
+                return 0;
+            }
+
+            let area = 0;
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+                const [x0, y0] = ring[j];
+                const [x1, y1] = ring[i];
+                area += x0 * y1 - x1 * y0;
+            }
+
+            return area / 2;
         },
 
         // 调整地图视图到百色市范围
@@ -532,8 +634,13 @@ export default {
 
         // 处理区域点击
         handleRegionClick(region, event) {
+            if (!this.clickableRegions) {
+                return;
+            }
+
             const rawName = region?.properties?.name;
             const regionName = rawName ? rawName.trim() : '';
+            const regionAdcode = String(region?.properties?.adcode || '');
 
             if (!regionName) {
                 // eslint-disable-next-line no-console
@@ -541,7 +648,12 @@ export default {
                 return;
             }
 
-            // 只允许百色市下辖的区/县/市进入详情
+            const regionStats = this.regionStats[regionAdcode] || this.regionStats[regionName];
+            if (!regionStats || regionStats.count <= 0) {
+                return;
+            }
+
+            // 只允许行政区县节点进入详情，业务开放与否由 regionStats 决定
             const allowedSuffix = /(区|县|市)$/;
             if (!allowedSuffix.test(regionName)) {
                 return;
@@ -567,11 +679,30 @@ export default {
         // 判断区域是否有项目
         hasProjects(region) {
             const regionName = region.properties.name;
-            return this.projectRegions.includes(regionName);
+            return this.getRegionPlotCount(region) > 0 || this.projectRegions.includes(regionName);
+        },
+
+        hasDynamicRegionStats() {
+            return Object.keys(this.regionStats || {}).length > 0;
+        },
+
+        getRegionPlotCount(region) {
+            const properties = region?.properties || {};
+            const adcode = String(properties.adcode || '');
+            const stats = this.regionStats[adcode] || this.regionStats[properties.name];
+            return Number(stats?.count || 0);
+        },
+
+        shouldShowLegacyThirdLevelDot(region) {
+            return !this.hasDynamicRegionStats() && this.hasThirdLevelPlots(region);
         },
 
         // 判断区域是否有三级地块
         hasThirdLevelPlots(region) {
+            if (this.getRegionPlotCount(region) > 0) {
+                return true;
+            }
+
             const regionName = region.properties.name;
 
             // 动态检测：如果加载了coordinateData，则根据实际数据判断
@@ -580,9 +711,7 @@ export default {
                 return plotsByRegion[regionName] && plotsByRegion[regionName].length > 0;
             }
 
-            // 静态fallback：已知包含三级地块的区县
-            const regionsWithPlots = ['右江区', '田林县'];
-            return regionsWithPlots.includes(regionName);
+            return false;
         },
 
         // 根据地块名称推断所属区县

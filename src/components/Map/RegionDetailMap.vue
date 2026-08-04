@@ -42,6 +42,10 @@ import { REGION_DETAIL_MAP_CONFIG, LOADING_CONFIG, TILE_PROVIDERS } from '@/conf
 import regionCoordinates from '@/config/regionCoordinates.json';
 import apiClient from '@/services/apiClient';
 import MapServiceManager from '@/services/map/MapServiceManager';
+import {
+    filterPlotsByFeature,
+    getPlotListPageInfo
+} from '@/utils/adminRegionAggregator';
 import MapLoadingOverlay from '@/components/Map/MapLoadingOverlay.vue';
 import CategorySidebar from '@/components/Dialogs/CategorySidebar.vue';
 import CategoryPopup from '@/components/Dialogs/CategoryPopup.vue';
@@ -53,6 +57,18 @@ export default {
         regionName: {
             type: String,
             required: true
+        },
+        cityName: {
+            type: String,
+            default: '百色市'
+        },
+        cityAdcode: {
+            type: [String, Number],
+            default: '451000'
+        },
+        regionAdcode: {
+            type: [String, Number],
+            default: ''
         }
     },
     components: {
@@ -112,6 +128,11 @@ export default {
     watch: {
         regionName(newRegionName, oldRegionName) {
             if (newRegionName !== oldRegionName && newRegionName) {
+                this.reinitializeForNewRegion();
+            }
+        },
+        cityAdcode(newCityAdcode, oldCityAdcode) {
+            if (newCityAdcode !== oldCityAdcode && this.regionName) {
                 this.reinitializeForNewRegion();
             }
         }
@@ -210,19 +231,17 @@ export default {
         async loadRegionData() {
             try {
                 // 防重复加载同一个区域
-                if (this.currentLoadedRegion === this.regionName) {
+                const loadKey = `${ this.cityAdcode || '' }-${ this.regionAdcode || '' }-${ this.regionName }`;
+                if (this.currentLoadedRegion === loadKey) {
                     this.isLoading = false;
                     return;
                 }
 
                 this.loadingText = '正在加载区域数据...';
-                this.currentLoadedRegion = this.regionName;
+                this.currentLoadedRegion = loadKey;
 
                 // 获取区域轮廓数据
-                const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json');
-                const baiseData = baiseDataImport.default || baiseDataImport;
-                const regionFeature = baiseData.features.find(feature =>
-                    feature.properties.name === this.regionName);
+                const regionFeature = await this.loadRegionFeature();
 
                 if (!regionFeature) {
                     console.warn('未找到区域轮廓数据:', this.regionName);
@@ -231,7 +250,15 @@ export default {
                 }
 
                 // 获取地块标记数据
-                const tilesData = await apiClient.getPlotsList();
+                const plots = await this.fetchAllPlotsForRegion();
+                const regionPlots = filterPlotsByFeature(plots, regionFeature);
+                const tilesData = {
+                    code: 0,
+                    data: {
+                        list: regionPlots,
+                        total: regionPlots.length
+                    }
+                };
 
                 // 使用服务管理器加载所有数据
                 await this.mapServiceManager.loadRegionData(
@@ -269,6 +296,64 @@ export default {
             }
         },
 
+        async loadRegionFeature() {
+            const cityAdcode = String(this.cityAdcode || '');
+            let cityData = null;
+
+            if (cityAdcode) {
+                try {
+                    const cityDataImport = await import(`@/assets/mapdata/guangxi-cities/${ cityAdcode }.json`);
+                    cityData = cityDataImport.default || cityDataImport;
+                }
+                catch (error) {
+                    console.warn('加载地市区县边界失败，尝试百色兜底:', cityAdcode, error);
+                }
+            }
+
+            if (!cityData?.features?.length) {
+                const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json');
+                cityData = baiseDataImport.default || baiseDataImport;
+            }
+
+            const regionAdcode = String(this.regionAdcode || '');
+            return cityData.features.find(feature => {
+                const featureAdcode = String(feature.properties?.adcode || '');
+                return (regionAdcode && featureAdcode === regionAdcode)
+                    || feature.properties?.name === this.regionName;
+            });
+        },
+
+        async fetchAllPlotsForRegion() {
+            const pageSize = 100;
+            const maxPages = 50;
+            const plots = [];
+
+            for (let page = 1; page <= maxPages; page += 1) {
+                const response = await apiClient.getPlotsList({
+                    page,
+                    // eslint-disable-next-line camelcase
+                    page_size: pageSize
+                });
+                const { list, total } = getPlotListPageInfo(response);
+
+                plots.push(...list);
+
+                if (!list.length) {
+                    break;
+                }
+
+                if (total !== null && plots.length >= total) {
+                    break;
+                }
+
+                if (total === null && list.length < pageSize) {
+                    break;
+                }
+            }
+
+            return plots;
+        },
+
 
 
 
@@ -296,7 +381,10 @@ export default {
                 const targetName = popupDataSnapshot.routeTarget || popupDataSnapshot.name;
                 const query = {
                     region: this.regionName,
-                    plotName: popupDataSnapshot.name
+                    plotName: popupDataSnapshot.name,
+                    cityName: this.cityName,
+                    cityAdcode: this.cityAdcode,
+                    regionAdcode: this.regionAdcode
                 };
 
                 // 根据后端 property_category_code 决定 type 参数
@@ -368,6 +456,8 @@ export default {
                 query: {
                     type: 'factory',
                     region: '右江区',
+                    cityName: this.cityName,
+                    cityAdcode: this.cityAdcode,
                     category: this.selectedCategory.type
                 }
             });

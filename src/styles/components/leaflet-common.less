@@ -166,6 +166,10 @@
 
 .label-content,
 .auto-label-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 0;
   border: none;
   font-size: 12px;
@@ -178,6 +182,22 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   transition: none;
   backdrop-filter: none;
+}
+
+.label-content strong,
+.auto-label-content strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 16px;
+  color: #09201d;
+  background: var(--map-gold);
+  text-shadow: none;
 }
 
 /* 统一所有标签样式为纯文字 */

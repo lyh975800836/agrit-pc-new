@@ -8,7 +8,7 @@
  * @param {string|Object} locationInfo
  * @returns {{ center: [number, number], leafletPolygon: Array }|null}
  */
-function parseLocationInfo(locationInfo) {
+export function parseLocationInfo(locationInfo) {
     if (!locationInfo) return null;
 
     let geojson;

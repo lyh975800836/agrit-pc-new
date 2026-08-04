@@ -215,6 +215,24 @@ export const BAISE_MAP_CONFIG = {
     wheelPxPerZoomLevel: 60
 };
 
+// 广西一级地图专用配置
+export const GUANGXI_MAP_CONFIG = {
+    center: [23.8, 108.8],
+    zoom: 7,
+    minZoom: 6,
+    maxZoom: 10,
+    fitZoom: 7,
+    fitPadding: [30, 30],
+    zoomControl: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    dragging: true,
+    attributionControl: false,
+    preferCanvas: true,
+    zoomSnap: 0.5,
+    wheelPxPerZoomLevel: 60
+};
+
 // 区域详情地图专用配置
 export const REGION_DETAIL_MAP_CONFIG = {
     // 缩放级别配置

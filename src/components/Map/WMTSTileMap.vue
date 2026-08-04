@@ -135,6 +135,7 @@ import { getCDNTileUrl, preloadTileImage } from '@/utils/tileUrlHelper';
 const TILE_PLACEHOLDER_ERROR = '加载失败';
 const OVER_ZOOM_MAX  = 2; // 允许超过 maxZoomLevel 2 层（CSS scale 放大）
 const UNDER_ZOOM_MAX = 4; // 允许低于 maxZoomLevel 4 层（CSS scale 缩小）
+const TILE_LOAD_CONCURRENCY = 12;
 // 静态常量，不随组件状态变化
 const TREE_FILTER_OPTIONS = [
     { label: '全部',   value: 'all'     },
@@ -163,6 +164,11 @@ export default {
             type: Object,
             default: null
         },
+        /** 父组件已经解析好的基础 plot_tiles 信息；传入后本组件不再重复请求 getTileInfo */
+        baseTileInfo: {
+            type: Object,
+            default: null
+        },
         /** wuda-tiles/trees 返回的 tiles 数组，用于渲染树冠覆盖层 */
         treeTiles: {
             type: Array,
@@ -185,6 +191,11 @@ export default {
             tileGridRowsCache: [],
             tileLoading: false,
             tilePlaceholderError: TILE_PLACEHOLDER_ERROR,
+            tileLoadSummary: {
+                total: 0,
+                loaded: 0,
+                failed: 0
+            },
             currentRequestToken: null,
             // 请求取消控制器 - 用于在组件销毁时取消所有待处理的请求
             requestAbortController: null,
@@ -220,10 +231,13 @@ export default {
             // 1. 如果已经是数字ID，直接返回
             if (normalizedId !== undefined && normalizedId !== null) {
                 if (typeof normalizedId === 'number') {
-                    return normalizedId;
+                    return normalizedId > 0 ? normalizedId : null;
+                }
+                if (typeof normalizedId === 'string' && !normalizedId) {
+                    return null;
                 }
                 const numericId = Number(normalizedId);
-                if (Number.isFinite(numericId)) {
+                if (Number.isFinite(numericId) && numericId > 0) {
                     return numericId;
                 }
             }
@@ -236,19 +250,19 @@ export default {
             return name || null;
         },
         layerName() {
-            // 批次专属底图优先
+            if (this.analysisTile?.tile_dir) {
+                return this.analysisTile.tile_dir;
+            }
             if (this.analysisTile?.layer_name) {
                 return this.analysisTile.layer_name;
             }
-            // 优先使用 tile_dir（CDN 存储目录），其次 layer_name
             if (this.tileInfo?.tile_dir) {
                 return this.tileInfo.tile_dir;
             }
             if (this.tileInfo?.layer_name) {
                 return this.tileInfo.layer_name;
             }
-            // 兜底：按约定格式构造（仅使用数字 ID，避免中文导致 CDN 404）
-            return `plot_${ this.plotId }`;
+            return this.plotId ? `plot_${ this.plotId }` : null;
         },
         tilePathPrefix() {
             return this.analysisTile?.tile_path_prefix || '';
@@ -496,6 +510,27 @@ export default {
                 this.scheduleLoadMapData();
             },
             deep: true
+        },
+        baseTileInfo: {
+            handler() {
+                this.scheduleLoadMapData();
+            },
+            deep: true
+        },
+        treeTiles: {
+            handler(newTiles) {
+                if (!Array.isArray(newTiles) || !newTiles.length) {
+                    return;
+                }
+                this.$nextTick(() => {
+                    const treeBounds = this.getTreeTileBounds();
+                    if (treeBounds) {
+                        this.centerTileGridOnBounds(treeBounds, 'tree-tiles');
+                    }
+                    this.loadPriorityTreeTiles();
+                });
+            },
+            deep: true
         }
     },
     mounted() {
@@ -567,15 +602,22 @@ export default {
 
         async loadMapData() {
             if (!this.analysisTile && !this.plotId) {
+                this.debugMap('缺少有效 plot_id，跳过瓦片接口', {
+                    plotName: this.plotData?.name || '',
+                    rawId: this.plotData?.id || '',
+                    region: this.plotData?.district
+                });
                 return;
             }
 
-            // 取消之前的请求
-            if (this.requestAbortController) {
-                this.requestAbortController.abort();
-            }
+            const requestToken = Symbol('tile-load');
+            const previousAbortController = this.requestAbortController;
+            this.currentRequestToken = requestToken;
             // 创建新的 AbortController
             this.requestAbortController = new AbortController();
+            if (previousAbortController) {
+                previousAbortController.abort();
+            }
 
             // 同一地块切换分析批次时：保留旧瓦片图片以避免闪烁，允许新图覆盖
             // 切换地块时：完全重置，防止显示上一个地块的内容
@@ -591,21 +633,33 @@ export default {
                 this.displayZoomOffset = 0;
                 this.treeFilter = 'all';
                 this.filterCollapsed = false;
+                this.resetTileLoadSummary();
                 this._forceReloadTiles = true;
             } else {
                 this.resetTileState();
                 this._forceReloadTiles = false;
             }
 
-            const requestToken = Symbol('tile-load');
-            this.currentRequestToken = requestToken;
-
             try {
                 this.tileLoading = true;
+                this.debugMap('开始加载地图瓦片', {
+                    plotId: this.plotId,
+                    source: this.analysisTile ? 'analysis_tile' : (this.baseTileInfo ? 'base_tile_info' : 'plot_tiles_api'),
+                    analysisLayerName: this.analysisTile?.layer_name,
+                    analysisTileDir: this.analysisTile?.tile_dir,
+                    baseLayerName: this.baseTileInfo?.layer_name,
+                    baseTileDir: this.baseTileInfo?.tile_dir
+                });
 
                 if (this.analysisTile) {
                     // 批次专属底图：直接用 analysis_tile 信息，跳过 plot-tiles 接口
                     this.applyAnalysisTileInfo(this.analysisTile);
+                } else if (this.baseTileInfo) {
+                    this.applyBaseTileInfo(this.baseTileInfo);
+                    await this.loadMarkers(requestToken);
+                    if (this.currentRequestToken !== requestToken) {
+                        return;
+                    }
                 } else {
                     await this.loadTileInfo(requestToken);
                     if (this.currentRequestToken !== requestToken) {
@@ -618,6 +672,16 @@ export default {
                 }
 
                 this.buildTileGrid();
+                this.debugMap('瓦片网格已构建', {
+                    plotId: this.plotId,
+                    layerName: this.layerName,
+                    zoomLevel: this.zoomLevel,
+                    tileBounds: this.tileBounds,
+                    rows: this.tileGridRowsCache.length,
+                    cols: this.tileGridRowsCache[0]?.length || 0,
+                    tilePathPrefix: this.tilePathPrefix || ''
+                });
+                this.centerTileGridOnBounds(this.getTreeTileBounds() || this.tileBounds, 'initial');
 
                 // 在后台加载瓦片，不阻塞主流程
                 this.loadAllTiles(requestToken).then(() => {
@@ -645,15 +709,45 @@ export default {
         /** 将 analysis_tile 对象应用为当前瓦片信息，跳过 plot-tiles 接口调用 */
         applyAnalysisTileInfo(at) {
             this.tileInfo = at;
-            this.zoomLevel = at.max_zoom_level;
-            this.maxTileX = at.max_tile_x;
-            this.maxTileY = at.max_tile_y;
+            const maxZoom = Number(at.max_zoom_level);
+            const maxTileX = Number(at.max_tile_x);
+            const maxTileY = Number(at.max_tile_y);
+            if (Number.isFinite(maxZoom)) {
+                this.zoomLevel = maxZoom;
+            }
+            this.maxTileX = Number.isFinite(maxTileX) ? maxTileX : null;
+            this.maxTileY = Number.isFinite(maxTileY) ? maxTileY : null;
             this.tileBounds = {
                 minX: 0,
                 minY: 0,
-                maxX: at.max_tile_x,
-                maxY: at.max_tile_y
+                maxX: this.maxTileX || 0,
+                maxY: this.maxTileY || 0
             };
+        },
+
+        applyBaseTileInfo(tileInfo) {
+            this.tileInfo = tileInfo;
+            const maxZoom = Number(tileInfo.max_zoom_level);
+            if (Number.isFinite(maxZoom)) {
+                this.zoomLevel = maxZoom;
+            }
+
+            const maxTileX = Number(tileInfo.max_tile_x);
+            const maxTileY = Number(tileInfo.max_tile_y);
+            if (Number.isFinite(maxTileX)) {
+                this.maxTileX = maxTileX;
+            }
+            if (Number.isFinite(maxTileY)) {
+                this.maxTileY = maxTileY;
+            }
+            if (Number.isFinite(maxTileX) && Number.isFinite(maxTileY)) {
+                this.tileBounds = {
+                    minX: 0,
+                    minY: 0,
+                    maxX: maxTileX,
+                    maxY: maxTileY
+                };
+            }
         },
 
         /** 解析 crown_geometry_json 为本地坐标环数组 */
@@ -686,6 +780,7 @@ export default {
             this.displayZoomOffset = 0;
             this.treeFilter = 'all';
             this.filterCollapsed = false;
+            this.resetTileLoadSummary();
         },
 
         zoomIn() {
@@ -828,14 +923,138 @@ export default {
                 return;
             }
 
-            const tasks = coordinates.map(tile => this.loadTileImage(tile.col, tile.row, requestToken));
-            await Promise.all(tasks);
+            const orderedCoordinates = this.getPrioritizedTileCoordinates(coordinates);
+            this.beginTileLoadRun(orderedCoordinates);
+            await this.runTileTasksWithConcurrency(orderedCoordinates, requestToken);
+            if (this.currentRequestToken === requestToken) {
+                this.debugMap('瓦片加载汇总', {
+                    plotId: this.plotId,
+                    layerName: this.layerName,
+                    zoomLevel: this.zoomLevel,
+                    ...this.tileLoadSummary
+                });
+            }
+        },
+
+        getPrioritizedTileCoordinates(coordinates) {
+            const treeBounds = this.getTreeTileBounds();
+            const targetBounds = treeBounds || this.tileBounds;
+            if (!targetBounds) {
+                return coordinates;
+            }
+
+            const centerX = (targetBounds.minX + targetBounds.maxX) / 2;
+            const centerY = (targetBounds.minY + targetBounds.maxY) / 2;
+            const treeKeys = new Set(this.getTreeTileCoordinates().map(tile => this.getTileKey(tile.col, tile.row)));
+
+            return [...coordinates].sort((a, b) => {
+                const aHasTree = treeKeys.has(a.key) ? 0 : 1;
+                const bHasTree = treeKeys.has(b.key) ? 0 : 1;
+                if (aHasTree !== bHasTree) {
+                    return aHasTree - bHasTree;
+                }
+
+                const aDistance = Math.abs(a.col - centerX) + Math.abs(a.row - centerY);
+                const bDistance = Math.abs(b.col - centerX) + Math.abs(b.row - centerY);
+                return aDistance - bDistance;
+            });
+        },
+
+        getTreeTileCoordinates() {
+            if (!Array.isArray(this.treeTiles) || !this.treeTiles.length) {
+                return [];
+            }
+
+            const seen = new Set();
+            const coordinates = [];
+            this.treeTiles.forEach(tile => {
+                const col = Number(tile?.tile_x);
+                const row = Number(tile?.tile_y);
+                if (!Number.isFinite(col) || !Number.isFinite(row)) {
+                    return;
+                }
+
+                const key = this.getTileKey(col, row);
+                if (seen.has(key)) {
+                    return;
+                }
+                seen.add(key);
+                coordinates.push({ key, col, row });
+            });
+            return coordinates;
+        },
+
+        getTreeTileBounds() {
+            const coordinates = this.getTreeTileCoordinates();
+            if (!coordinates.length) {
+                return null;
+            }
+
+            return coordinates.reduce((bounds, tile) => ({
+                minX: Math.min(bounds.minX, tile.col),
+                minY: Math.min(bounds.minY, tile.row),
+                maxX: Math.max(bounds.maxX, tile.col),
+                maxY: Math.max(bounds.maxY, tile.row)
+            }), {
+                minX: Infinity,
+                minY: Infinity,
+                maxX: -Infinity,
+                maxY: -Infinity
+            });
+        },
+
+        centerTileGridOnBounds(bounds, reason) {
+            if (!bounds) {
+                return;
+            }
+
+            this.$nextTick(() => {
+                const container = this.$refs.tileGrid;
+                if (!container) {
+                    return;
+                }
+
+                const centerX = (bounds.minX + bounds.maxX + 1) / 2 * this.tileSize;
+                const centerY = (bounds.minY + bounds.maxY + 1) / 2 * this.tileSize;
+                container.scrollLeft = Math.max(0, centerX - container.clientWidth / 2);
+                container.scrollTop = Math.max(0, centerY - container.clientHeight / 2);
+                this.debugMap('地图视图已定位到有效区域', {
+                    plotId: this.plotId,
+                    reason,
+                    bounds,
+                    scrollLeft: container.scrollLeft,
+                    scrollTop: container.scrollTop
+                });
+            });
+        },
+
+        loadPriorityTreeTiles() {
+            if (!this.currentRequestToken) {
+                return;
+            }
+
+            const coordinates = this.getPrioritizedTileCoordinates(this.getTreeTileCoordinates());
+            if (!coordinates.length) {
+                return;
+            }
+
+            const requestToken = this.currentRequestToken;
+            this.debugMap('优先加载树冠所在瓦片', {
+                plotId: this.plotId,
+                count: coordinates.length,
+                bounds: this.getTreeTileBounds()
+            });
+            this.runTileTasksWithConcurrency(coordinates, requestToken).catch(error => {
+                // eslint-disable-next-line no-console
+                console.warn('[WMTSTileMap] 优先瓦片加载失败', error);
+            });
         },
 
         async loadTileImage(tileCol, tileRow, requestToken) {
             const key = this.getTileKey(tileCol, tileRow);
             // 软重置模式下强制重新加载，覆盖同地块旧瓦片；普通模式跳过已加载的
-            if (this.tileImages[key] && !this._forceReloadTiles) {
+            if (this.hasTileImage(key) && !this._forceReloadTiles) {
+                this.setTileRunState(key, 'loaded');
                 return;
             }
             await this.loadTileFromCDN(tileCol, tileRow, requestToken, key);
@@ -843,17 +1062,20 @@ export default {
 
         async loadTileFromCDN(tileCol, tileRow, requestToken, key) {
             try {
-                // 生成CDN URL（analysis 瓦片需传 tile_path_prefix）
-                const tileUrl = getCDNTileUrl(
-                    this.layerName,          // tile_dir / layer_name
-                    'default',               // style
-                    'GoogleMapsCompatible',  // tileMatrixSet
-                    this.zoomLevel,          // tileMatrix（max_zoom_level）
-                    tileRow,                 // row
-                    tileCol,                 // col
-                    this.tileFormat,         // tile_format from API
-                    this.tilePathPrefix      // analysis_tile.tile_path_prefix（测试环境为 "test"）
-                );
+                if (!this.layerName) {
+                    this.$set(this.tileImages, key, 'error');
+                    this.setTileRunState(key, 'failed');
+                    return;
+                }
+
+                const tileUrl = this.buildTileUrl(this.layerName, tileCol, tileRow);
+                if (!this._firstTileUrlLogged) {
+                    this._firstTileUrlLogged = true;
+                    this.debugMap('瓦片 URL 样例', {
+                        plotId: this.plotId,
+                        url: tileUrl
+                    });
+                }
 
                 // 预加载图片
                 await preloadTileImage(tileUrl, this.requestAbortController?.signal);
@@ -864,6 +1086,7 @@ export default {
 
                 // 直接使用URL（浏览器会缓存）
                 this.$set(this.tileImages, key, tileUrl);
+                this.setTileRunState(key, 'loaded');
             }
             catch (error) {
                 // 如果请求被取消，不输出错误日志
@@ -874,10 +1097,88 @@ export default {
                 console.error(`从CDN获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
                 if (this.currentRequestToken === requestToken) {
                     this.$set(this.tileImages, key, 'error');
+                    this.setTileRunState(key, 'failed');
                 }
             }
         },
 
+        beginTileLoadRun(coordinates) {
+            this._tileLoadRunStates = {};
+            coordinates.forEach(tile => {
+                this._tileLoadRunStates[tile.key] = null;
+            });
+            this.tileLoadSummary = {
+                total: coordinates.length,
+                loaded: 0,
+                failed: 0
+            };
+            this._firstTileUrlLogged = false;
+        },
+
+        resetTileLoadSummary() {
+            this._tileLoadRunStates = {};
+            this.tileLoadSummary = {
+                total: 0,
+                loaded: 0,
+                failed: 0
+            };
+            this._firstTileUrlLogged = false;
+        },
+
+        async runTileTasksWithConcurrency(coordinates, requestToken) {
+            let cursor = 0;
+            const worker = async () => {
+                while (cursor < coordinates.length && this.currentRequestToken === requestToken) {
+                    const tile = coordinates[cursor];
+                    cursor += 1;
+                    await this.loadTileImage(tile.col, tile.row, requestToken);
+                }
+            };
+
+            const workers = Array.from(
+                { length: Math.min(TILE_LOAD_CONCURRENCY, coordinates.length) },
+                () => worker()
+            );
+            await Promise.all(workers);
+        },
+
+        setTileRunState(key, nextState) {
+            if (!this._tileLoadRunStates || !Object.prototype.hasOwnProperty.call(this._tileLoadRunStates, key)) {
+                return;
+            }
+
+            const previousState = this._tileLoadRunStates[key];
+            if (previousState === nextState) {
+                return;
+            }
+            if (previousState === 'loaded') {
+                this.tileLoadSummary.loaded = Math.max(0, this.tileLoadSummary.loaded - 1);
+            }
+            if (previousState === 'failed') {
+                this.tileLoadSummary.failed = Math.max(0, this.tileLoadSummary.failed - 1);
+            }
+
+            this._tileLoadRunStates[key] = nextState;
+            if (nextState === 'loaded') {
+                this.tileLoadSummary.loaded += 1;
+            }
+            if (nextState === 'failed') {
+                this.tileLoadSummary.failed += 1;
+            }
+        },
+
+        buildTileUrl(layerName, tileCol, tileRow) {
+            return getCDNTileUrl(
+                layerName,               // tile_dir / layer_name
+                'default',               // style
+                'GoogleMapsCompatible',  // tileMatrixSet
+                this.zoomLevel,          // tileMatrix（max_zoom_level）
+                tileRow,                 // row
+                tileCol,                 // col
+                this.tileFormat,         // tile_format from API
+                this.tilePathPrefix      // analysis_tile.tile_path_prefix（测试环境为 "test"）
+            );
+        },
 
         getTileKey(tileCol, tileRow) {
             return `${ tileCol }-${ tileRow }`;
@@ -910,6 +1211,14 @@ export default {
                 tileCount: Object.keys(this.tileImages).length,
                 declaredTileCount: this.tileInfo?.tile_count || null
             });
+        },
+
+        debugMap(message, payload = {}) {
+            if (process.env.NODE_ENV === 'production') {
+                return;
+            }
+            // eslint-disable-next-line no-console
+            console.info(`[WMTSTileMap] ${ message }`, payload);
         },
 
         handleResize() {
@@ -1049,7 +1358,7 @@ export default {
     width: var(--tile-size, 120px);
     height: var(--tile-size, 120px);
 
-    background: #000;
+    background: transparent;
 }
 
 .tile-content {
@@ -1066,7 +1375,7 @@ export default {
     width: 100%;
     height: 100%;
 
-    background: #0a0a0a;
+    background: rgba(10, 20, 32, .22);
 }
 
 .tile-placeholder span {

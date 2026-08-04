@@ -11,12 +11,17 @@
     :page-title="regionName + '详情'"
     :full-screen-map="true"
     :show-bottom-nav="true"
+    :breadcrumb-items="breadcrumbItems"
     @back="goBack"
+    @breadcrumb-click="handleBreadcrumbClick"
   >
     <template #center-map>
       <RegionDetailMap
-        :key="`detail-map-${regionName}`"
+        :key="`detail-map-${cityAdcode}-${regionAdcode}-${regionName}`"
         :region-name="regionName"
+        :city-name="cityName"
+        :city-adcode="cityAdcode"
+        :region-adcode="regionAdcode"
       />
     </template>
 
@@ -39,10 +44,30 @@ export default {
         const { user: _user, ...rest } = sharedDashboardData;
         return {
             regionName: this.$route.params.region || '右江区',
+            cityName: this.$route.query.cityName || '百色市',
+            cityAdcode: this.$route.query.cityAdcode || '451000',
+            regionAdcode: this.$route.query.regionAdcode || '',
             ...rest
         };
     },
     computed: {
+        cityDashboardRoute() {
+            return {
+                name: 'Dashboard',
+                query: {
+                    level: 'city',
+                    cityName: this.cityName,
+                    cityAdcode: String(this.cityAdcode)
+                }
+            };
+        },
+        breadcrumbItems() {
+            return [
+                { name: '广西', route: { name: 'Dashboard' } },
+                { name: this.cityName.replace(/市$/, ''), route: this.cityDashboardRoute },
+                { name: this.regionName, path: this.$route.path, current: true }
+            ];
+        },
         user() {
             try {
                 const raw = localStorage.getItem('user_info');
@@ -87,6 +112,9 @@ export default {
             if (to.params.region) {
                 this.regionName = to.params.region;
             }
+            this.cityName = to.query.cityName || '百色市';
+            this.cityAdcode = to.query.cityAdcode || '451000';
+            this.regionAdcode = to.query.regionAdcode || '';
         }
     },
     beforeDestroy() {
@@ -96,7 +124,13 @@ export default {
     },
     methods: {
         goBack() {
-            this.$router.push('/');
+            this.$router.push(this.cityDashboardRoute).catch(() => {});
+        },
+        handleBreadcrumbClick(item) {
+            const target = item.route || item.path;
+            if (target) {
+                this.$router.push(target).catch(() => {});
+            }
         }
     }
 };

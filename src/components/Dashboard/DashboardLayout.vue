@@ -66,6 +66,7 @@
           <BreadcrumbNavigation
             :region-name="regionName"
             :show-bottom-nav="showBottomNav"
+            :breadcrumb-items="breadcrumbItems"
             @back="handleBackClick"
             @breadcrumb-click="handleBreadcrumbClick"
           />
@@ -174,6 +175,10 @@ export default {
             type: Boolean,
             default: false
         },
+        breadcrumbItems: {
+            type: Array,
+            default: null
+        },
         selectedFarmingItem: {
             type: Object,
             default: null
@@ -265,11 +270,15 @@ export default {
             this.$emit('back');
         },
         handleBreadcrumbClick(item) {
-            if (!item.current && item.path) {
+            const target = item.route || item.path;
+            if (!item.current && target) {
                 this.$emit('breadcrumb-click', item);
                 // 如果没有外部处理，则使用路由跳转
-                if (this.$router) {
-                    this.$router.push(item.path);
+                if (this.$router && typeof target === 'string' && target.startsWith('/')) {
+                    this.$router.push(target).catch(() => {});
+                }
+                else if (this.$router && typeof target === 'object') {
+                    this.$router.push(target).catch(() => {});
                 }
             }
         },

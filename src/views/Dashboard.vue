@@ -6,21 +6,37 @@
     :statistics-data="statisticsData"
     :ranking-data="rankingData"
     :quality-data="qualityData"
-    :region-name="'百色市'"
-    :show-back-button="false"
-    :page-title="'数据驾驶舱'"
+    :region-name="currentRegionName"
+    :show-back-button="showMapBackButton"
+    :page-title="currentPageTitle"
+    :show-bottom-nav="true"
+    :breadcrumb-items="mapBreadcrumbItems"
     :selected-farming-item="selectedFarmingItem"
     :full-screen-map="true"
+    @back="handleMapBack"
+    @breadcrumb-click="handleMapBreadcrumbClick"
     @farming-item-click="handleFarmingItemClick"
   >
     <template #center-map>
-      <!-- 使用Leaflet地图 - 解决SVG边界显示问题 -->
+      <MapViewGuangxi
+        v-if="currentMapLevel === 'guangxi'"
+        :map-data="guangxiMapData"
+        :selected-city="selectedCity"
+        :project-cities="currentProjectCities"
+        :city-stats="cityPlotStats"
+        :plot-loading="plotListLoading"
+        @city-click="handleCityClick"
+      />
+
       <MapViewBaise
-        :map-data="mapData"
+        v-else
+        :map-data="cityMapData"
         :markers="mapMarkers"
         :labels="mapLabels"
         :selected-region="selectedRegion"
-        :project-regions="projectRegions"
+        :project-regions="currentCityProjectRegions"
+        :region-stats="currentDistrictPlotStats"
+        :clickable-regions="canCurrentCityOpenDetail"
         @region-click="handleRegionClick"
       />
     </template>
@@ -28,17 +44,64 @@
 </template>
 
 <script>
-import MapViewBaise from '@/components/Map/MapViewBaise.vue';
+import MapViewGuangxi from '@/components/Map/MapViewGuangxi.vue';
 import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
 import { sharedDashboardData } from '@/config/dashboardData';
+import apiClient from '@/services/apiClient';
+import {
+    aggregatePlotsByFeatures,
+    getPlotListPageInfo
+} from '@/utils/adminRegionAggregator';
 
 export default {
     name: 'Dashboard',
     components: {
-        MapViewBaise,
+        MapViewBaise: () => import('@/components/Map/MapViewBaise.vue'),
+        MapViewGuangxi,
         DashboardLayout
     },
     computed: {
+        currentRegionName() {
+            return this.currentMapLevel === 'guangxi' ? '广西壮族自治区' : this.currentCityName;
+        },
+        currentPageTitle() {
+            return this.currentMapLevel === 'guangxi' ? '广西总览图' : `${ this.currentCityName }总览图`;
+        },
+        showMapBackButton() {
+            return this.currentMapLevel === 'city';
+        },
+        mapBreadcrumbItems() {
+            if (this.currentMapLevel === 'guangxi') {
+                return [
+                    { name: '广西', path: 'map:guangxi', current: true }
+                ];
+            }
+
+            return [
+                { name: '广西', path: 'map:guangxi' },
+                { name: this.currentCityShortName, path: 'map:city', current: true }
+            ];
+        },
+        currentCityShortName() {
+            return this.currentCityName.replace(/市$/, '');
+        },
+        currentCityProjectRegions() {
+            const regionNames = Object.values(this.currentDistrictPlotStats)
+                .filter(item => item.count > 0)
+                .map(item => item.name);
+
+            return regionNames;
+        },
+        currentProjectCities() {
+            const cityNames = Object.values(this.cityPlotStats)
+                .filter(item => item.count > 0)
+                .map(item => item.name);
+
+            return cityNames;
+        },
+        canCurrentCityOpenDetail() {
+            return Object.values(this.currentDistrictPlotStats).some(item => item.count > 0);
+        },
         user() {
             try {
                 const raw = localStorage.getItem('user_info');
@@ -58,13 +121,21 @@ export default {
             ...rest,
 
             // 地图相关数据
-            mapData: null,
+            currentMapLevel: 'guangxi',
+            guangxiMapData: null,
+            cityMapData: null,
+            selectedCity: null,
+            currentCityName: '',
+            currentCityAdcode: null,
+            allPlots: [],
+            cityPlotStats: {},
+            currentDistrictPlotStats: {},
+            plotListLoading: false,
+            plotListLoaded: false,
+            plotListLoadError: null,
             selectedRegion: null,
             mapMarkers: [],
             mapLabels: [],
-
-            // 有项目的区县列表（基于百色市实际区县）
-            projectRegions: ['右江区', '田阳区', '田东县', '德保县', '那坡县', '凌云县', '乐业县', '田林县'],
 
             // 农事项目数据
             farmingItems: [
@@ -105,83 +176,274 @@ export default {
         };
     },
     async mounted() {
-    // 加载地图数据
-        await this.loadMapData();
+        // 加载地图数据
+        await this.loadGuangxiMapData();
+        await this.applyRouteMapState(this.$route);
+        this.loadPlotListForMap();
+    },
+    watch: {
+        '$route.query'() {
+            if (this.$route.name === 'Dashboard') {
+                this.applyRouteMapState(this.$route);
+            }
+        }
     },
     methods: {
-    // 加载地图数据 - 使用最新的高精度区县GeoJSON文件
-        async loadMapData() {
-            try {
-                // 加载最新的百色市区县GeoJSON文件
-                const baiseDataImport = await import('@/assets/mapdata/baise-districts-final.json');
-                const baiseData = baiseDataImport.default || baiseDataImport;
+        findCityFeatureByAdcode(adcode) {
+            const normalizedAdcode = String(adcode || '');
+            return (this.guangxiMapData?.features || []).find(feature =>
+                String(feature.properties?.adcode || '') === normalizedAdcode
+            );
+        },
 
-                if (!baiseData || !baiseData.features) {
-                    throw new Error('无法读取百色市地图数据文件');
+        async applyRouteMapState(route) {
+            const query = route?.query || {};
+            const level = query.level || query.mapLevel;
+            const cityAdcode = query.cityAdcode;
+            const cityFeature = this.findCityFeatureByAdcode(cityAdcode);
+            const cityName = query.cityName || cityFeature?.properties?.name;
+
+            if ((level === 'city' || cityAdcode) && cityName && cityAdcode) {
+                await this.openCityMap(cityName, cityAdcode);
+                return;
+            }
+
+            this.currentMapLevel = 'guangxi';
+            this.selectedCity = null;
+            this.selectedRegion = null;
+            this.currentCityName = '';
+            this.currentCityAdcode = null;
+            this.currentDistrictPlotStats = {};
+        },
+
+        getCityMapRoute(cityName, cityAdcode) {
+            return {
+                name: 'Dashboard',
+                query: {
+                    level: 'city',
+                    cityName,
+                    cityAdcode: String(cityAdcode)
+                }
+            };
+        },
+
+        pushMapRoute(route) {
+            return this.$router.push(route).catch(error => {
+                if (error?.name !== 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
+        },
+
+        async openCityMap(cityName, cityAdcode) {
+            const normalizedAdcode = String(cityAdcode);
+
+            if (!cityName || !normalizedAdcode) {
+                return;
+            }
+
+            const shouldResetMap = this.currentCityAdcode !== normalizedAdcode
+                || this.currentMapLevel !== 'city';
+
+            this.selectedCity = cityName;
+            this.currentCityName = cityName;
+            this.currentMapLevel = 'city';
+
+            if (shouldResetMap) {
+                this.cityMapData = {
+                    type: 'FeatureCollection',
+                    features: []
+                };
+                this.currentDistrictPlotStats = {};
+            }
+
+            await this.loadCityMapData(normalizedAdcode);
+        },
+
+        // 加载广西一级地图数据
+        async loadGuangxiMapData() {
+            try {
+                const guangxiDataImport = await import('@/assets/mapdata/guangxi-cities.json');
+                const guangxiData = guangxiDataImport.default || guangxiDataImport;
+
+                if (!guangxiData || !guangxiData.features) {
+                    throw new Error('无法读取广西地图数据文件');
                 }
 
-
-                // 直接使用高精度区县数据
-                this.mapData = baiseData;
+                this.guangxiMapData = guangxiData;
+                this.refreshCityPlotStats();
 
             }
             catch (error) {
-                console.error('加载地图数据失败:', error);
+                console.error('加载广西地图数据失败:', error);
 
-                // 创建一个空的地图数据作为fallback
-                this.mapData = {
+                this.guangxiMapData = {
                     type: 'FeatureCollection',
                     features: []
                 };
             }
         },
 
-        // 计算几何图形的中心点
-        calculateCenter(coordinates) {
-            let totalX = 0; let totalY = 0; let pointCount = 0;
+        async loadPlotListForMap() {
+            if (this.plotListLoading) {
+                return;
+            }
 
-            const processCoordinates = coords => {
-                if (Array.isArray(coords[0][0])) {
-                    // MultiPolygon 或 Polygon with holes
-                    coords.forEach(ring => {
-                        if (Array.isArray(ring[0][0])) {
-                            ring.forEach(processCoordinates);
-                        }
-                        else {
-                            ring.forEach(point => {
-                                totalX += point[0];
-                                totalY += point[1];
-                                pointCount++;
-                            });
-                        }
-                    });
+            this.plotListLoading = true;
+            this.plotListLoadError = null;
+
+            try {
+                const plots = await this.fetchAllPlotsForMap();
+                this.allPlots = plots;
+                this.plotListLoaded = true;
+                this.refreshCityPlotStats();
+                this.refreshCurrentDistrictPlotStats();
+            }
+            catch (error) {
+                console.error('加载地图地块列表失败:', error);
+                this.plotListLoadError = error;
+            }
+            finally {
+                this.plotListLoading = false;
+            }
+        },
+
+        async fetchAllPlotsForMap() {
+            const pageSize = 100;
+            const maxPages = 50;
+            const plots = [];
+
+            for (let page = 1; page <= maxPages; page += 1) {
+                const response = await apiClient.getPlotsList({
+                    page,
+                    // eslint-disable-next-line camelcase
+                    page_size: pageSize
+                });
+                const { list, total } = getPlotListPageInfo(response);
+
+                plots.push(...list);
+
+                if (!list.length) {
+                    break;
                 }
-                else {
-                    // Simple coordinate array
-                    coords.forEach(point => {
-                        totalX += point[0];
-                        totalY += point[1];
-                        pointCount++;
-                    });
+
+                if (total !== null && plots.length >= total) {
+                    break;
                 }
-            };
 
-            processCoordinates(coordinates);
+                if (total === null && list.length < pageSize) {
+                    break;
+                }
+            }
 
-            return pointCount > 0 ? [totalX / pointCount, totalY / pointCount] : [106.6, 23.9];
+            return plots;
+        },
+
+        refreshCityPlotStats() {
+            const features = this.guangxiMapData?.features || [];
+
+            if (!features.length || !this.allPlots.length) {
+                this.cityPlotStats = {};
+                return;
+            }
+
+            const { regionStats } = aggregatePlotsByFeatures(this.allPlots, features);
+            this.cityPlotStats = regionStats;
+        },
+
+        refreshCurrentDistrictPlotStats() {
+            const features = this.cityMapData?.features || [];
+
+            if (!features.length || !this.allPlots.length) {
+                this.currentDistrictPlotStats = {};
+                return;
+            }
+
+            const { regionStats } = aggregatePlotsByFeatures(this.allPlots, features);
+            this.currentDistrictPlotStats = regionStats;
+        },
+
+        // 懒加载地市区县地图数据
+        async loadCityMapData(adcode) {
+            const normalizedAdcode = String(adcode);
+            if (String(this.currentCityAdcode || '') === normalizedAdcode && this.cityMapData?.features?.length) {
+                this.refreshCurrentDistrictPlotStats();
+                return;
+            }
+
+            try {
+                const cityDataImport = await import(`@/assets/mapdata/guangxi-cities/${ normalizedAdcode }.json`);
+                const cityData = cityDataImport.default || cityDataImport;
+
+                if (!cityData || !cityData.features) {
+                    throw new Error(`无法读取地市地图数据文件: ${ normalizedAdcode }`);
+                }
+
+                this.cityMapData = cityData;
+                this.currentCityAdcode = normalizedAdcode;
+                this.refreshCurrentDistrictPlotStats();
+            }
+            catch (error) {
+                console.error('加载地市地图数据失败:', error);
+
+                this.cityMapData = {
+                    type: 'FeatureCollection',
+                    features: []
+                };
+                this.currentDistrictPlotStats = {};
+            }
         },
 
         // 处理区域点击事件
         handleRegionClick(region) {
-            const regionName = region.properties.name;
+            const regionName = region?.properties?.name;
+            const regionAdcode = String(region?.properties?.adcode || '');
+            const regionStats = this.currentDistrictPlotStats[regionAdcode]
+                || this.currentDistrictPlotStats[regionName];
 
-            // 跳转到详情页面，显示该区县的乡镇级地图
+            if (!regionStats || regionStats.count <= 0) {
+                return;
+            }
+
+            // 跳转到详情页面，显示该区县内真实地块
             this.$router.push({
                 name: 'DetailMap',
                 params: {
                     region: regionName
+                },
+                query: {
+                    cityName: this.currentCityName,
+                    cityAdcode: this.currentCityAdcode,
+                    regionAdcode
                 }
             });
+        },
+
+        // 处理广西地市点击事件
+        handleCityClick(city) {
+            const cityName = city?.properties?.name;
+            const cityAdcode = city?.properties?.adcode;
+
+            if (!cityName || !cityAdcode) {
+                return;
+            }
+
+            this.openCityMap(cityName, cityAdcode);
+            this.pushMapRoute(this.getCityMapRoute(cityName, cityAdcode));
+        },
+
+        // 从地市地图返回广西地图
+        handleMapBack() {
+            if (this.currentMapLevel === 'city') {
+                this.pushMapRoute({ name: 'Dashboard' });
+            }
+        },
+
+        // 处理首页地图底部面包屑
+        handleMapBreadcrumbClick(item) {
+            if (item.path === 'map:guangxi') {
+                this.pushMapRoute({ name: 'Dashboard' });
+            }
         },
 
         // 处理农事项目点击事件

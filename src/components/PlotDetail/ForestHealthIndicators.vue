@@ -24,8 +24,8 @@
       </div>
     </div>
 
-    <!-- 悬浮框（所有指标）- 使用 Teleport 渲染到 body -->
-    <Teleport to="body">
+    <!-- 悬浮框（所有指标） -->
+    <div>
       <!-- 趋势图表弹窗 (索引 0, 1) -->
       <div
         v-if="showPopover && (selectedIndex === 0 || selectedIndex === 1)"
@@ -77,7 +77,7 @@
           />
         </div>
       </div>
-    </Teleport>
+    </div>
   </div>
 </template>
 
@@ -188,7 +188,7 @@ export default {
         // 监听点击外部事件
         document.addEventListener('click', this.handleClickOutside);
     },
-    beforeUnmount() {
+    beforeDestroy() {
         // 清理事件监听
         document.removeEventListener('click', this.handleClickOutside);
     }

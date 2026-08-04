@@ -12,14 +12,18 @@
       :page-title="plotData.name || '地块详情'"
       :full-screen-map="true"
       :show-bottom-nav="true"
+      :breadcrumb-items="breadcrumbItems"
       @back="handleBackClick"
+      @breadcrumb-click="handleBreadcrumbClick"
     >
       <template #center-map>
         <!-- WMTS瓦片地图 -->
         <WMTSTileMap
+          v-if="mapReady"
           ref="wmtsTileMap"
           :region-name="regionName"
           :plot-data="plotData"
+          :base-tile-info="baseMapTileInfo"
           :analysis-tile="analysisTileInfo"
           :tree-tiles="analysisTreeTiles"
           :source-tile-size="analysisSourceTileSize"
@@ -181,6 +185,17 @@ import WarehouseRightPanel from '@/modules/plot/panels/WarehouseRightPanel.vue';
 import PlotStrategyFactory from '@/modules/plot/strategies/index.js';
 import { RANKING_CONFIG, DEFAULT_PLOT_DATA } from '@/config/farmerConfig';
 import apiClient from '@/services/apiClient';
+import {
+    buildPlotData,
+    fetchBaseTileInfo,
+    fetchLatestWudaAnalysis,
+    fetchWudaSummaryTile,
+    fetchWudaTreeOverlay,
+    getPlotListConfigFallback as buildPlotListConfigFallback,
+    getPlotType,
+    isUsableTileInfo,
+    resolvePlotRecord
+} from '@/modules/plot/services/plotDetailDataService';
 
 /**
  * 地块详情页 V2 - 新架构实现
@@ -215,6 +230,7 @@ export default {
             farmingDetailDialogContent: null,
             // API 数据
             apiPlotDetail: null,
+            apiPlotListRecord: null,
             apiStandardFarming: [],
             currentFarmingStageId: null,
             apiWarningFarming: null,
@@ -222,8 +238,11 @@ export default {
             apiSpicePrice: null,
             // 分析批次数据
             apiAnalysisSummary: null,
+            analysisMapTile: null,
             analysisTreeTiles: [],
             analysisSourceTileSize: 512,
+            baseMapTileInfo: null,
+            mapReady: false,
             // 单树详情
             selectedTreeDetail: null,
             showTreeDetail: false,
@@ -284,7 +303,10 @@ export default {
          */
         plotStrategy() {
             const plotType = this.plotData.type || 'star-anise';
-            const plotDetail = this.apiPlotDetail || { id: this.plotData.id, name: this.plotData.name };
+            const plotDetail = {
+                ...this.plotData,
+                ...(this.apiPlotDetail || {})
+            };
             const configData = this.farmerConfigData || {};
 
             return PlotStrategyFactory.create(plotType, plotDetail, configData);
@@ -294,27 +316,24 @@ export default {
          * 农户配置数据 - 从 API 返回的 config_data 提取
          */
         farmerConfigData() {
-            if (!this.apiPlotDetail || !this.apiPlotDetail.config_data) {
-                return null;
-            }
-            const configData = this.apiPlotDetail.config_data;
+            const fallbackConfig = buildPlotListConfigFallback(this.apiPlotListRecord, this.plotData);
+            const configData = this.apiPlotDetail?.config_data;
 
             // 如果已经是对象，直接返回
             if (typeof configData === 'object') {
-                return configData;
+                return { ...fallbackConfig, ...configData };
             }
 
             // 如果是字符串，尝试解析
             if (typeof configData === 'string') {
                 try {
-                    return JSON.parse(configData);
+                    return { ...fallbackConfig, ...JSON.parse(configData) };
                 } catch (e) {
                     console.error('Failed to parse config_data:', e);
-                    return null;
                 }
             }
 
-            return null;
+            return fallbackConfig;
         },
 
         /**
@@ -563,26 +582,65 @@ export default {
          * 批次专属底图信息 - 传给 WMTSTileMap
          */
         analysisTileInfo() {
-            return this.apiAnalysisSummary?.analysis_tile || null;
+            return this.analysisMapTile;
+        },
+        cityDashboardRoute() {
+            const cityName = this.$route.query.cityName;
+            const cityAdcode = this.$route.query.cityAdcode;
+
+            if (!cityName || !cityAdcode) {
+                return { name: 'Dashboard' };
+            }
+
+            return {
+                name: 'Dashboard',
+                query: {
+                    level: 'city',
+                    cityName,
+                    cityAdcode: String(cityAdcode)
+                }
+            };
+        },
+        detailMapRoute() {
+            const regionName = this.$route.query.region || this.regionName || '右江区';
+            return {
+                name: 'DetailMap',
+                params: {
+                    region: regionName
+                },
+                query: {
+                    cityName: this.$route.query.cityName || '百色市',
+                    cityAdcode: this.$route.query.cityAdcode || '451000',
+                    regionAdcode: this.$route.query.regionAdcode || ''
+                }
+            };
+        },
+        breadcrumbItems() {
+            const cityName = this.$route.query.cityName || '百色市';
+            const plotName = this.$route.query.plotName || this.plotData.name || '地块详情';
+
+            return [
+                { name: '广西', route: { name: 'Dashboard' } },
+                { name: cityName.replace(/市$/, ''), route: this.cityDashboardRoute },
+                { name: this.regionName, route: this.detailMapRoute },
+                { name: plotName, path: this.$route.fullPath, current: true }
+            ];
         }
     },
     mounted() {
         this.loadPlotData();
     },
+    watch: {
+        '$route.fullPath'(newPath, oldPath) {
+            if (newPath !== oldPath && this.$route.name === 'PlotDetail') {
+                this.loadPlotData();
+            }
+        }
+    },
     methods: {
         /**
          * 获取任务状态 - 根据任务索引判断
          */
-        /** 将新 API property_type/property_category 映射到前端类型字符串 */
-        _mapPropertyType(propertyType, propertyCategory) {
-            // 优先用 property_category 区分林/厂/仓
-            if (propertyCategory === 'factory') return 'factory';
-            if (propertyCategory === 'warehouse') return 'warehouse';
-            // forest 子类型区分
-            if (propertyType === 'chayou_base') return 'tea-oil';
-            return 'star-anise'; // bajiao_base 及其他林地
-        },
-
         getTaskStatus(index, totalItems) {
             if (index < totalItems / 2) {
                 return 'completed';
@@ -600,6 +658,16 @@ export default {
             try {
                 this.isLoading = true;
                 this.loadError = null;
+                this.apiPlotDetail = null;
+                this.apiPlotListRecord = null;
+                this.apiAnalysisSummary = null;
+                this.analysisMapTile = null;
+                this.analysisTreeTiles = [];
+                this.analysisSourceTileSize = 512;
+                this.baseMapTileInfo = null;
+                this.mapReady = false;
+                this.currentAnalysisId = null;
+                this._mapTileToken = null;
 
                 // 从路由参数获取区域名称和地块数据
                 this.regionName = this.$route.query.region || '右江区';
@@ -609,30 +677,64 @@ export default {
                 const plotName = this.$route.query.plotName
                     || (encodedPlotId ? decodeURIComponent(encodedPlotId) : null)
                     || '千户十亩-大楞乡基地';
+                this.debugPlotDetail('开始解析地块详情路由', {
+                    plotName,
+                    region: this.regionName,
+                    cityName: this.$route.query.cityName,
+                    cityAdcode: this.$route.query.cityAdcode,
+                    regionAdcode: this.$route.query.regionAdcode,
+                    routeType: this.$route.query.type
+                });
 
                 // Step 1: 用 plot/list 找到地块记录，获取真实数字 ID
-                const tileRecord = await this.fetchPlotTileRecord(plotName);
+                const tileRecord = await resolvePlotRecord({
+                    plotName,
+                    regionName: this.regionName,
+                    cityAdcode: this.$route.query.cityAdcode,
+                    regionAdcode: this.$route.query.regionAdcode,
+                    debug: this.debugPlotDetail
+                });
                 const plotId = tileRecord?.id;
-                if (!plotId) {
-                    throw new Error(`未找到地块：${plotName}`);
-                }
+                this.apiPlotListRecord = tileRecord;
+                this.debugPlotDetail('地块记录解析完成', {
+                    found: Boolean(tileRecord),
+                    plotId: plotId || null,
+                    matchedName: tileRecord?.name || null,
+                    hasLocationInfo: Boolean(tileRecord?.location_info),
+                    propertyType: tileRecord?.property_type,
+                    propertyCategory: tileRecord?.property_category
+                });
 
                 // 从 list 记录取 area / type，不再依赖路由参数
-                const area = tileRecord.area != null ? String(tileRecord.area) : String(DEFAULT_PLOT_DATA.area);
-                const type = this._mapPropertyType(tileRecord.property_type, tileRecord.property_category);
+                const type = getPlotType(tileRecord, this.$route.query.type);
 
                 // 基础地块数据（Step 2/3 在下方：loadPlotDetail → getTileInfo 由 WMTSTileMap 触发）
-                this.plotData = {
-                    id: plotId,
-                    name: plotName,
-                    district: this.regionName,
-                    area,
-                    type
-                };
+                this.plotData = buildPlotData(tileRecord, {
+                    plotName,
+                    regionName: this.regionName,
+                    defaultArea: DEFAULT_PLOT_DATA.area,
+                    routeType: this.$route.query.type
+                });
+
+                if (plotId) {
+                    this.prepareMapTiles(plotId, type).catch(error => {
+                        this.debugPlotDetail('地图瓦片准备失败，业务面板继续展示', {
+                            plotId,
+                            error: error.message
+                        });
+                    });
+                }
 
                 // Step 2: 加载完整地块详情（含 config_data）
-                // Step 3: WMTSTileMap 挂载后会自动触发 getTileInfo(plotId)
-                if (type === 'factory' || type === 'warehouse') {
+                if (!plotId) {
+                    this.debugPlotDetail('未匹配到真实 plot_id，进入 URL 基础信息兜底展示', {
+                        plotName,
+                        region: this.regionName,
+                        type
+                    });
+                    await this.loadFallbackSideData(type);
+                }
+                else if (type === 'factory' || type === 'warehouse') {
                     await this.loadPlotDetail(plotId);
                 } else {
                     await Promise.all([
@@ -640,15 +742,109 @@ export default {
                         this.loadFarmingData()
                     ]);
                     this.loadSpicePrice();
-                    // 非阻塞加载分析批次（八角/茶油林地）
-                    this.loadAnalysisData(plotId);
                 }
 
                 this.isLoading = false;
+                this.debugPlotDetail('详情主数据加载完成', {
+                    plotId: plotId || null,
+                    type,
+                    mapReady: this.mapReady,
+                    hasPlotDetail: Boolean(this.apiPlotDetail),
+                    standardFarmingCount: this.apiStandardFarming.length,
+                    hasWarningFarming: Boolean(this.apiWarningFarming),
+                    hasServiceFarming: Boolean(this.apiServiceFarming)
+                });
             } catch (error) {
                 console.error('Failed to load plot data:', error);
                 this.loadError = error.message;
                 this.isLoading = false;
+            }
+        },
+
+        async prepareMapTiles(plotId, type) {
+            const normalizedPlotId = String(plotId);
+            const mapTileToken = Symbol('map-tile');
+            this._mapTileToken = mapTileToken;
+
+            const baseTileInfo = await fetchBaseTileInfo(normalizedPlotId, this.debugPlotDetail);
+            if (!this.isCurrentMapTileLoad(mapTileToken, normalizedPlotId)) return;
+
+            const baseTileUsable = isUsableTileInfo(baseTileInfo);
+            const isForestPlot = type !== 'factory' && type !== 'warehouse';
+            if (!isForestPlot) {
+                this.baseMapTileInfo = baseTileInfo;
+                this.mapReady = true;
+                return;
+            }
+
+            if (baseTileUsable) {
+                this.baseMapTileInfo = baseTileInfo;
+                this.mapReady = true;
+                this.loadAnalysisOverlayAfterBaseReady(normalizedPlotId, mapTileToken);
+                return;
+            }
+
+            const analysisSource = await this.resolveAnalysisSource(normalizedPlotId);
+            if (!this.isCurrentMapTileLoad(mapTileToken, normalizedPlotId)) return;
+
+            if (analysisSource?.analysisTile) {
+                this.baseMapTileInfo = null;
+                this.useAnalysisBaseTile(
+                    analysisSource.analysisTile,
+                    normalizedPlotId,
+                    analysisSource.analysisId,
+                    'base-tile-empty'
+                );
+                this.mapReady = true;
+                this.loadAnalysisTreeOverlay({
+                    plotId: normalizedPlotId,
+                    analysisId: analysisSource.analysisId,
+                    analysisTile: analysisSource.analysisTile,
+                    mapTileToken
+                });
+                return;
+            }
+
+            this.baseMapTileInfo = baseTileInfo;
+            this.mapReady = true;
+        },
+
+        async loadAnalysisOverlayAfterBaseReady(plotId, mapTileToken) {
+            const analysisSource = await this.resolveAnalysisSource(plotId);
+            if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return;
+            if (analysisSource?.analysisTile) {
+                this.loadAnalysisTreeOverlay({
+                    plotId,
+                    analysisId: analysisSource.analysisId,
+                    analysisTile: analysisSource.analysisTile,
+                    mapTileToken,
+                    switchBaseTileAfterLoaded: true
+                });
+            }
+        },
+
+        async resolveAnalysisSource(plotId) {
+            try {
+                const latestBatch = await fetchLatestWudaAnalysis(plotId);
+                if (!latestBatch) return null;
+                this.currentAnalysisId = latestBatch.id;
+
+                const { summary, analysisTile } = await fetchWudaSummaryTile(
+                    plotId,
+                    latestBatch.id,
+                    this.debugPlotDetail
+                );
+                this.apiAnalysisSummary = summary;
+                if (!analysisTile) return null;
+
+                return {
+                    analysisId: latestBatch.id,
+                    analysisTile
+                };
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn('Failed to resolve analysis tile:', error);
+                return null;
             }
         },
 
@@ -664,10 +860,33 @@ export default {
                     if (result.data.current_farming_stage_id) {
                         this.currentFarmingStageId = result.data.current_farming_stage_id;
                     }
+                    this.debugPlotDetail('plot/detail 加载完成', {
+                        plotId,
+                        hasConfigData: Boolean(result.data.config_data),
+                        currentFarmingStageId: this.currentFarmingStageId
+                    });
+                } else {
+                    this.debugPlotDetail('plot/detail 无有效数据，使用 plot/list 兜底', {
+                        plotId,
+                        code: result?.code
+                    });
                 }
             } catch (error) {
                 console.warn('Failed to load plot detail:', error);
+                this.debugPlotDetail('plot/detail 加载失败，使用 plot/list 兜底', {
+                    plotId,
+                    error: error.message
+                });
             }
+        },
+
+        async loadFallbackSideData(type) {
+            if (type === 'factory' || type === 'warehouse') {
+                return;
+            }
+
+            await this.loadFarmingData();
+            this.loadSpicePrice();
         },
 
         /**
@@ -695,8 +914,16 @@ export default {
                 if (serviceResult && serviceResult.code === 0 && serviceResult.data && serviceResult.data.list) {
                     this.apiServiceFarming = serviceResult.data.list[0] || null;
                 }
+                this.debugPlotDetail('农事数据加载完成', {
+                    standardCount: this.apiStandardFarming.length,
+                    warningCount: warningResult?.data?.list?.length || 0,
+                    serviceCount: serviceResult?.data?.list?.length || 0
+                });
             } catch (error) {
                 console.warn('Failed to load farming data:', error);
+                this.debugPlotDetail('农事数据加载失败，右侧面板使用空列表兜底', {
+                    error: error.message
+                });
             }
         },
 
@@ -714,80 +941,75 @@ export default {
             }
         },
 
-        /**
-         * 从后端获取plot tile记录
-         */
-        async fetchPlotTileRecord(plotName) {
-            try {
-                const result = await apiClient.getPlotsList({ keyword: plotName });
-                if (result && result.code === 0) {
-                    const list = Array.isArray(result.data) ? result.data : (result.data?.list || []);
-                    const record = list.find((item) => item.name === plotName);
-                    return record || null;
-                }
-            } catch (error) {
-                console.warn('Failed to fetch plot tile record:', error);
+        debugPlotDetail(message, payload = {}) {
+            if (process.env.NODE_ENV === 'production') {
+                return;
             }
-            return null;
+            // eslint-disable-next-line no-console
+            console.info(`[PlotDetailV2] ${ message }`, payload);
         },
 
-        /**
-         * 加载分析批次数据（wuda-summary + wuda-tiles/trees）
-         */
-        async loadAnalysisData(plotId) {
-            try {
-                // 1. 拉已完成的批次列表，取最新一条
-                const listResult = await apiClient.getAnalysisList({
-                    // eslint-disable-next-line camelcase
-                    plot_id: String(plotId),
-                    // eslint-disable-next-line camelcase
-                    factory_type: 'wuda',
-                    status: 2
-                });
-                const list = listResult?.data?.list;
-                if (!list || !list.length) return;
-
-                const latestBatch = list[0];
-                this.currentAnalysisId = latestBatch.id;
-
-                // 2. 拿概览（含批次专属底图信息）
-                const summaryResult = await apiClient.getWudaSummary(plotId, latestBatch.id);
-                if (!summaryResult?.data) return;
-                this.apiAnalysisSummary = summaryResult.data;
-
-                const at = summaryResult.data.analysis_tile;
-                if (!at) return; // 旧批次无专属底图，地图继续用 plot_tiles
-
-                // 3. 拉全量树冠数据
-                const treesResult = await apiClient.getWudaTileTrees({
-                    // eslint-disable-next-line camelcase
-                    plot_id: String(plotId),
-                    // eslint-disable-next-line camelcase
-                    analysis_id: String(latestBatch.id),
-                    // eslint-disable-next-line camelcase
-                    plot_tile_id: '0',
-                    zoom: at.max_zoom_level,
-                    // eslint-disable-next-line camelcase
-                    tile_range: {
-                        // eslint-disable-next-line camelcase
-                        min_tile_x: 0,
-                        // eslint-disable-next-line camelcase
-                        min_tile_y: 0,
-                        // eslint-disable-next-line camelcase
-                        max_tile_x: at.max_tile_x,
-                        // eslint-disable-next-line camelcase
-                        max_tile_y: at.max_tile_y
-                    },
-                    // eslint-disable-next-line camelcase
-                    source_layer: 'base'
-                });
-                if (!treesResult?.data?.tiles) return;
-                this.analysisTreeTiles = treesResult.data.tiles;
-                this.analysisSourceTileSize = treesResult.data.source_tile_size || 512;
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.warn('Failed to load analysis data:', error);
+        useAnalysisBaseTile(analysisTile, plotId, analysisId, reason, options = {}) {
+            const { resetTreeOverlay = true } = options;
+            this.analysisMapTile = analysisTile;
+            if (resetTreeOverlay) {
+                this.analysisTreeTiles = [];
+                this.analysisSourceTileSize = 512;
             }
+            this.debugPlotDetail('analysis_tile 已接入底图', {
+                plotId,
+                analysisId,
+                reason,
+                tileDir: analysisTile.tile_dir,
+                layerName: analysisTile.layer_name,
+                maxZoomLevel: analysisTile.max_zoom_level,
+                maxTileX: analysisTile.max_tile_x,
+                maxTileY: analysisTile.max_tile_y,
+                tilePathPrefix: analysisTile.tile_path_prefix || ''
+            });
+        },
+
+        async loadAnalysisTreeOverlay({
+            plotId,
+            analysisId,
+            analysisTile,
+            mapTileToken,
+            switchBaseTileAfterLoaded = false
+        }) {
+            try {
+                const treeOverlay = await fetchWudaTreeOverlay({
+                    plotId,
+                    analysisId,
+                    analysisTile
+                });
+                if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return false;
+
+                if (treeOverlay.tiles.length) {
+                    this.analysisTreeTiles = treeOverlay.tiles;
+                    this.analysisSourceTileSize = treeOverlay.sourceTileSize;
+                    this.debugPlotDetail('树冠瓦片数据加载完成', {
+                        plotId,
+                        analysisId,
+                        tileCount: treeOverlay.tiles.length,
+                        sourceTileSize: this.analysisSourceTileSize
+                    });
+                    if (switchBaseTileAfterLoaded) {
+                        this.useAnalysisBaseTile(analysisTile, plotId, analysisId, 'tree-overlay-ready', {
+                            resetTreeOverlay: false
+                        });
+                    }
+                    return true;
+                }
+            } catch (error) {
+                if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return false;
+                // eslint-disable-next-line no-console
+                console.warn('Failed to load analysis tree overlay:', error);
+            }
+            return false;
+        },
+
+        isCurrentMapTileLoad(token, plotId) {
+            return this._mapTileToken === token && String(this.plotData?.id || '') === String(plotId);
         },
 
         /**
@@ -848,10 +1070,14 @@ export default {
          * 返回上一级
          */
         handleBackClick() {
-            const regionName = this.$route.query.region || '右江区';
-            this.$router.push({
-                path: `/detail/${encodeURIComponent(regionName)}`
-            });
+            this.$router.push(this.detailMapRoute).catch(() => {});
+        },
+
+        handleBreadcrumbClick(item) {
+            const target = item.route || item.path;
+            if (target) {
+                this.$router.push(target).catch(() => {});
+            }
         },
 
         /**

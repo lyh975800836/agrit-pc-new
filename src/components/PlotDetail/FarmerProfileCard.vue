@@ -27,9 +27,9 @@
         </div>
       </div>
     </div>
-    <div v-if="certIcons && certIcons.length > 0" class="cert-icons-row">
+    <div v-if="validCertIcons.length > 0" class="cert-icons-row">
       <img
-        v-for="icon in certIcons"
+        v-for="icon in validCertIcons"
         :key="icon.src"
         class="cert-icon"
         :src="icon.src"
@@ -97,7 +97,10 @@ export default {
     },
     computed: {
         currentAvatarUrl() {
-            return this.isDefaultUsed ? '/images/default-avator.jpg' : this.avatarUrl;
+            return this.isDefaultUsed || !this.avatarUrl ? '/images/default-avator.jpg' : this.avatarUrl;
+        },
+        validCertIcons() {
+            return (this.certIcons || []).filter(icon => icon?.src);
         }
     },
     methods: {

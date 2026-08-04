@@ -1,7 +1,7 @@
 <template>
   <nav v-if="shouldShow" class="breadcrumb-navigation" aria-label="位置导航">
     <div class="breadcrumb-navigation__container">
-      <div class="breadcrumb-navigation__left">
+      <div v-if="hasBackTarget" class="breadcrumb-navigation__left">
         <button class="breadcrumb-navigation__back-btn" @click="handleBackClick" type="button">
           <span class="breadcrumb-navigation__back-arrow">‹</span>
           <span class="breadcrumb-navigation__back-text">返回上级</span>
@@ -43,13 +43,24 @@ export default {
         showBottomNav: {
             type: Boolean,
             default: false
+        },
+        breadcrumbItems: {
+            type: Array,
+            default: null
         }
     },
     computed: {
         shouldShow() {
             return this.showBottomNav && this.breadcrumbs.length > 0;
         },
+        hasBackTarget() {
+            return this.breadcrumbs.some(item => !item.current && (item.path || item.route));
+        },
         breadcrumbs() {
+            if (Array.isArray(this.breadcrumbItems)) {
+                return this.breadcrumbItems;
+            }
+
             const route = this.$route;
             const breadcrumbs = [];
 
@@ -98,7 +109,7 @@ export default {
             this.$emit('back');
         },
         handleBreadcrumbClick(item) {
-            if (!item.current && item.path) {
+            if (!item.current && (item.path || item.route)) {
                 this.$emit('breadcrumb-click', item);
             }
         }

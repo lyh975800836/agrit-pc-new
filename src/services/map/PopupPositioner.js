@@ -205,19 +205,18 @@ export class PopupPositioner {
                 margin = config.popupMargin || 10
             } = options;
 
-            // 将地理坐标转换为容器坐标
+            // 将地理坐标转换为地图容器坐标；调用方的弹窗是 absolute 放在地图容器内。
             const point = this.map.latLngToContainerPoint(latLng);
             const mapRect = this.mapContainer.getBoundingClientRect();
-
-            const screenX = mapRect.left + point.x;
-            const screenY = mapRect.top + point.y;
+            const containerWidth = mapRect.width;
+            const containerHeight = mapRect.height;
 
             // 计算四个方向的可用空间
             const spaces = {
-                top: screenY - margin,
-                bottom: window.innerHeight - screenY - margin,
-                left: screenX - margin,
-                right: window.innerWidth - screenX - margin
+                top: point.y - margin,
+                bottom: containerHeight - point.y - margin,
+                left: point.x - margin,
+                right: containerWidth - point.x - margin
             };
 
             // 确定最佳放置位置
@@ -227,32 +226,34 @@ export class PopupPositioner {
             if (spaces.top >= popupHeight + offset) {
                 // 上方有足够空间
                 placement = 'top';
-                position.top = screenY - popupHeight - offset;
-                position.left = screenX - popupWidth / 2;
+                position.top = point.y - popupHeight - offset;
+                position.left = point.x - popupWidth / 2;
             } else if (spaces.bottom >= popupHeight + offset) {
                 // 下方有足够空间
                 placement = 'bottom';
-                position.top = screenY + offset;
-                position.left = screenX - popupWidth / 2;
+                position.top = point.y + offset;
+                position.left = point.x - popupWidth / 2;
             } else if (spaces.left >= popupWidth + offset) {
                 // 左侧有足够空间
                 placement = 'left';
-                position.left = screenX - popupWidth - offset;
-                position.top = screenY - popupHeight / 2;
+                position.left = point.x - popupWidth - offset;
+                position.top = point.y - popupHeight / 2;
             } else if (spaces.right >= popupWidth + offset) {
                 // 右侧有足够空间
                 placement = 'right';
-                position.left = screenX + offset;
-                position.top = screenY - popupHeight / 2;
+                position.left = point.x + offset;
+                position.top = point.y - popupHeight / 2;
             } else {
                 // 没有理想空间,使用默认计算
-                position = this.calculatePosition(latLng, options);
+                position = this.calculateRelativePosition(latLng, options);
                 placement = 'top';
             }
 
             // 边界修正
-            position.left = Math.max(margin, Math.min(position.left, window.innerWidth - popupWidth - margin));
-            position.top = Math.max(margin, Math.min(position.top, window.innerHeight - popupHeight - margin));
+            const maxLeft = Math.max(margin, containerWidth - popupWidth - margin);
+            const maxTop = Math.max(margin, containerHeight - popupHeight - margin);
+            position.left = Math.max(margin, Math.min(position.left, maxLeft));
+            position.top = Math.max(margin, Math.min(position.top, maxTop));
 
             return { position, placement };
         } catch (error) {
