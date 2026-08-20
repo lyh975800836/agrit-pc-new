@@ -82,20 +82,56 @@ export function getTileRequestOptions(options = {}) {
  * @param {AbortSignal} signal - 可选的取消信号
  * @returns {Promise<HTMLImageElement>} 加载的图片元素
  */
-export function preloadTileImage(url, signal) {
+export function preloadTileImage(url, signal, timeout = 10000) {
     return new Promise((resolve, reject) => {
         const img = new Image();
+        let settled = false;
+        let timer = null;
+
+        const cleanup = () => {
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
+            }
+            if (signal) {
+                signal.removeEventListener('abort', handleAbort);
+            }
+            img.onload = null;
+            img.onerror = null;
+        };
+
+        const settle = (callback, value) => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            cleanup();
+            callback(value);
+        };
+
+        const handleAbort = () => {
+            img.src = '';
+            settle(reject, new Error('Request aborted'));
+        };
 
         // 处理取消信号
         if (signal) {
-            signal.addEventListener('abort', () => {
-                img.src = ''; // 停止加载
-                reject(new Error('Request aborted'));
-            });
+            if (signal.aborted) {
+                handleAbort();
+                return;
+            }
+            signal.addEventListener('abort', handleAbort, { once: true });
         }
 
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error(`Failed to load tile: ${ url }`));
+        if (timeout) {
+            timer = setTimeout(() => {
+                img.src = '';
+                settle(reject, new Error(`Tile load timeout: ${ url }`));
+            }, timeout);
+        }
+
+        img.onload = () => settle(resolve, img);
+        img.onerror = () => settle(reject, new Error(`Failed to load tile: ${ url }`));
 
         img.src = url;
     });

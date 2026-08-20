@@ -28,6 +28,7 @@
       @pointermove="onPanMove"
       @pointerup="onPanEnd"
       @pointercancel="onPanEnd"
+      @scroll="handleTileGridScroll"
     >
       <div class="tile-grid-inner" :style="tileGridStyle">
         <template v-if="tileGridRows.length">
@@ -65,13 +66,13 @@
 
               <!-- 瓦片内树冠覆盖层（源像素坐标系，由 treeLayerStyle CSS scale 统一缩放） -->
               <div
-                v-if="tileTreeData[`${tile.col}_${tile.row}`]"
+                v-if="shouldRenderTreeLayer(tile)"
                 class="tile-tree-layer"
                 :style="treeLayerStyle"
               >
                 <!-- 有冠层多边形的树：每棵树一个独立 SVG，局部定位 -->
                 <svg
-                  v-for="(item, pi) in tileTreeData[`${tile.col}_${tile.row}`].polygons"
+                  v-for="(item, pi) in getTileTreeLayer(tile).polygons"
                   :key="`poly-${item.tree.tree_id}-${pi}`"
                   :width="item.svgW"
                   :height="item.svgH"
@@ -96,7 +97,7 @@
 
                 <!-- 无冠层几何的树：圆形 div 兜底，transform 定位 -->
                 <div
-                  v-for="item in tileTreeData[`${tile.col}_${tile.row}`].circles"
+                  v-for="item in getTileTreeLayer(tile).circles"
                   :key="`circle-${item.tree.tree_id}`"
                   class="tile-tree-circle"
                   :style="item.style"
@@ -136,6 +137,10 @@ const TILE_PLACEHOLDER_ERROR = '加载失败';
 const OVER_ZOOM_MAX  = 2; // 允许超过 maxZoomLevel 2 层（CSS scale 放大）
 const UNDER_ZOOM_MAX = 4; // 允许低于 maxZoomLevel 4 层（CSS scale 缩小）
 const TILE_LOAD_CONCURRENCY = 12;
+const TILE_IMAGE_TIMEOUT = 12000;
+const ACTIVE_VIEWPORT_TILE_BUFFER = 1;
+const SETTLED_VIEWPORT_TILE_BUFFER = 4;
+const SCROLL_SETTLE_DELAY = 140;
 // 静态常量，不随组件状态变化
 const TREE_FILTER_OPTIONS = [
     { label: '全部',   value: 'all'     },
@@ -186,6 +191,7 @@ export default {
             markers: [],
             markersLoading: false,
             tileImages: {},
+            tileImageSources: {},
             tileInfo: null,
             tileBounds: null,
             tileGridRowsCache: [],
@@ -220,7 +226,10 @@ export default {
             panStartX: 0,
             panStartY: 0,
             panScrollLeft: 0,
-            panScrollTop: 0
+            panScrollTop: 0,
+            activeTileTaskKeys: {},
+            visibleTileLoadGeneration: 0,
+            visibleTileAbortController: null
         };
     },
     computed: {
@@ -269,6 +278,14 @@ export default {
         },
         tileFormat() {
             return this.analysisTile?.tile_format || this.tileInfo?.tile_format || 'png';
+        },
+        tileSourceKey() {
+            return [
+                this.layerName || '',
+                this.zoomLevel,
+                this.tileFormat || '',
+                this.tilePathPrefix || ''
+            ].join('|');
         },
 
         /** 有效最大缩放级别（来自批次底图或 plot_tiles） */
@@ -435,6 +452,60 @@ export default {
 
             return result;
         },
+        markerCountByTile() {
+            const counts = {};
+            this.markers.forEach(marker => {
+                if (marker.zoom_level !== this.zoomLevel) {
+                    return;
+                }
+                const key = this.getTileKey(marker.tile_x, marker.tile_y);
+                counts[key] = (counts[key] || 0) + 1;
+            });
+            return counts;
+        },
+        treeTileCoordinates() {
+            if (!Array.isArray(this.treeTiles) || !this.treeTiles.length) {
+                return [];
+            }
+
+            const seen = new Set();
+            const coordinates = [];
+            this.treeTiles.forEach(tile => {
+                const col = Number(tile?.tile_x);
+                const row = Number(tile?.tile_y);
+                if (!Number.isFinite(col) || !Number.isFinite(row)) {
+                    return;
+                }
+
+                const key = this.getTileKey(col, row);
+                if (seen.has(key)) {
+                    return;
+                }
+                seen.add(key);
+                coordinates.push({ key, col, row });
+            });
+            return coordinates;
+        },
+        treeTileBounds() {
+            if (!this.treeTileCoordinates.length) {
+                return null;
+            }
+
+            return this.treeTileCoordinates.reduce((bounds, tile) => ({
+                minX: Math.min(bounds.minX, tile.col),
+                minY: Math.min(bounds.minY, tile.row),
+                maxX: Math.max(bounds.maxX, tile.col),
+                maxY: Math.max(bounds.maxY, tile.row)
+            }), {
+                minX: Infinity,
+                minY: Infinity,
+                maxX: -Infinity,
+                maxY: -Infinity
+            });
+        },
+        treeTileKeySet() {
+            return new Set(this.treeTileCoordinates.map(tile => tile.key));
+        },
         /** 显示尺寸 = 基础尺寸 × zoom 倍数，物理撑大 grid，使 overflow:auto 产生真正的可滚动溢出 */
         tileSize() {
             return this.tileSizePx * this.displayScale;
@@ -519,7 +590,7 @@ export default {
         },
         treeTiles: {
             handler(newTiles) {
-                if (!Array.isArray(newTiles) || !newTiles.length) {
+                if (!this.analysisTile || !Array.isArray(newTiles) || !newTiles.length) {
                     return;
                 }
                 this.$nextTick(() => {
@@ -544,6 +615,9 @@ export default {
         window.removeEventListener('resize', this.handleResize);
         clearTimeout(this._loadMapDataTimer);
         clearTimeout(this._resizeDebouncTimer);
+        clearTimeout(this._visibleTileLoadTimer);
+        clearTimeout(this._settledTileLoadTimer);
+        this.abortVisibleTileLoad();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
@@ -618,6 +692,8 @@ export default {
             if (previousAbortController) {
                 previousAbortController.abort();
             }
+            this.abortVisibleTileLoad();
+            this.activeTileTaskKeys = {};
 
             // 同一地块切换分析批次时：保留旧瓦片图片以避免闪烁，允许新图覆盖
             // 切换地块时：完全重置，防止显示上一个地块的内容
@@ -682,6 +758,7 @@ export default {
                     tilePathPrefix: this.tilePathPrefix || ''
                 });
                 this.centerTileGridOnBounds(this.getTreeTileBounds() || this.tileBounds, 'initial');
+                this.scheduleVisibleTileLoad(120);
 
                 // 在后台加载瓦片，不阻塞主流程
                 this.loadAllTiles(requestToken).then(() => {
@@ -772,6 +849,8 @@ export default {
 
         resetTileState() {
             this.tileImages = {};
+            this.tileImageSources = {};
+            this.activeTileTaskKeys = {};
             this.tileInfo = null;
             this.tileBounds = null;
             this.tileGridRowsCache = [];
@@ -786,12 +865,14 @@ export default {
         zoomIn() {
             if (this.canZoomIn) {
                 this.displayZoomOffset = Math.min(OVER_ZOOM_MAX, this.displayZoomOffset + 1);
+                this.scheduleVisibleTileLoad(120);
             }
         },
 
         zoomOut() {
             if (this.canZoomOut) {
                 this.displayZoomOffset = Math.max(-UNDER_ZOOM_MAX, this.displayZoomOffset - 1);
+                this.scheduleVisibleTileLoad(120);
             }
         },
 
@@ -912,21 +993,21 @@ export default {
         },
 
         async loadAllTiles(requestToken) {
-            const coordinates = [];
-            this.tileGridRowsCache.forEach(row => {
-                row.forEach(tile => {
-                    coordinates.push(tile);
-                });
-            });
+            const coordinates = this.getAllTileCoordinates();
 
             if (!coordinates.length) {
                 return;
             }
 
-            const orderedCoordinates = this.getPrioritizedTileCoordinates(coordinates);
-            this.beginTileLoadRun(orderedCoordinates);
-            await this.runTileTasksWithConcurrency(orderedCoordinates, requestToken);
+            const visibleCoordinates = this.getVisibleTileCoordinates(SETTLED_VIEWPORT_TILE_BUFFER);
+            this.beginTileLoadRun(coordinates);
+            await this.startVisibleTileLoad(visibleCoordinates, requestToken);
+            if (this.currentRequestToken !== requestToken) {
+                return;
+            }
+
             if (this.currentRequestToken === requestToken) {
+                this._forceReloadTiles = false;
                 this.debugMap('瓦片加载汇总', {
                     plotId: this.plotId,
                     layerName: this.layerName,
@@ -945,7 +1026,7 @@ export default {
 
             const centerX = (targetBounds.minX + targetBounds.maxX) / 2;
             const centerY = (targetBounds.minY + targetBounds.maxY) / 2;
-            const treeKeys = new Set(this.getTreeTileCoordinates().map(tile => this.getTileKey(tile.col, tile.row)));
+            const treeKeys = this.treeTileKeySet;
 
             return [...coordinates].sort((a, b) => {
                 const aHasTree = treeKeys.has(a.key) ? 0 : 1;
@@ -961,46 +1042,11 @@ export default {
         },
 
         getTreeTileCoordinates() {
-            if (!Array.isArray(this.treeTiles) || !this.treeTiles.length) {
-                return [];
-            }
-
-            const seen = new Set();
-            const coordinates = [];
-            this.treeTiles.forEach(tile => {
-                const col = Number(tile?.tile_x);
-                const row = Number(tile?.tile_y);
-                if (!Number.isFinite(col) || !Number.isFinite(row)) {
-                    return;
-                }
-
-                const key = this.getTileKey(col, row);
-                if (seen.has(key)) {
-                    return;
-                }
-                seen.add(key);
-                coordinates.push({ key, col, row });
-            });
-            return coordinates;
+            return this.treeTileCoordinates;
         },
 
         getTreeTileBounds() {
-            const coordinates = this.getTreeTileCoordinates();
-            if (!coordinates.length) {
-                return null;
-            }
-
-            return coordinates.reduce((bounds, tile) => ({
-                minX: Math.min(bounds.minX, tile.col),
-                minY: Math.min(bounds.minY, tile.row),
-                maxX: Math.max(bounds.maxX, tile.col),
-                maxY: Math.max(bounds.maxY, tile.row)
-            }), {
-                minX: Infinity,
-                minY: Infinity,
-                maxX: -Infinity,
-                maxY: -Infinity
-            });
+            return this.treeTileBounds;
         },
 
         centerTileGridOnBounds(bounds, reason) {
@@ -1029,11 +1075,12 @@ export default {
         },
 
         loadPriorityTreeTiles() {
-            if (!this.currentRequestToken) {
+            if (!this.analysisTile || !this.currentRequestToken || !this.tileGridRowsCache.length) {
                 return;
             }
 
-            const coordinates = this.getPrioritizedTileCoordinates(this.getTreeTileCoordinates());
+            const coordinates = this.getVisibleTileCoordinates(SETTLED_VIEWPORT_TILE_BUFFER)
+                .filter(tile => this.treeTileKeySet.has(tile.key));
             if (!coordinates.length) {
                 return;
             }
@@ -1044,26 +1091,43 @@ export default {
                 count: coordinates.length,
                 bounds: this.getTreeTileBounds()
             });
-            this.runTileTasksWithConcurrency(coordinates, requestToken).catch(error => {
+            this.startVisibleTileLoad(coordinates, requestToken).catch(error => {
                 // eslint-disable-next-line no-console
                 console.warn('[WMTSTileMap] 优先瓦片加载失败', error);
             });
         },
 
-        async loadTileImage(tileCol, tileRow, requestToken) {
+        async loadTileImage(tileCol, tileRow, requestToken, loadSignal = null) {
             const key = this.getTileKey(tileCol, tileRow);
-            // 软重置模式下强制重新加载，覆盖同地块旧瓦片；普通模式跳过已加载的
-            if (this.hasTileImage(key) && !this._forceReloadTiles) {
-                this.setTileRunState(key, 'loaded');
+            if (this.isTileSettledForCurrentSource(key)) {
+                this.setTileRunState(key, this.hasTileImage(key) ? 'loaded' : 'failed');
                 return;
             }
-            await this.loadTileFromCDN(tileCol, tileRow, requestToken, key);
+
+            if (this.activeTileTaskKeys[key]) {
+                await this.activeTileTaskKeys[key];
+                if (this.isTileSettledForCurrentSource(key)) {
+                    this.setTileRunState(key, this.hasTileImage(key) ? 'loaded' : 'failed');
+                    return;
+                }
+            }
+
+            const task = this.loadTileFromCDN(tileCol, tileRow, requestToken, key, loadSignal);
+            this.$set(this.activeTileTaskKeys, key, task);
+            try {
+                await task;
+            } finally {
+                if (this.activeTileTaskKeys[key] === task) {
+                    this.$delete(this.activeTileTaskKeys, key);
+                }
+            }
         },
 
-        async loadTileFromCDN(tileCol, tileRow, requestToken, key) {
+        async loadTileFromCDN(tileCol, tileRow, requestToken, key, loadSignal = null) {
             try {
                 if (!this.layerName) {
                     this.$set(this.tileImages, key, 'error');
+                    this.$set(this.tileImageSources, key, this.tileSourceKey);
                     this.setTileRunState(key, 'failed');
                     return;
                 }
@@ -1078,7 +1142,7 @@ export default {
                 }
 
                 // 预加载图片
-                await preloadTileImage(tileUrl, this.requestAbortController?.signal);
+                await preloadTileImage(tileUrl, loadSignal || this.requestAbortController?.signal, TILE_IMAGE_TIMEOUT);
 
                 if (this.currentRequestToken !== requestToken) {
                     return;
@@ -1086,6 +1150,7 @@ export default {
 
                 // 直接使用URL（浏览器会缓存）
                 this.$set(this.tileImages, key, tileUrl);
+                this.$set(this.tileImageSources, key, this.tileSourceKey);
                 this.setTileRunState(key, 'loaded');
             }
             catch (error) {
@@ -1097,6 +1162,7 @@ export default {
                 console.error(`从CDN获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
                 if (this.currentRequestToken === requestToken) {
                     this.$set(this.tileImages, key, 'error');
+                    this.$set(this.tileImageSources, key, this.tileSourceKey);
                     this.setTileRunState(key, 'failed');
                 }
             }
@@ -1125,21 +1191,201 @@ export default {
             this._firstTileUrlLogged = false;
         },
 
-        async runTileTasksWithConcurrency(coordinates, requestToken) {
+        getAllTileCoordinates() {
+            const coordinates = [];
+            this.tileGridRowsCache.forEach(row => {
+                row.forEach(tile => {
+                    coordinates.push(tile);
+                });
+            });
+            return coordinates;
+        },
+
+        getVisibleTileCoordinates(buffer = 0) {
+            const container = this.$refs.tileGrid;
+            const tileSize = this.tileSize;
+            if (!container || !tileSize || !this.tileGridRowsCache.length) {
+                return [];
+            }
+
+            const minCol = Math.max(this.tileBounds?.minX ?? 0, Math.floor(container.scrollLeft / tileSize) - buffer);
+            const minRow = Math.max(this.tileBounds?.minY ?? 0, Math.floor(container.scrollTop / tileSize) - buffer);
+            const maxCol = Math.min(
+                this.tileBounds?.maxX ?? this.tileColumnCount - 1,
+                Math.ceil((container.scrollLeft + container.clientWidth) / tileSize) + buffer
+            );
+            const maxRow = Math.min(
+                this.tileBounds?.maxY ?? this.tileRowCount - 1,
+                Math.ceil((container.scrollTop + container.clientHeight) / tileSize) + buffer
+            );
+            const centerCol = (container.scrollLeft + container.clientWidth / 2) / tileSize;
+            const centerRow = (container.scrollTop + container.clientHeight / 2) / tileSize;
+            const visibleMinCol = Math.floor(container.scrollLeft / tileSize);
+            const visibleMinRow = Math.floor(container.scrollTop / tileSize);
+            const visibleMaxCol = Math.ceil((container.scrollLeft + container.clientWidth) / tileSize);
+            const visibleMaxRow = Math.ceil((container.scrollTop + container.clientHeight) / tileSize);
+
+            const coordinates = [];
+            for (let row = minRow; row <= maxRow; row += 1) {
+                for (let col = minCol; col <= maxCol; col += 1) {
+                    coordinates.push({ key: this.getTileKey(col, row), col, row });
+                }
+            }
+            const treeKeys = this.treeTileKeySet;
+            return coordinates.sort((a, b) => {
+                const aVisible = a.col >= visibleMinCol && a.col <= visibleMaxCol && a.row >= visibleMinRow && a.row <= visibleMaxRow ? 0 : 1;
+                const bVisible = b.col >= visibleMinCol && b.col <= visibleMaxCol && b.row >= visibleMinRow && b.row <= visibleMaxRow ? 0 : 1;
+                if (aVisible !== bVisible) {
+                    return aVisible - bVisible;
+                }
+
+                const aHasTree = treeKeys.has(a.key) ? 0 : 1;
+                const bHasTree = treeKeys.has(b.key) ? 0 : 1;
+                if (aHasTree !== bHasTree) {
+                    return aHasTree - bHasTree;
+                }
+
+                const aDistance = Math.abs(a.col - centerCol) + Math.abs(a.row - centerRow);
+                const bDistance = Math.abs(b.col - centerCol) + Math.abs(b.row - centerRow);
+                return aDistance - bDistance;
+            });
+        },
+
+        mergeUniqueTileCoordinates(coordinates) {
+            const seen = new Set();
+            const result = [];
+            coordinates.forEach(tile => {
+                if (!tile || seen.has(tile.key)) {
+                    return;
+                }
+                seen.add(tile.key);
+                result.push(tile);
+            });
+            return result;
+        },
+
+        async runTileTasksWithConcurrency(coordinates, requestToken, concurrency = TILE_LOAD_CONCURRENCY, visibleGeneration = null, loadSignal = null) {
+            if (!coordinates.length) {
+                return;
+            }
             let cursor = 0;
+            const canContinue = () => this.currentRequestToken === requestToken
+                && (visibleGeneration === null || this.visibleTileLoadGeneration === visibleGeneration)
+                && (!loadSignal || !loadSignal.aborted);
             const worker = async () => {
-                while (cursor < coordinates.length && this.currentRequestToken === requestToken) {
+                while (cursor < coordinates.length && canContinue()) {
                     const tile = coordinates[cursor];
                     cursor += 1;
-                    await this.loadTileImage(tile.col, tile.row, requestToken);
+                    await this.loadTileImage(tile.col, tile.row, requestToken, loadSignal);
                 }
             };
 
             const workers = Array.from(
-                { length: Math.min(TILE_LOAD_CONCURRENCY, coordinates.length) },
+                { length: Math.min(concurrency, coordinates.length) },
                 () => worker()
             );
             await Promise.all(workers);
+        },
+
+        async startVisibleTileLoad(coordinates, requestToken, concurrency = TILE_LOAD_CONCURRENCY) {
+            const pendingCoordinates = coordinates.filter(tile => !this.isTileSettledForCurrentSource(tile.key));
+            if (!pendingCoordinates.length) {
+                return;
+            }
+
+            this.abortVisibleTileLoad();
+            const generation = this.nextVisibleTileLoadGeneration();
+            const controller = new AbortController();
+            this.visibleTileAbortController = controller;
+
+            try {
+                await this.runTileTasksWithConcurrency(
+                    pendingCoordinates,
+                    requestToken,
+                    concurrency,
+                    generation,
+                    controller.signal
+                );
+            } finally {
+                if (this.visibleTileAbortController === controller) {
+                    this.visibleTileAbortController = null;
+                }
+            }
+        },
+
+        abortVisibleTileLoad() {
+            if (this.visibleTileAbortController) {
+                this.visibleTileAbortController.abort();
+                this.visibleTileAbortController = null;
+            }
+        },
+
+        handleTileGridScroll() {
+            this.scheduleVisibleTileLoad(16, ACTIVE_VIEWPORT_TILE_BUFFER);
+            this.scheduleSettledTileLoad();
+        },
+
+        scheduleVisibleTileLoad(delay = 0, buffer = SETTLED_VIEWPORT_TILE_BUFFER) {
+            clearTimeout(this._visibleTileLoadTimer);
+            this._visibleTileLoadTimer = setTimeout(() => {
+                this.loadVisibleTiles(buffer);
+            }, delay);
+        },
+
+        scheduleSettledTileLoad() {
+            clearTimeout(this._settledTileLoadTimer);
+            this._settledTileLoadTimer = setTimeout(() => {
+                this.loadVisibleTiles(SETTLED_VIEWPORT_TILE_BUFFER);
+            }, SCROLL_SETTLE_DELAY);
+        },
+
+        loadVisibleTiles(buffer = SETTLED_VIEWPORT_TILE_BUFFER) {
+            if (!this.currentRequestToken || !this.tileGridRowsCache.length) {
+                return;
+            }
+
+            const requestToken = this.currentRequestToken;
+            const coordinates = this.getVisibleTileCoordinates(buffer)
+                .filter(tile => !this.isTileSettledForCurrentSource(tile.key));
+            if (!coordinates.length) {
+                return;
+            }
+
+            this.startVisibleTileLoad(coordinates, requestToken).catch(error => {
+                // eslint-disable-next-line no-console
+                console.warn('[WMTSTileMap] 可视区域瓦片加载失败', error);
+            });
+        },
+
+        nextVisibleTileLoadGeneration() {
+            this.visibleTileLoadGeneration += 1;
+            return this.visibleTileLoadGeneration;
+        },
+
+        isTileInBounds(tile, bounds) {
+            if (!bounds) {
+                return true;
+            }
+            return tile.col >= bounds.minX
+                && tile.col <= bounds.maxX
+                && tile.row >= bounds.minY
+                && tile.row <= bounds.maxY;
+        },
+
+        shouldRenderTreeLayer(tile) {
+            return this.hasCurrentTileImage(tile.key) && Boolean(this.getTileTreeLayer(tile));
+        },
+
+        getTileTreeLayer(tile) {
+            return this.tileTreeData[`${ tile.col }_${ tile.row }`];
+        },
+
+        hasCurrentTileImage(key) {
+            return this.hasTileImage(key) && this.tileImageSources[key] === this.tileSourceKey;
+        },
+
+        isTileSettledForCurrentSource(key) {
+            return Boolean(this.tileImages[key]) && this.tileImageSources[key] === this.tileSourceKey;
         },
 
         setTileRunState(key, nextState) {
@@ -1230,12 +1476,7 @@ export default {
 
         // 瓦片图片管理相关方法
         getTileImageCount(x, y) {
-            // 直接从 markers 数据中统计该瓦片位置的标点数量
-            const count = this.markers.filter(marker =>
-                marker.zoom_level === this.zoomLevel
-                && marker.tile_x === x
-                && marker.tile_y === y).length;
-            return count;
+            return this.markerCountByTile[this.getTileKey(x, y)] || 0;
         },
 
         async openTileImageManager(x, y) {
