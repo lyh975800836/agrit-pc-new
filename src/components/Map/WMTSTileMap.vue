@@ -2,23 +2,33 @@
   <div class="tile-map-container">
 
     <!-- 树木筛选控制栏（相对 tile-map-container 定位，不受 tile-grid 滚动影响） -->
-    <div v-if="analysisTile" class="map-controls" :class="{ 'map-controls--collapsed': filterCollapsed }">
-      <button class="filter-toggle" @click="filterCollapsed = !filterCollapsed">
-        <span class="filter-toggle-icon">{{ filterCollapsed ? '▼' : '▲' }}</span>
-      </button>
-      <template v-if="!filterCollapsed">
-        <button
-          v-for="f in treeFilterOptions"
-          :key="f.value"
-          class="filter-btn"
-          :class="{ 'filter-btn--active': treeFilter === f.value }"
-          @click="treeFilter = f.value"
-        >{{ f.label }}</button>
-        <div class="controls-divider"></div>
-        <button class="zoom-btn" :disabled="!canZoomOut" @click="zoomOut">−</button>
-        <span class="zoom-label">{{ zoomLabel }}</span>
-        <button class="zoom-btn" :disabled="!canZoomIn" @click="zoomIn">+</button>
+    <div
+      v-if="analysisTile || hasExtraControls"
+      class="map-controls"
+      :class="{ 'map-controls--collapsed': filterCollapsed }"
+    >
+      <template v-if="analysisTile">
+        <button class="filter-toggle" @click="filterCollapsed = !filterCollapsed">
+          <span class="filter-toggle-icon">{{ filterCollapsed ? '▼' : '▲' }}</span>
+        </button>
+        <template v-if="!filterCollapsed">
+          <button
+            v-for="f in treeFilterOptions"
+            :key="f.value"
+            class="filter-btn"
+            :class="{ 'filter-btn--active': treeFilter === f.value }"
+            @click="treeFilter = f.value"
+          >{{ f.label }}</button>
+          <div class="controls-divider"></div>
+          <button class="zoom-btn" :disabled="!canZoomOut" @click="zoomOut">−</button>
+          <span class="zoom-label">{{ zoomLabel }}</span>
+          <button class="zoom-btn" :disabled="!canZoomIn" @click="zoomIn">+</button>
+        </template>
+        <div v-if="hasExtraControls" class="controls-divider"></div>
       </template>
+
+      <!-- 由父级挂载的额外控件（如巡飞节点开关），与筛选栏同处一行、整体居中 -->
+      <slot name="controls-extra"></slot>
     </div>
 
     <div
@@ -183,6 +193,15 @@ export default {
         sourceTileSize: {
             type: Number,
             default: 512
+        },
+        /**
+         * 父级是否往 controls-extra 插槽塞了内容
+         * 没有 analysisTile 时控制栏本会整条隐藏，靠这个标记让插槽内容仍有容身之处，
+         * 否则选中无专属底图的批次后开关会一起消失，用户切不回其它批次
+         */
+        hasExtraControls: {
+            type: Boolean,
+            default: false
         }
     },
     data() {

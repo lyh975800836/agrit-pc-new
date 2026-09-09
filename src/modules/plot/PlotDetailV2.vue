@@ -27,9 +27,25 @@
           :analysis-tile="analysisTileInfo"
           :tree-tiles="analysisTreeTiles"
           :source-tile-size="analysisSourceTileSize"
+          :has-extra-controls="showAnalysisTimeline"
           @tile-metrics="handleTileMetrics"
           @tree-click="handleTreeClick"
-        />
+        >
+          <!-- 巡飞节点开关塞进地图筛选栏同一行，两者作为一组整体居中 -->
+          <template #controls-extra>
+            <button
+              v-if="showAnalysisTimeline"
+              class="timeline-toggle"
+              :class="{ 'timeline-toggle--open': !timelineCollapsed }"
+              :title="timelineCollapsed ? '展开巡飞节点' : '收起巡飞节点'"
+              @click="timelineCollapsed = !timelineCollapsed"
+            >
+              <span>巡飞节点</span>
+              <span v-if="timelineToggleHint" class="timeline-toggle__hint">{{ timelineToggleHint }}</span>
+              <span class="timeline-toggle__arrow"></span>
+            </button>
+          </template>
+        </WMTSTileMap>
 
         <!-- 历史巡飞时间线 - 切换批次 -->
         <AnalysisTimeline
@@ -39,6 +55,7 @@
           :active-year="analysisTimelineYear"
           :active-analysis-id="currentAnalysisId"
           :switching-id="analysisSwitchingId"
+          :collapsed="timelineCollapsed"
           @select="handleTimelineSelect"
           @year-change="handleTimelineYearChange"
         />
@@ -194,7 +211,7 @@ import FactoryLeftPanel from '@/modules/plot/panels/FactoryLeftPanel.vue';
 import FactoryRightPanel from '@/modules/plot/panels/FactoryRightPanel.vue';
 import WarehouseLeftPanel from '@/modules/plot/panels/WarehouseLeftPanel.vue';
 import WarehouseRightPanel from '@/modules/plot/panels/WarehouseRightPanel.vue';
-import AnalysisTimeline from '@/modules/plot/components/AnalysisTimeline.vue';
+import AnalysisTimeline, { formatPatrolDate } from '@/modules/plot/components/AnalysisTimeline.vue';
 import PlotStrategyFactory from '@/modules/plot/strategies/index.js';
 import { RANKING_CONFIG, DEFAULT_PLOT_DATA } from '@/config/farmerConfig';
 import apiClient from '@/services/apiClient';
@@ -263,6 +280,8 @@ export default {
             analysisTimelineYears: [],
             analysisTimelineYear: 0,
             analysisSwitchingId: null,
+            // 时间轴默认收起，只在地图筛选栏留一颗开关
+            timelineCollapsed: true,
             // 单树详情
             selectedTreeDetail: null,
             showTreeDetail: false,
@@ -324,6 +343,14 @@ export default {
         showAnalysisTimeline() {
             return this.mapReady
                 && Boolean(this.analysisTimelineNodes.length || this.analysisTimelineYears.length);
+        },
+
+        /** 开关按钮上补一句当前批次，收起时也能看出正在看哪次巡飞 */
+        timelineToggleHint() {
+            const activeId = String(this.currentAnalysisId || '');
+            const active = this.analysisTimelineNodes.find(node => String(node.analysis_id) === activeId);
+            if (active) return formatPatrolDate(active.detected_at);
+            return this.analysisTimelineNodes.length ? `${ this.analysisTimelineNodes.length } 次` : '';
         },
 
         /**
@@ -1272,6 +1299,54 @@ export default {
     position: relative;
     width: 100%;
     height: 100%;
+}
+
+/**
+ * 巡飞节点开关
+ * 渲染在 WMTSTileMap 的 controls-extra 插槽里，样式对齐同排的 .filter-btn
+ */
+.timeline-toggle {
+    display: flex;
+    align-items: center;
+    padding: 2px 10px;
+    border: 1px solid rgba(198, 156, 109, 0.4);
+    border-radius: 3px;
+    font-size: 11px;
+    line-height: 1;
+    color: rgba(198, 156, 109, 0.7);
+    background: transparent;
+    gap: 5px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: #c69c6d;
+        color: #c69c6d;
+    }
+}
+
+.timeline-toggle--open {
+    border-color: #c69c6d;
+    color: #c69c6d;
+}
+
+.timeline-toggle__hint {
+    opacity: 0.75;
+}
+
+/* 收起时朝下（点开向下展开），展开后翻上去表示点了会收回去 */
+.timeline-toggle__arrow {
+    width: 0;
+    height: 0;
+    border-top: 4px solid currentColor;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    transition: transform 0.15s;
+}
+
+.timeline-toggle--open .timeline-toggle__arrow {
+    transform: rotate(180deg);
 }
 
 .health-detail-overlay {
