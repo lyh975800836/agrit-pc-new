@@ -204,13 +204,32 @@ function getAnalysisList(params = {}, options = {}) {
 }
 
 /**
- * 获取 wuda 批次概览（含批次专属底图信息）
+ * 获取历史巡飞时间线（批次节点按采集日期升序）
+ * @param {string} plotId - 地块 ID
+ * @param {number} year - 年份筛选，0 或不传表示全部年份
+ * @param {Object} options - 请求配置
+ */
+function getAnalysisTimeline(plotId, year = 0, options = {}) {
+    // eslint-disable-next-line camelcase
+    const body = { plot_id: String(plotId) };
+    if (year) {
+        body.year = Number(year);
+    }
+    return request('/api/v2/plot-analysis/timeline', {
+        ...options,
+        method: 'POST',
+        body: JSON.stringify(body)
+    });
+}
+
+/**
+ * 获取批次统计概览（含批次专属底图信息 analysis_tile）
  * @param {string} plotId - 地块 ID
  * @param {string} analysisId - 分析批次 ID
  * @param {Object} options - 请求配置
  */
-function getWudaSummary(plotId, analysisId, options = {}) {
-    return request('/api/v2/plot-analysis/wuda-summary', {
+function getAnalysisSummary(plotId, analysisId, options = {}) {
+    return request('/api/v2/plot-analysis/summary', {
         ...options,
         method: 'POST',
         // eslint-disable-next-line camelcase
@@ -223,8 +242,8 @@ function getWudaSummary(plotId, analysisId, options = {}) {
  * @param {Object} params - 请求参数 (plot_id, analysis_id, plot_tile_id, zoom, tile_range, source_layer)
  * @param {Object} options - 请求配置
  */
-function getWudaTileTrees(params, options = {}) {
-    return request('/api/v2/plot-analysis/wuda-tiles/trees', {
+function getAnalysisTileTrees(params, options = {}) {
+    return request('/api/v2/plot-analysis/tiles/trees', {
         ...options,
         method: 'POST',
         body: JSON.stringify(params)
@@ -238,8 +257,8 @@ function getWudaTileTrees(params, options = {}) {
  * @param {string} treeId - 树 ID
  * @param {Object} options - 请求配置
  */
-function getWudaTreeDetail(plotId, analysisId, treeId, options = {}) {
-    return request('/api/v2/plot-analysis/wuda-tree/detail', {
+function getAnalysisTreeDetail(plotId, analysisId, treeId, options = {}) {
+    return request('/api/v2/plot-analysis/tree/detail', {
         ...options,
         method: 'POST',
         // eslint-disable-next-line camelcase
@@ -258,7 +277,8 @@ export default {
     getSpicePrice,
     getSpicePriceBajiao,
     getAnalysisList,
-    getWudaSummary,
-    getWudaTileTrees,
-    getWudaTreeDetail
+    getAnalysisTimeline,
+    getAnalysisSummary,
+    getAnalysisTileTrees,
+    getAnalysisTreeDetail
 };

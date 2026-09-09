@@ -168,20 +168,48 @@ export function isUsableTileInfo(tileInfo) {
         || (Number.isFinite(tileCount) && tileCount > 0);
 }
 
-export async function fetchLatestWudaAnalysis(plotId) {
+/**
+ * 拉取历史巡飞时间线
+ * nodes 已按采集日期 detected_at 升序，最新批次在末尾；
+ * years / latestAnalysisId 不受 year 过滤影响，可直接用于年份切换。
+ *
+ * @param {string} plotId - 地块 ID
+ * @param {number} year - 年份筛选，0 表示全部年份
+ * @returns {Promise<{years: number[], latestAnalysisId: string|null, nodes: Object[]}|null>}
+ */
+export async function fetchAnalysisTimeline(plotId, year = 0) {
+    const result = await apiClient.getAnalysisTimeline(plotId, year);
+    const data = result?.code === 0 ? result.data : null;
+    if (!data) return null;
+
+    const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+    const fallbackLatest = nodes.length ? nodes[nodes.length - 1].analysis_id : null;
+    const latestAnalysisId = data.latest_analysis_id || fallbackLatest;
+
+    return {
+        years: Array.isArray(data.years) ? data.years : [],
+        latestAnalysisId: latestAnalysisId ? String(latestAnalysisId) : null,
+        nodes
+    };
+}
+
+/**
+ * 时间线不可用时的兜底：按导入时间取最新的一条 AI 监测批次
+ */
+export async function fetchLatestAnalysis(plotId) {
     const listResult = await apiClient.getAnalysisList({
         // eslint-disable-next-line camelcase
         plot_id: String(plotId),
         // eslint-disable-next-line camelcase
-        factory_type: 'wuda',
+        factory_type: 'ai_monitor',
         status: 2
     });
     const list = listResult?.data?.list;
     return Array.isArray(list) && list.length ? list[0] : null;
 }
 
-export async function fetchWudaSummaryTile(plotId, analysisId, debug) {
-    const summaryResult = await apiClient.getWudaSummary(plotId, analysisId);
+export async function fetchAnalysisSummaryTile(plotId, analysisId, debug) {
+    const summaryResult = await apiClient.getAnalysisSummary(plotId, analysisId);
     const summary = summaryResult?.data || null;
     const analysisTile = summary?.analysis_tile || null;
 
@@ -201,13 +229,13 @@ export async function fetchWudaSummaryTile(plotId, analysisId, debug) {
     return { summary, analysisTile };
 }
 
-export async function fetchWudaTreeOverlay({ plotId, analysisId, analysisTile, timeout = DEFAULT_TREE_TIMEOUT }) {
+export async function fetchAnalysisTreeOverlay({ plotId, analysisId, analysisTile, timeout = DEFAULT_TREE_TIMEOUT }) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
     try {
-        const result = await apiClient.getWudaTileTrees(
-            buildWudaTileTreesParams(plotId, analysisId, analysisTile),
+        const result = await apiClient.getAnalysisTileTrees(
+            buildTileTreesParams(plotId, analysisId, analysisTile),
             { signal: controller.signal }
         );
 
@@ -340,7 +368,7 @@ function isValidAnalysisTile(tile) {
         && Number.isFinite(maxZoom);
 }
 
-function buildWudaTileTreesParams(plotId, analysisId, analysisTile) {
+function buildTileTreesParams(plotId, analysisId, analysisTile) {
     return {
         // eslint-disable-next-line camelcase
         plot_id: String(plotId),

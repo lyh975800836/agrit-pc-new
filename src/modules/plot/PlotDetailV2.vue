@@ -30,6 +30,18 @@
           @tile-metrics="handleTileMetrics"
           @tree-click="handleTreeClick"
         />
+
+        <!-- 历史巡飞时间线 - 切换批次 -->
+        <AnalysisTimeline
+          v-if="showAnalysisTimeline"
+          :nodes="analysisTimelineNodes"
+          :years="analysisTimelineYears"
+          :active-year="analysisTimelineYear"
+          :active-analysis-id="currentAnalysisId"
+          :switching-id="analysisSwitchingId"
+          @select="handleTimelineSelect"
+          @year-change="handleTimelineYearChange"
+        />
       </template>
 
       <template #left-panel>
@@ -182,15 +194,17 @@ import FactoryLeftPanel from '@/modules/plot/panels/FactoryLeftPanel.vue';
 import FactoryRightPanel from '@/modules/plot/panels/FactoryRightPanel.vue';
 import WarehouseLeftPanel from '@/modules/plot/panels/WarehouseLeftPanel.vue';
 import WarehouseRightPanel from '@/modules/plot/panels/WarehouseRightPanel.vue';
+import AnalysisTimeline from '@/modules/plot/components/AnalysisTimeline.vue';
 import PlotStrategyFactory from '@/modules/plot/strategies/index.js';
 import { RANKING_CONFIG, DEFAULT_PLOT_DATA } from '@/config/farmerConfig';
 import apiClient from '@/services/apiClient';
 import {
     buildPlotData,
+    fetchAnalysisSummaryTile,
+    fetchAnalysisTimeline,
+    fetchAnalysisTreeOverlay,
     fetchBaseTileInfo,
-    fetchLatestWudaAnalysis,
-    fetchWudaSummaryTile,
-    fetchWudaTreeOverlay,
+    fetchLatestAnalysis,
     getPlotListConfigFallback as buildPlotListConfigFallback,
     getPlotType,
     isUsableTileInfo,
@@ -218,7 +232,8 @@ export default {
         FactoryLeftPanel,
         FactoryRightPanel,
         WarehouseLeftPanel,
-        WarehouseRightPanel
+        WarehouseRightPanel,
+        AnalysisTimeline
     },
     data() {
         return {
@@ -243,6 +258,11 @@ export default {
             analysisSourceTileSize: 512,
             baseMapTileInfo: null,
             mapReady: false,
+            // 历史巡飞时间线
+            analysisTimelineNodes: [],
+            analysisTimelineYears: [],
+            analysisTimelineYear: 0,
+            analysisSwitchingId: null,
             // 单树详情
             selectedTreeDetail: null,
             showTreeDetail: false,
@@ -297,6 +317,15 @@ export default {
         };
     },
     computed: {
+        /**
+         * 时间线可见性
+         * 年份筛选后可能没有节点，此时仍要保留组件，否则用户切不回其它年份
+         */
+        showAnalysisTimeline() {
+            return this.mapReady
+                && Boolean(this.analysisTimelineNodes.length || this.analysisTimelineYears.length);
+        },
+
         /**
          * 策略实例
          * 即使API加载失败也创建策略实例(使用默认值)以保证UI能够渲染
@@ -667,6 +696,10 @@ export default {
                 this.baseMapTileInfo = null;
                 this.mapReady = false;
                 this.currentAnalysisId = null;
+                this.analysisTimelineNodes = [];
+                this.analysisTimelineYears = [];
+                this.analysisTimelineYear = 0;
+                this.analysisSwitchingId = null;
                 this._mapTileToken = null;
 
                 // 从路由参数获取区域名称和地块数据
@@ -784,7 +817,7 @@ export default {
                 return;
             }
 
-            const analysisSource = await this.resolveAnalysisSource(normalizedPlotId);
+            const analysisSource = await this.resolveAnalysisSource(normalizedPlotId, mapTileToken);
             if (!this.isCurrentMapTileLoad(mapTileToken, normalizedPlotId)) return;
 
             if (analysisSource?.analysisTile) {
@@ -810,7 +843,7 @@ export default {
         },
 
         async loadAnalysisOverlayAfterBaseReady(plotId, mapTileToken) {
-            const analysisSource = await this.resolveAnalysisSource(plotId);
+            const analysisSource = await this.resolveAnalysisSource(plotId, mapTileToken);
             if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return;
             if (analysisSource?.analysisTile) {
                 this.loadAnalysisTreeOverlay({
@@ -823,29 +856,148 @@ export default {
             }
         },
 
-        async resolveAnalysisSource(plotId) {
+        async resolveAnalysisSource(plotId, mapTileToken) {
             try {
-                const latestBatch = await fetchLatestWudaAnalysis(plotId);
-                if (!latestBatch) return null;
-                this.currentAnalysisId = latestBatch.id;
+                const analysisId = await this.resolveLatestAnalysisId(plotId);
+                if (!analysisId) return null;
 
-                const { summary, analysisTile } = await fetchWudaSummaryTile(
-                    plotId,
-                    latestBatch.id,
-                    this.debugPlotDetail
-                );
-                this.apiAnalysisSummary = summary;
+                const { analysisTile } = await this.loadAnalysisBatch(plotId, analysisId, mapTileToken);
                 if (!analysisTile) return null;
 
-                return {
-                    analysisId: latestBatch.id,
-                    analysisTile
-                };
+                return { analysisId, analysisTile };
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.warn('Failed to resolve analysis tile:', error);
                 return null;
             }
+        },
+
+        /**
+         * 取默认展示的批次：优先用时间线的 latest_analysis_id（按采集日期最新），
+         * 时间线不可用时退回批次列表（按导入时间）。
+         */
+        async resolveLatestAnalysisId(plotId) {
+            const timeline = await this.loadAnalysisTimeline(plotId, 0);
+            if (timeline?.latestAnalysisId) {
+                return timeline.latestAnalysisId;
+            }
+
+            const latestBatch = await fetchLatestAnalysis(plotId);
+            return latestBatch?.id ? String(latestBatch.id) : null;
+        },
+
+        /**
+         * 拉取时间线节点。years / latestAnalysisId 不受 year 过滤影响，
+         * 因此年份切换只替换节点列表，不改动当前选中批次。
+         */
+        async loadAnalysisTimeline(plotId, year = 0) {
+            try {
+                const timeline = await fetchAnalysisTimeline(plotId, year);
+                if (String(this.plotData?.id || '') !== String(plotId)) return null;
+
+                this.analysisTimelineNodes = timeline?.nodes || [];
+                this.analysisTimelineYear = year;
+                if (timeline?.years?.length) {
+                    this.analysisTimelineYears = timeline.years;
+                }
+
+                this.debugPlotDetail('巡飞时间线加载完成', {
+                    plotId,
+                    year,
+                    nodeCount: this.analysisTimelineNodes.length,
+                    years: this.analysisTimelineYears,
+                    latestAnalysisId: timeline?.latestAnalysisId || null
+                });
+                return timeline;
+            } catch (error) {
+                this.debugPlotDetail('巡飞时间线加载失败，回退批次列表', {
+                    plotId,
+                    year,
+                    error: error.message
+                });
+                return null;
+            }
+        },
+
+        /**
+         * 拉取指定批次的统计与批次专属底图
+         * mapTileToken 用于丢弃已被时间线切换抢占的过期请求，避免旧批次统计覆盖新选中批次
+         */
+        async loadAnalysisBatch(plotId, analysisId, mapTileToken) {
+            this.currentAnalysisId = analysisId;
+            const { summary, analysisTile } = await fetchAnalysisSummaryTile(
+                plotId,
+                analysisId,
+                this.debugPlotDetail
+            );
+            if (mapTileToken && !this.isCurrentMapTileLoad(mapTileToken, plotId)) {
+                return { analysisId, analysisTile: null };
+            }
+
+            this.apiAnalysisSummary = summary;
+            return { analysisId, analysisTile };
+        },
+
+        /**
+         * 时间线切换批次：重新拉该批次的底图与树冠标点
+         */
+        async handleTimelineSelect(node) {
+            const analysisId = node?.analysis_id ? String(node.analysis_id) : '';
+            const plotId = String(this.plotData?.id || '');
+            if (!analysisId || !plotId) return;
+            if (analysisId === String(this.currentAnalysisId || '')) return;
+            if (this.analysisSwitchingId) return;
+
+            // 上一批次的单树详情对新批次无意义，先关掉
+            this.showTreeDetail = false;
+            this.selectedTreeDetail = null;
+
+            // 抢占瓦片加载令牌，作废进行中的上一批次请求
+            const mapTileToken = Symbol('map-tile');
+            this._mapTileToken = mapTileToken;
+            this.analysisSwitchingId = analysisId;
+
+            try {
+                const { analysisTile } = await this.loadAnalysisBatch(plotId, analysisId, mapTileToken);
+                if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return;
+
+                if (analysisTile) {
+                    this.useAnalysisBaseTile(analysisTile, plotId, analysisId, 'timeline-switch');
+                    await this.loadAnalysisTreeOverlay({
+                        plotId,
+                        analysisId,
+                        analysisTile,
+                        mapTileToken
+                    });
+                    return;
+                }
+
+                // 该批次没有专属底图：回落到地块底图，并清掉上一批次的标点
+                this.analysisMapTile = null;
+                this.analysisTreeTiles = [];
+                this.analysisSourceTileSize = 512;
+                this.debugPlotDetail('批次无专属底图，回落地块底图', {
+                    plotId,
+                    analysisId,
+                    hasBaseTile: Boolean(this.baseMapTileInfo)
+                });
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn('Failed to switch analysis batch:', error);
+            } finally {
+                if (this.analysisSwitchingId === analysisId) {
+                    this.analysisSwitchingId = null;
+                }
+            }
+        },
+
+        /**
+         * 时间线年份切换
+         */
+        handleTimelineYearChange(year) {
+            const plotId = String(this.plotData?.id || '');
+            if (!plotId || year === this.analysisTimelineYear) return;
+            this.loadAnalysisTimeline(plotId, year);
         },
 
         /**
@@ -977,7 +1129,7 @@ export default {
             switchBaseTileAfterLoaded = false
         }) {
             try {
-                const treeOverlay = await fetchWudaTreeOverlay({
+                const treeOverlay = await fetchAnalysisTreeOverlay({
                     plotId,
                     analysisId,
                     analysisTile
@@ -1032,7 +1184,7 @@ export default {
             }
             this.treeDetailLoading = true;
             try {
-                const result = await apiClient.getWudaTreeDetail(this.plotData.id, analysisId, tree.tree_id);
+                const result = await apiClient.getAnalysisTreeDetail(this.plotData.id, analysisId, tree.tree_id);
                 if (result?.data) {
                     this.selectedTreeDetail = result.data;
                 }

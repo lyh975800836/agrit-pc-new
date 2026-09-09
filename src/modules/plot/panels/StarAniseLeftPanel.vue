@@ -151,7 +151,7 @@ export default {
         plotName: { type: String, required: true },
         regionName: { type: String, required: true },
         priceData: { type: Object, default: null },
-        /** wuda-summary 响应，用于展示监测批次统计 */
+        /** plot-analysis/summary 响应，用于展示监测批次统计 */
         analysisSummary: { type: Object, default: null }
     },
     emits: ['show-health-modal', 'action-click', 'price-category-change'],

@@ -164,7 +164,7 @@ export default {
             type: Object,
             default: () => ({})
         },
-        /** wuda-summary 返回的 analysis_tile 对象；有值时用批次专属底图替代 plot_tiles */
+        /** plot-analysis/summary 返回的 analysis_tile 对象；有值时用批次专属底图替代 plot_tiles */
         analysisTile: {
             type: Object,
             default: null
@@ -174,12 +174,12 @@ export default {
             type: Object,
             default: null
         },
-        /** wuda-tiles/trees 返回的 tiles 数组，用于渲染树冠覆盖层 */
+        /** plot-analysis/tiles/trees 返回的 tiles 数组，用于渲染树冠覆盖层 */
         treeTiles: {
             type: Array,
             default: () => []
         },
-        /** 源瓦片尺寸（来自 wuda-tiles/trees 响应的 source_tile_size），默认 512 */
+        /** 源瓦片尺寸（来自 plot-analysis/tiles/trees 响应的 source_tile_size），默认 512 */
         sourceTileSize: {
             type: Number,
             default: 512
