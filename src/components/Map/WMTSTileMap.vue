@@ -151,6 +151,8 @@ const TILE_IMAGE_TIMEOUT = 12000;
 const ACTIVE_VIEWPORT_TILE_BUFFER = 1;
 const SETTLED_VIEWPORT_TILE_BUFFER = 4;
 const SCROLL_SETTLE_DELAY = 140;
+// 预热相邻批次瓦片的张数上限，别把当前批次的带宽抢光
+const WARM_TILE_LIMIT = 16;
 // 静态常量，不随组件状态变化
 const TREE_FILTER_OPTIONS = [
     { label: '全部',   value: 'all'     },
@@ -870,6 +872,8 @@ export default {
             this.tileImages = {};
             this.tileImageSources = {};
             this.activeTileTaskKeys = {};
+            // 换地块了，上个地块预热过哪些图层不再有意义
+            this._warmedTileLayers = new Set();
             this.tileInfo = null;
             this.tileBounds = null;
             this.tileGridRowsCache = [];
@@ -1430,6 +1434,61 @@ export default {
             if (nextState === 'failed') {
                 this.tileLoadSummary.failed += 1;
             }
+        },
+
+        /**
+         * 预热其它批次的底图瓦片（供父级在预取相邻批次时调用）
+         *
+         * 批次数据缓存只解决 JSON，真正卡住切换的是底图 PNG 下载。
+         * 这里按当前视口的瓦片坐标，用目标批次自己的图层名/层级提前把图片塞进浏览器
+         * HTTP 缓存，切过去时瓦片直接命中，不再白屏。
+         *
+         * 纯热身：不写 tileImages（那是当前图层的状态），失败静默忽略。
+         *
+         * @param {Object} targetTile - 目标批次的 analysis_tile
+         */
+        warmLayerTiles(targetTile) {
+            const layerName = targetTile?.tile_dir || targetTile?.layer_name;
+            const zoom = Number(targetTile?.max_zoom_level);
+            if (!layerName || !Number.isFinite(zoom)) return;
+            // 层级不同意味着瓦片网格对不上，拿当前视口的行列去猜只会下错图
+            if (zoom !== this.zoomLevel) return;
+
+            if (!this._warmedTileLayers) {
+                this._warmedTileLayers = new Set();
+            }
+            // 每次切换都会触发预取，同一图层热身一次就够了
+            if (this._warmedTileLayers.has(layerName)) return;
+
+            const maxCol = Number(targetTile.max_tile_x);
+            const maxRow = Number(targetTile.max_tile_y);
+            const coordinates = this.getVisibleTileCoordinates(0)
+                .filter(tile => !(Number.isFinite(maxCol) && tile.col > maxCol))
+                .filter(tile => !(Number.isFinite(maxRow) && tile.row > maxRow))
+                .slice(0, WARM_TILE_LIMIT);
+            if (!coordinates.length) return;
+
+            this._warmedTileLayers.add(layerName);
+            coordinates.forEach(tile => {
+                const url = getCDNTileUrl(
+                    layerName,
+                    'default',
+                    'GoogleMapsCompatible',
+                    zoom,
+                    tile.row,
+                    tile.col,
+                    targetTile.tile_format || 'png',
+                    targetTile.tile_path_prefix || ''
+                );
+                preloadTileImage(url, null, TILE_IMAGE_TIMEOUT).catch(() => {});
+            });
+
+            this.debugMap('相邻批次瓦片已预热', {
+                plotId: this.plotId,
+                layerName,
+                zoom,
+                count: coordinates.length
+            });
         },
 
         buildTileUrl(layerName, tileCol, tileRow) {

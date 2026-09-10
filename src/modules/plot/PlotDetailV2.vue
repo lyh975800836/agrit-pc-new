@@ -217,9 +217,7 @@ import { RANKING_CONFIG, DEFAULT_PLOT_DATA } from '@/config/farmerConfig';
 import apiClient from '@/services/apiClient';
 import {
     buildPlotData,
-    fetchAnalysisSummaryTile,
     fetchAnalysisTimeline,
-    fetchAnalysisTreeOverlay,
     fetchBaseTileInfo,
     fetchLatestAnalysis,
     getPlotListConfigFallback as buildPlotListConfigFallback,
@@ -227,6 +225,7 @@ import {
     isUsableTileInfo,
     resolvePlotRecord
 } from '@/modules/plot/services/plotDetailDataService';
+import { getCachedBatch, loadAnalysisBatchBundle } from '@/modules/plot/services/analysisBatchCache';
 
 /**
  * 地块详情页 V2 - 新架构实现
@@ -952,28 +951,34 @@ export default {
          */
         async loadAnalysisBatch(plotId, analysisId, mapTileToken) {
             this.currentAnalysisId = analysisId;
-            const { summary, analysisTile } = await fetchAnalysisSummaryTile(
+            const bundle = await loadAnalysisBatchBundle({
                 plotId,
                 analysisId,
-                this.debugPlotDetail
-            );
+                debug: this.debugPlotDetail
+            });
             if (mapTileToken && !this.isCurrentMapTileLoad(mapTileToken, plotId)) {
                 return { analysisId, analysisTile: null };
             }
 
-            this.apiAnalysisSummary = summary;
-            return { analysisId, analysisTile };
+            this.apiAnalysisSummary = bundle.summary;
+            return { analysisId, analysisTile: bundle.analysisTile };
         },
 
         /**
-         * 时间线切换批次：重新拉该批次的底图与树冠标点
+         * 时间线切换批次
+         *
+         * 缓存命中时同步套用整包数据（底图 + 标点同帧生效），做前后对比时来回点不用等网络；
+         * 未命中才走请求，并在结束后预取相邻批次，让第一次左右翻页也能直出。
          */
         async handleTimelineSelect(node) {
             const analysisId = node?.analysis_id ? String(node.analysis_id) : '';
             const plotId = String(this.plotData?.id || '');
             if (!analysisId || !plotId) return;
             if (analysisId === String(this.currentAnalysisId || '')) return;
-            if (this.analysisSwitchingId) return;
+
+            // 命中缓存的切换不占用切换锁，否则一次慢请求会把来回对比整个卡住
+            const cached = getCachedBatch(plotId, analysisId);
+            if (!cached && this.analysisSwitchingId) return;
 
             // 上一批次的单树详情对新批次无意义，先关掉
             this.showTreeDetail = false;
@@ -982,32 +987,26 @@ export default {
             // 抢占瓦片加载令牌，作废进行中的上一批次请求
             const mapTileToken = Symbol('map-tile');
             this._mapTileToken = mapTileToken;
+
+            if (cached) {
+                // 上面换令牌时已经作废了进行中的那次加载，节点上的 loading 也一并收掉
+                this.analysisSwitchingId = null;
+                this.applyAnalysisBatchBundle(cached, plotId, 'timeline-switch-cached');
+                this.prefetchNeighborBatches(plotId, analysisId);
+                return;
+            }
+
             this.analysisSwitchingId = analysisId;
-
             try {
-                const { analysisTile } = await this.loadAnalysisBatch(plotId, analysisId, mapTileToken);
-                if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return;
-
-                if (analysisTile) {
-                    this.useAnalysisBaseTile(analysisTile, plotId, analysisId, 'timeline-switch');
-                    await this.loadAnalysisTreeOverlay({
-                        plotId,
-                        analysisId,
-                        analysisTile,
-                        mapTileToken
-                    });
-                    return;
-                }
-
-                // 该批次没有专属底图：回落到地块底图，并清掉上一批次的标点
-                this.analysisMapTile = null;
-                this.analysisTreeTiles = [];
-                this.analysisSourceTileSize = 512;
-                this.debugPlotDetail('批次无专属底图，回落地块底图', {
+                const bundle = await loadAnalysisBatchBundle({
                     plotId,
                     analysisId,
-                    hasBaseTile: Boolean(this.baseMapTileInfo)
+                    debug: this.debugPlotDetail
                 });
+                if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return;
+
+                this.applyAnalysisBatchBundle(bundle, plotId, 'timeline-switch');
+                this.prefetchNeighborBatches(plotId, analysisId);
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.warn('Failed to switch analysis batch:', error);
@@ -1016,6 +1015,88 @@ export default {
                     this.analysisSwitchingId = null;
                 }
             }
+        },
+
+        /**
+         * 把一个批次的整包数据套到地图上
+         * 底图和树冠标点一起赋值，避免旧批次的标点短暂压在新底图上
+         */
+        applyAnalysisBatchBundle(bundle, plotId, reason) {
+            this.currentAnalysisId = bundle.analysisId;
+            this.apiAnalysisSummary = bundle.summary;
+
+            if (!bundle.analysisTile) {
+                // 该批次没有专属底图：回落到地块底图，并清掉上一批次的标点
+                this.analysisMapTile = null;
+                this.analysisTreeTiles = [];
+                this.analysisSourceTileSize = 512;
+                this.debugPlotDetail('批次无专属底图，回落地块底图', {
+                    plotId,
+                    analysisId: bundle.analysisId,
+                    reason,
+                    hasBaseTile: Boolean(this.baseMapTileInfo)
+                });
+                return;
+            }
+
+            this.analysisTreeTiles = bundle.treeTiles;
+            this.analysisSourceTileSize = bundle.sourceTileSize;
+            this.useAnalysisBaseTile(bundle.analysisTile, plotId, bundle.analysisId, reason, {
+                resetTreeOverlay: false
+            });
+        },
+
+        /**
+         * 预取相邻批次
+         *
+         * 看完一个批次基本都是往前/往后翻一格做对比，提前把两侧的数据和底图瓦片拉回来。
+         * 放到浏览器空闲时发，别和当前批次抢带宽。
+         */
+        prefetchNeighborBatches(plotId, analysisId) {
+            const nodes = this.analysisTimelineNodes;
+            const index = nodes.findIndex(item => String(item.analysis_id) === String(analysisId));
+            if (index < 0) return;
+
+            const neighbors = [nodes[index - 1], nodes[index + 1]].filter(Boolean);
+            if (!neighbors.length) return;
+
+            this.runWhenIdle(() => {
+                // 空闲回调到来时可能已经切走地块了
+                if (String(this.plotData?.id || '') !== String(plotId)) return;
+                neighbors.forEach(node => this.prefetchBatch(plotId, String(node.analysis_id)));
+            });
+        },
+
+        prefetchBatch(plotId, analysisId) {
+            const cached = getCachedBatch(plotId, analysisId);
+            if (cached) {
+                this.warmBatchTiles(cached.analysisTile);
+                return;
+            }
+
+            loadAnalysisBatchBundle({ plotId, analysisId })
+                .then(bundle => this.warmBatchTiles(bundle.analysisTile))
+                .catch(error => {
+                    this.debugPlotDetail('相邻批次预取失败', {
+                        plotId,
+                        analysisId,
+                        error: error.message
+                    });
+                });
+        },
+
+        /** 让地图把该批次视口范围内的瓦片提前下到浏览器缓存 */
+        warmBatchTiles(analysisTile) {
+            if (!analysisTile) return;
+            this.$refs.wmtsTileMap?.warmLayerTiles?.(analysisTile);
+        },
+
+        runWhenIdle(task) {
+            if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(task, { timeout: 2000 });
+                return;
+            }
+            setTimeout(task, 300);
         },
 
         /**
@@ -1156,20 +1237,23 @@ export default {
             switchBaseTileAfterLoaded = false
         }) {
             try {
-                const treeOverlay = await fetchAnalysisTreeOverlay({
+                // 走缓存层：首屏时 loadAnalysisBatch 已经把整包拉回来了，这里直接命中
+                const bundle = await loadAnalysisBatchBundle({
                     plotId,
                     analysisId,
-                    analysisTile
+                    debug: this.debugPlotDetail
                 });
                 if (!this.isCurrentMapTileLoad(mapTileToken, plotId)) return false;
 
-                if (treeOverlay.tiles.length) {
-                    this.analysisTreeTiles = treeOverlay.tiles;
-                    this.analysisSourceTileSize = treeOverlay.sourceTileSize;
+                this.prefetchNeighborBatches(plotId, analysisId);
+
+                if (bundle.treeTiles.length) {
+                    this.analysisTreeTiles = bundle.treeTiles;
+                    this.analysisSourceTileSize = bundle.sourceTileSize;
                     this.debugPlotDetail('树冠瓦片数据加载完成', {
                         plotId,
                         analysisId,
-                        tileCount: treeOverlay.tiles.length,
+                        tileCount: bundle.treeTiles.length,
                         sourceTileSize: this.analysisSourceTileSize
                     });
                     if (switchBaseTileAfterLoaded) {
