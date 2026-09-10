@@ -1039,6 +1039,14 @@ export default {
                 return;
             }
 
+            // 先登记成常驻图层再切：预载好的图层在这一步就瞬时露出了，
+            // 切换退化成改一个 class，不重下图也不重建 DOM。
+            // 下面的 props 赋值随后跑，只是让加载调度和元数据跟上，不再决定屏幕内容
+            const sourceKey = this.registerBatchLayer(bundle);
+            if (sourceKey) {
+                this.$refs.wmtsTileMap?.setActiveLayer?.(sourceKey);
+            }
+
             this.analysisTreeTiles = bundle.treeTiles;
             this.analysisSourceTileSize = bundle.sourceTileSize;
             this.useAnalysisBaseTile(bundle.analysisTile, plotId, bundle.analysisId, reason, {
@@ -1070,12 +1078,12 @@ export default {
         prefetchBatch(plotId, analysisId) {
             const cached = getCachedBatch(plotId, analysisId);
             if (cached) {
-                this.warmBatchTiles(cached.analysisTile);
+                this.registerBatchLayer(cached);
                 return;
             }
 
             loadAnalysisBatchBundle({ plotId, analysisId })
-                .then(bundle => this.warmBatchTiles(bundle.analysisTile))
+                .then(bundle => this.registerBatchLayer(bundle))
                 .catch(error => {
                     this.debugPlotDetail('相邻批次预取失败', {
                         plotId,
@@ -1085,10 +1093,15 @@ export default {
                 });
         },
 
-        /** 让地图把该批次视口范围内的瓦片提前下到浏览器缓存 */
-        warmBatchTiles(analysisTile) {
-            if (!analysisTile) return;
-            this.$refs.wmtsTileMap?.warmLayerTiles?.(analysisTile);
+        /**
+         * 把批次登记成地图上的常驻图层，并让它后台补齐当前视口的瓦片
+         *
+         * @returns {string|null} 图层主键；批次没有专属底图、或几何与已挂载图层不兼容时
+         *   返回 null，调用方应走整体重载路径
+         */
+        registerBatchLayer(bundle) {
+            if (!bundle?.analysisTile) return null;
+            return this.$refs.wmtsTileMap?.registerBatchLayer?.(bundle) || null;
         },
 
         runWhenIdle(task) {

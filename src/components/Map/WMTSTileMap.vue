@@ -40,7 +40,9 @@
       @pointercancel="onPanEnd"
       @scroll="handleTileGridScroll"
     >
-      <div class="tile-grid-inner" :style="tileGridStyle">
+      <!-- 露出哪个批次由容器上这一个 class 决定，切换只 patch 这一个元素，
+           上千格的显隐交给 CSS —— 别改回逐格绑定 :class -->
+      <div class="tile-grid-inner" :class="activeLayerClass" :style="tileGridStyle">
         <template v-if="tileGridRows.length">
           <div
             v-for="(row, rowIndex) in tileGridRows"
@@ -54,12 +56,22 @@
               :data-x="tile.col"
               :data-y="tile.row"
             >
+              <!-- 每个已挂载批次在同一格里各占一层，只有 active 那层显示。
+                   切批次不重建 DOM、不重新下图，所以能瞬时来回对比 -->
+              <template v-for="(layer, li) in mountedLayers">
+                <div
+                  v-if="layerHasTile(layer.sourceKey, tile.key)"
+                  :key="layer.sourceKey"
+                  class="tile-content"
+                  :class="`tile-content--l${ li }`"
+                  :style="getTileBackground(layer.sourceKey, tile.key)"
+                ></div>
+              </template>
               <div
-                v-if="hasTileImage(tile.key)"
-                class="tile-content"
-                :style="getTileBackground(tile.key)"
-              ></div>
-              <div v-else class="tile-placeholder" :data-state="getTileState(tile.key)">
+                v-if="!layerHasTile(activeSourceKey, tile.key)"
+                class="tile-placeholder"
+                :data-state="getTileState(tile.key)"
+              >
                 <span v-if="getTileState(tile.key) === 'error'">{{ tilePlaceholderError }}</span>
               </div>
 
@@ -74,46 +86,52 @@
                 {{ getTileImageCount(tile.col, tile.row) }}
               </div>
 
-              <!-- 瓦片内树冠覆盖层（源像素坐标系，由 treeLayerStyle CSS scale 统一缩放） -->
-              <div
-                v-if="shouldRenderTreeLayer(tile)"
-                class="tile-tree-layer"
-                :style="treeLayerStyle"
-              >
-                <!-- 有冠层多边形的树：每棵树一个独立 SVG，局部定位 -->
-                <svg
-                  v-for="(item, pi) in getTileTreeLayer(tile).polygons"
-                  :key="`poly-${item.tree.tree_id}-${pi}`"
-                  :width="item.svgW"
-                  :height="item.svgH"
-                  class="tile-tree-svg"
-                  :style="{
-                    left: item.svgX + 'px',
-                    top:  item.svgY + 'px',
-                  }"
-                  @click.stop="$emit('tree-click', item.tree)"
-                >
-                  <polygon
-                    v-for="(pts, ri) in item.pointsAttrs"
-                    :key="ri"
-                    :points="pts"
-                    fill="transparent"
-                    :stroke="item.color"
-                    :stroke-width="treeStrokeWidth"
-                    stroke-linejoin="round"
-                    class="tile-tree-polygon"
-                  />
-                </svg>
-
-                <!-- 无冠层几何的树：圆形 div 兜底，transform 定位 -->
+              <!-- 瓦片内树冠覆盖层（源像素坐标系，由 treeLayerStyle CSS scale 统一缩放）。
+                   同样按批次分层，但只挂 treeWindow 内的格子：SVG 数量只跟屏幕大小相关，
+                   与地块规模和批次数都无关 -->
+              <template v-for="(layer, li) in mountedLayers">
                 <div
-                  v-for="item in getTileTreeLayer(tile).circles"
-                  :key="`circle-${item.tree.tree_id}`"
-                  class="tile-tree-circle"
-                  :style="item.style"
-                  @click.stop="$emit('tree-click', item.tree)"
-                />
-              </div>
+                  v-if="shouldRenderTreeLayer(layer, tile)"
+                  :key="`tree-${ layer.sourceKey }`"
+                  class="tile-tree-layer"
+                  :class="`tile-tree-layer--l${ li }`"
+                  :style="treeLayerStyleByLayer[layer.sourceKey]"
+                >
+                  <!-- 有冠层多边形的树：每棵树一个独立 SVG，局部定位 -->
+                  <svg
+                    v-for="(item, pi) in getTileTreeLayer(layer, tile).polygons"
+                    :key="`poly-${item.tree.tree_id}-${pi}`"
+                    :width="item.svgW"
+                    :height="item.svgH"
+                    class="tile-tree-svg"
+                    :style="{
+                      left: item.svgX + 'px',
+                      top:  item.svgY + 'px',
+                    }"
+                    @click.stop="$emit('tree-click', item.tree)"
+                  >
+                    <polygon
+                      v-for="(pts, ri) in item.pointsAttrs"
+                      :key="ri"
+                      :points="pts"
+                      fill="transparent"
+                      :stroke="item.color"
+                      :stroke-width="getTreeStrokeWidth(layer)"
+                      stroke-linejoin="round"
+                      class="tile-tree-polygon"
+                    />
+                  </svg>
+
+                  <!-- 无冠层几何的树：圆形 div 兜底，transform 定位 -->
+                  <div
+                    v-for="item in getTileTreeLayer(layer, tile).circles"
+                    :key="`circle-${item.tree.tree_id}`"
+                    class="tile-tree-circle"
+                    :style="item.style"
+                    @click.stop="$emit('tree-click', item.tree)"
+                  />
+                </div>
+              </template>
             </div>
           </div>
         </template>
@@ -151,8 +169,19 @@ const TILE_IMAGE_TIMEOUT = 12000;
 const ACTIVE_VIEWPORT_TILE_BUFFER = 1;
 const SETTLED_VIEWPORT_TILE_BUFFER = 4;
 const SCROLL_SETTLE_DELAY = 140;
-// 预热相邻批次瓦片的张数上限，别把当前批次的带宽抢光
-const WARM_TILE_LIMIT = 16;
+// 同时驻留 DOM 的批次图层数上限，超出按 LRU 卸载。
+// 需与样式里的 @mounted-layer-limit 保持一致
+const MOUNTED_LAYER_LIMIT = 4;
+// 单个批次后台预载的瓦片张数上限（约一屏 + 少量余量）。
+// 别改成全网格：实测约 50 张/秒，上千格 × 几个批次要好几十秒，还会把当前批次的带宽抢光
+const PRELOAD_TILES_PER_LAYER = 200;
+// 后台补图并发数，必须明显小于 TILE_LOAD_CONCURRENCY：
+// 后台补的是"以后可能要看"的批次，抢不过当前正在看的那张
+const PRELOAD_CONCURRENCY = 4;
+// 树冠渲染窗口在可视区外多留几格，滚动时先有图再补框，不至于边滚边空
+const TREE_WINDOW_BUFFER = 2;
+// 切到没预载过的批次时最多吊着旧图多久，超时就把已下好的先亮出来
+const TILE_SWAP_TIMEOUT = 2500;
 // 静态常量，不随组件状态变化
 const TREE_FILTER_OPTIONS = [
     { label: '全部',   value: 'all'     },
@@ -160,6 +189,10 @@ const TREE_FILTER_OPTIONS = [
     { label: '健康',   value: 'healthy' },
     { label: '疑似病', value: 'missing' }
 ];
+
+// 进页面和换批次后默认落在哪个筛选上。病树是巡飞真正要看的对象，
+// 默认全部会把几千棵健康树的框一起画出来，既盖住病树也拖慢渲染
+const DEFAULT_TREE_FILTER = 'pest';
 
 // 瓦片加载模式配置
 // 'cdn' - 直接从CDN加载（推荐，性能更好）
@@ -211,8 +244,18 @@ export default {
             zoomLevel: 4,
             markers: [],
             markersLoading: false,
-            tileImages: {},
-            tileImageSources: {},
+            // 瓦片表的版本号。真正的表 this.tileLayers 是裸对象、刻意不做成响应式，
+            // 落图后由 bumpTileRevision 每帧最多改一次这个数来触发重渲，详见 commitLayerTile
+            tileRevision: 0,
+            // 已挂载的批次图层，注册顺序稳定（决定 tile-content--l{i} 的下标）。
+            // LRU 顺序另用非响应式的 _layerLru 记，避免每次访问都触发全网格重渲染
+            mountedLayers: [],
+            // 当前露出的图层
+            activeSourceKey: null,
+            // 正在补齐、还不够格露出的图层；期间 activeSourceKey 保持不动，旧图继续垫着
+            pendingSourceKey: null,
+            // 树冠只渲染这个瓦片窗口内的格子：{ minCol, maxCol, minRow, maxRow }
+            treeWindow: null,
             tileInfo: null,
             tileBounds: null,
             tileGridRowsCache: [],
@@ -239,7 +282,7 @@ export default {
             // 缩放偏移量（相对于 effectiveMaxZoomLevel，0 = native size）
             displayZoomOffset: 0,
             // 树木筛选：'all' | 'pest' | 'healthy' | 'missing'
-            treeFilter: 'all',
+            treeFilter: DEFAULT_TREE_FILTER,
             filterCollapsed: false,
             treeFilterOptions: TREE_FILTER_OPTIONS,
             // 拖拽平移状态
@@ -254,6 +297,16 @@ export default {
         };
     },
     computed: {
+        /**
+         * 模板读瓦片用的入口
+         *
+         * tileLayers 是裸对象读不到变化，靠一起返回的 revision 建立渲染依赖。
+         * 逻辑代码不必走这里，直接读 this.tileLayers 永远是最新的
+         */
+        tileStore() {
+            return { revision: this.tileRevision, layers: this.tileLayers };
+        },
+
         plotId() {
             const rawId = this.plotData?.id;
             const normalizedId = typeof rawId === 'string' ? rawId.trim() : rawId;
@@ -300,7 +353,23 @@ export default {
         tileFormat() {
             return this.analysisTile?.tile_format || this.tileInfo?.tile_format || 'png';
         },
+        /**
+         * 加载调度当前服务的图层
+         *
+         * 优先补正在等着露出的那层，其次是已露出的那层。
+         * 以图层而不是 props 为准：切换时 setActiveLayer 先于 props 赋值发生，
+         * 跟着 props 走会把新批次的瓦片下进旧图层
+         */
+        loadTargetLayer() {
+            const key = this.pendingSourceKey || this.activeSourceKey;
+            if (!key) return null;
+            return this.mountedLayers.find(layer => layer.sourceKey === key) || null;
+        },
+
         tileSourceKey() {
+            if (this.loadTargetLayer) {
+                return this.loadTargetLayer.sourceKey;
+            }
             return [
                 this.layerName || '',
                 this.zoomLevel,
@@ -336,143 +405,58 @@ export default {
             return Math.max(0.5, 2.5 / this.tileScale);
         },
 
-        /** 树冠覆盖层样式：在源像素坐标系中绝对定位，统一 scale 缩放 */
-        treeLayerStyle() {
-            const sz = this.sourceTileSize + 'px';
-            return {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: sz,
-                height: sz,
-                transform: `scale(${this.tileScale})`,
-                transformOrigin: 'top left',
-                pointerEvents: 'none',  // 各子元素自行处理 pointer-events
-                '--tree-line-w': this.compensatedLineWidth  // 供子元素通过 CSS 变量读取
-            };
-        },
-
-        /** SVG 多边形 stroke-width（源像素单位） */
-        treeStrokeWidth() {
-            return this.compensatedLineWidth;
+        /**
+         * 每个图层的树冠覆盖层样式：{ [sourceKey]: style }
+         *
+         * 各批次的 source_tile_size 可能不同，scale 因子得各算各的。
+         * 做成表而不是方法：方法每次调用都返回新对象，1350 格 × N 层会让 Vue 每帧重设 style
+         */
+        treeLayerStyleByLayer() {
+            const result = {};
+            this.mountedLayers.forEach(layer => {
+                const srcPxPerTile = layer.sourceTileSize;
+                const scale = this.tileSize / srcPxPerTile;
+                const sz = srcPxPerTile + 'px';
+                result[layer.sourceKey] = {
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: sz,
+                    height: sz,
+                    transform: `scale(${ scale })`,
+                    transformOrigin: 'top left',
+                    pointerEvents: 'none',  // 各子元素自行处理 pointer-events
+                    '--tree-line-w': Math.max(0.5, 2.5 / scale)  // 供子元素通过 CSS 变量读取
+                };
+            });
+            return Object.freeze(result);
         },
 
         /**
-         * 每瓦片树冠渲染数据（源像素坐标系，不依赖 tileSizePx）
-         * 由 treeLayerStyle 的 CSS scale 统一换算到显示坐标
-         * 返回 { "${col}_${row}": { polygons: [...], circles: [...] } }
+         * 每个图层的每瓦片树冠渲染数据：{ [sourceKey]: { "col_row": { polygons, circles } } }
+         *
+         * freeze 掉：几何数据只整体替换、不逐棵改，冻结后 Vue 不会为上万个点位对象
+         * 挨个 defineProperty 建 Dep
          */
-        tileTreeData() {
-            if (!this.analysisTile || !this.treeTiles || !this.treeTiles.length) return {};
-
-            const at = this.analysisTile;
-            const pxPerLon = at.pixel_per_lon_degree;
-            const pxPerLat = at.pixel_per_lat_degree;
-            const srcPxPerTile = this.sourceTileSize;
-            // 在源像素坐标系计算（不依赖 tileSizePx），由 CSS transform: scale(tileScale) 统一缩放
-            const displayTileSize = srcPxPerTile;
-            // 地面分辨率（m/px）用于圆形半径计算
-            const metersPerSourcePx = pxPerLat > 0 ? 111320 / pxPerLat : 0;
-
+        treeDataByLayer() {
             const result = {};
-
-            for (const tile of this.treeTiles) {
-                const tileOriginX = tile.tile_x * srcPxPerTile;
-                const tileOriginY = tile.tile_y * srcPxPerTile;
-
-                // 经纬度 → 瓦片内局部像素坐标（源像素坐标系）
-                const lonLatToLocal = (lon, lat) => [
-                    (lon - at.min_lon) * pxPerLon - tileOriginX,
-                    (at.max_lat - lat) * pxPerLat - tileOriginY
-                ];
-
-                const polygons = [];
-                const circles  = [];
-
-                for (const tree of (tile.trees || [])) {
-                    // 筛选逻辑
-                    if (this.treeFilter === 'pest'    && !tree.pest) continue;
-                    if (this.treeFilter === 'healthy' &&  tree.pest) continue;
-                    if (this.treeFilter === 'missing' && !(tree.pest && !tree.has_detection_geometry)) continue;
-
-                    const color = tree.pest
-                        ? (tree.has_detection_geometry ? '#ff1744' : '#ff9100')
-                        : '#00c853';
-
-                    const rings = this.parseCrownRings(tree.crown_geometry_json);
-                    if (rings && rings.length) {
-                        // --- 多边形渲染 ---
-                        const localRings = rings.map(ring =>
-                            ring.map(([lon, lat]) => lonLatToLocal(lon, lat))
-                        );
-
-                        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                        localRings.forEach(ring => ring.forEach(([px, py]) => {
-                            if (px < minX) minX = px; if (py < minY) minY = py;
-                            if (px > maxX) maxX = px; if (py > maxY) maxY = py;
-                        }));
-
-                        const pad  = 1;
-                        const svgX = minX - pad;
-                        const svgY = minY - pad;
-                        const svgW = (maxX - minX) + pad * 2;
-                        const svgH = (maxY - minY) + pad * 2;
-
-                        // 完全在瓦片外则跳过
-                        if (svgX + svgW < 0 || svgY + svgH < 0 || svgX > displayTileSize || svgY > displayTileSize) continue;
-
-                        const pointsAttrs = localRings.map(ring =>
-                            ring.map(([px, py]) => `${(px - svgX).toFixed(2)},${(py - svgY).toFixed(2)}`).join(' ')
-                        );
-
-                        polygons.push({ tree, color, svgX, svgY, svgW, svgH, pointsAttrs });
-                    } else {
-                        // --- 圆形兜底 ---
-                        // pixel_x/pixel_y 已是瓦片内局部坐标（0 ~ sourceTileSize），直接使用
-                        const pointX = tree.pixel_x ?? 0;
-                        const pointY = tree.pixel_y ?? 0;
-
-                        // 用 tree_area（m²）推算冠幅半径（源像素单位），最小 6px 保证可点击
-                        let crownRadius = 6;
-                        if (tree.tree_area > 0 && metersPerSourcePx > 0) {
-                            const radiusM = Math.sqrt(tree.tree_area / Math.PI);
-                            crownRadius = Math.max(6, radiusM / metersPerSourcePx);
-                        }
-
-                        const sz = crownRadius * 2;
-                        // 避免超出瓦片边界
-                        const cl = Math.max(crownRadius, Math.min(displayTileSize - crownRadius, pointX));
-                        const ct = Math.max(crownRadius, Math.min(displayTileSize - crownRadius, pointY));
-
-                        circles.push({
-                            tree,
-                            style: {
-                                position: 'absolute',
-                                boxSizing: 'border-box',
-                                left: 0,
-                                top: 0,
-                                transform: `translate(${(cl - crownRadius).toFixed(1)}px, ${(ct - crownRadius).toFixed(1)}px)`,
-                                width: sz + 'px',
-                                height: sz + 'px',
-                                zIndex: 45,
-                                borderRadius: '50%',
-                                borderStyle: 'solid',
-                                borderColor: color,
-                                background: 'transparent',
-                                cursor: 'pointer',
-                                pointerEvents: 'auto'
-                            }
-                        });
-                    }
-                }
-
-                if (polygons.length || circles.length) {
-                    result[`${tile.tile_x}_${tile.tile_y}`] = { polygons, circles };
-                }
-            }
-
-            return result;
+            this.mountedLayers.forEach(layer => {
+                result[layer.sourceKey] = this.buildLayerTreeData(layer);
+            });
+            return Object.freeze(result);
         },
+
+        /**
+         * 露出哪个图层
+         *
+         * 挂在网格容器上，切批次只 patch 这一个元素的 class；
+         * 逐格绑定 :class 会让一次切换产生上千次 patch，正是要避免的
+         */
+        activeLayerClass() {
+            const index = this.mountedLayers.findIndex(layer => layer.sourceKey === this.activeSourceKey);
+            return index >= 0 ? `tile-grid-inner--active-l${ index }` : null;
+        },
+
         markerCountByTile() {
             const counts = {};
             this.markers.forEach(marker => {
@@ -609,21 +593,38 @@ export default {
             },
             deep: true
         },
+        // 缩放和 resize 都会改 tileSize，树冠窗口是按格子算的，尺寸一变就得重算
+        tileSize() {
+            this.$nextTick(() => this.updateTreeWindow());
+        },
         treeTiles: {
             handler(newTiles) {
                 if (!this.analysisTile || !Array.isArray(newTiles) || !newTiles.length) {
                     return;
                 }
                 this.$nextTick(() => {
-                    const treeBounds = this.getTreeTileBounds();
-                    if (treeBounds) {
-                        this.centerTileGridOnBounds(treeBounds, 'tree-tiles');
+                    // 只在还没按树冠范围定过位时定一次。这里原来判的是 mountedLayers.length，
+                    // 但图层在 loadMapData 里就登记好了、永远非空，等于把首屏定位整个跳过 ——
+                    // 地图会停在网格中心那片没有树的空地上
+                    if (!this._hasCenteredOnTrees) {
+                        const treeBounds = this.getTreeTileBounds();
+                        if (treeBounds) {
+                            this.centerTileGridOnBounds(treeBounds, 'tree-tiles');
+                            this._hasCenteredOnTrees = true;
+                        }
                     }
+                    this.updateTreeWindow();
                     this.loadPriorityTreeTiles();
                 });
             },
             deep: true
         }
+    },
+    created() {
+        // 按批次分层的瓦片表：{ [sourceKey]: { [tileKey]: url | 'error' } }。
+        // 每个批次独立成层、同时驻留，切换只是换露出哪一层。
+        // 放在 created 而不是 data 里，就是为了不让 Vue 观察它
+        this.tileLayers = {};
     },
     mounted() {
         window.addEventListener('resize', this.handleResize);
@@ -638,6 +639,8 @@ export default {
         clearTimeout(this._resizeDebouncTimer);
         clearTimeout(this._visibleTileLoadTimer);
         clearTimeout(this._settledTileLoadTimer);
+        clearTimeout(this._pendingLayerTimer);
+        cancelAnimationFrame(this._tileRevisionFrame);
         this.abortVisibleTileLoad();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
@@ -720,15 +723,27 @@ export default {
             // 切换地块时：完全重置，防止显示上一个地块的内容
             const sameplot = this._lastLoadedPlotId !== null && this._lastLoadedPlotId === String(this.plotId);
             this._lastLoadedPlotId = String(this.plotId);
+            // 已按树冠范围定过位 = 同一套网格里换批次，视角必须保持不动才谈得上来回对比。
+            // 注意别拿 mountedLayers.length 当条件：图层在本方法里就登记了，一直非空，
+            // 首屏那次定位会被一并跳掉
+            //
+            // 但网格几何变了就必须重新定位：行列号换了一套算法，同一个 scrollLeft
+            // 指的已经不是同一块地。保持不动会把视角丢在新批次没有树的空地上，
+            // 树冠窗口跟着算空 —— 表现就是"切到 3 月 22 日一个圈都没有"
+            const gridUnchanged = this.isGridCompatible(this.tileInfo, this.analysisTile);
+            const keepViewport = sameplot && this._hasCenteredOnTrees && gridUnchanged;
+            if (!gridUnchanged) {
+                this._hasCenteredOnTrees = false;
+            }
             if (sameplot && this.analysisTile) {
-                // 软重置：只重置布局和元数据，保留 tileImages
+                // 软重置：只重置布局和元数据，各批次图层的瓦片各自留着
                 this.tileInfo = null;
                 this.tileBounds = null;
                 this.tileGridRowsCache = [];
                 this.maxTileX = null;
                 this.maxTileY = null;
                 this.displayZoomOffset = 0;
-                this.treeFilter = 'all';
+                this.treeFilter = DEFAULT_TREE_FILTER;
                 this.filterCollapsed = false;
                 this.resetTileLoadSummary();
                 this._forceReloadTiles = true;
@@ -769,6 +784,7 @@ export default {
                 }
 
                 this.buildTileGrid();
+                this.ensureCurrentLayer();
                 this.debugMap('瓦片网格已构建', {
                     plotId: this.plotId,
                     layerName: this.layerName,
@@ -778,7 +794,19 @@ export default {
                     cols: this.tileGridRowsCache[0]?.length || 0,
                     tilePathPrefix: this.tilePathPrefix || ''
                 });
-                this.centerTileGridOnBounds(this.getTreeTileBounds() || this.tileBounds, 'initial');
+                // 同一套网格里换批次时保持视角不动：重新居中会让来回对比的两张图对不上
+                if (!keepViewport) {
+                    const treeBounds = this.getTreeTileBounds();
+                    this.centerTileGridOnBounds(treeBounds || this.tileBounds, 'initial');
+                    // 只有按树冠范围定过位才算定完；这会儿常常还没拿到树冠瓦片，
+                    // 退而求其次按整块网格居中，等 treeTiles 到了由 watcher 补一次
+                    if (treeBounds) {
+                        this._hasCenteredOnTrees = true;
+                    }
+                }
+                this.$nextTick(() => {
+                    this.updateTreeWindow();
+                });
                 this.scheduleVisibleTileLoad(120);
 
                 // 在后台加载瓦片，不阻塞主流程
@@ -869,18 +897,25 @@ export default {
         },
 
         resetTileState() {
-            this.tileImages = {};
-            this.tileImageSources = {};
             this.activeTileTaskKeys = {};
-            // 换地块了，上个地块预热过哪些图层不再有意义
-            this._warmedTileLayers = new Set();
+            // 换地块是硬重置，上个地块的图层一层都不该留
+            this.clearPendingLayer();
+            this.tileLayers = {};
+            this.notifyTileStore(true);
+            this.mountedLayers = [];
+            this.activeSourceKey = null;
+            this.treeWindow = null;
+            this._layerLru = [];
+            this._preloadedLayerViewports = new Map();
+            // 换地块要重新按新地块的树冠范围定位
+            this._hasCenteredOnTrees = false;
             this.tileInfo = null;
             this.tileBounds = null;
             this.tileGridRowsCache = [];
             this.maxTileX = null;
             this.maxTileY = null;
             this.displayZoomOffset = 0;
-            this.treeFilter = 'all';
+            this.treeFilter = DEFAULT_TREE_FILTER;
             this.filterCollapsed = false;
             this.resetTileLoadSummary();
         },
@@ -1087,6 +1122,9 @@ export default {
                 const centerY = (bounds.minY + bounds.maxY + 1) / 2 * this.tileSize;
                 container.scrollLeft = Math.max(0, centerX - container.clientWidth / 2);
                 container.scrollTop = Math.max(0, centerY - container.clientHeight / 2);
+                // 视角刚挪过，树冠窗口立刻跟上。等 scroll 事件收口也能对，
+                // 但那要多等一个 SCROLL_SETTLE_DELAY，首屏会先空一下
+                this.updateTreeWindow();
                 this.debugMap('地图视图已定位到有效区域', {
                     plotId: this.plotId,
                     reason,
@@ -1123,14 +1161,16 @@ export default {
         async loadTileImage(tileCol, tileRow, requestToken, loadSignal = null) {
             const key = this.getTileKey(tileCol, tileRow);
             if (this.isTileSettledForCurrentSource(key)) {
-                this.setTileRunState(key, this.hasTileImage(key) ? 'loaded' : 'failed');
+                this.setTileRunState(key, this.layerHasTile(this.tileSourceKey, key) ? 'loaded' : 'failed');
+                this.settlePendingTile(key);
                 return;
             }
 
             if (this.activeTileTaskKeys[key]) {
                 await this.activeTileTaskKeys[key];
                 if (this.isTileSettledForCurrentSource(key)) {
-                    this.setTileRunState(key, this.hasTileImage(key) ? 'loaded' : 'failed');
+                    this.setTileRunState(key, this.layerHasTile(this.tileSourceKey, key) ? 'loaded' : 'failed');
+                    this.settlePendingTile(key);
                     return;
                 }
             }
@@ -1149,8 +1189,7 @@ export default {
         async loadTileFromCDN(tileCol, tileRow, requestToken, key, loadSignal = null) {
             try {
                 if (!this.layerName) {
-                    this.$set(this.tileImages, key, 'error');
-                    this.$set(this.tileImageSources, key, this.tileSourceKey);
+                    this.commitLayerTile(this.tileSourceKey, key, 'error');
                     this.setTileRunState(key, 'failed');
                     return;
                 }
@@ -1172,8 +1211,7 @@ export default {
                 }
 
                 // 直接使用URL（浏览器会缓存）
-                this.$set(this.tileImages, key, tileUrl);
-                this.$set(this.tileImageSources, key, this.tileSourceKey);
+                this.commitLayerTile(this.tileSourceKey, key, tileUrl);
                 this.setTileRunState(key, 'loaded');
             }
             catch (error) {
@@ -1184,8 +1222,8 @@ export default {
                 // eslint-disable-next-line no-console
                 console.error(`从CDN获取瓦片失败 (${ this.zoomLevel }/${ tileRow }/${ tileCol }):`, error);
                 if (this.currentRequestToken === requestToken) {
-                    this.$set(this.tileImages, key, 'error');
-                    this.$set(this.tileImageSources, key, this.tileSourceKey);
+                    // 失败的瓦片也算"有结论"，否则一张 404 会把切换卡到超时
+                    this.commitLayerTile(this.tileSourceKey, key, 'error');
                     this.setTileRunState(key, 'failed');
                 }
             }
@@ -1202,6 +1240,22 @@ export default {
                 failed: 0
             };
             this._firstTileUrlLogged = false;
+
+            // 切换只等可视区这一屏，外围 buffer 留给后台慢慢下。
+            // 可视区坐标在这里算一次就存成待办，之后每张瓦片落地时 O(1) 划掉，
+            // 千万别改回每张瓦片都重算——那会读 scrollLeft 强制同步布局并给上千格排序。
+            // 一次切换只登记一次：滚动和外围补图会各起一轮调度并 abort 掉上一轮，
+            // 跟着每轮重建待办就会一直凑不齐，最后只能吊到超时才亮图
+            if (this.pendingSourceKey && !this._pendingLayerKeys) {
+                this._pendingLayerKeys = new Set(
+                    this.getVisibleTileCoordinates(0)
+                        .map(tile => tile.key)
+                        // 这层已有的格子不会再走加载流程，留着就没人划账
+                        .filter(key => !this.isTileSettledForCurrentSource(key))
+                );
+                // 可视区全是现成的（预载命中），这一屏不用等
+                this.checkPendingLayerReady();
+            }
         },
 
         resetTileLoadSummary() {
@@ -1313,6 +1367,8 @@ export default {
         async startVisibleTileLoad(coordinates, requestToken, concurrency = TILE_LOAD_CONCURRENCY) {
             const pendingCoordinates = coordinates.filter(tile => !this.isTileSettledForCurrentSource(tile.key));
             if (!pendingCoordinates.length) {
+                // 预载过的图层一张都不用下，切换不必再等
+                this.checkPendingLayerReady(true);
                 return;
             }
 
@@ -1332,6 +1388,8 @@ export default {
             } finally {
                 if (this.visibleTileAbortController === controller) {
                     this.visibleTileAbortController = null;
+                    // 这一轮跑完且没被新一轮抢占：该下的瓦片都有结论了
+                    this.checkPendingLayerReady(true);
                 }
             }
         },
@@ -1358,8 +1416,23 @@ export default {
         scheduleSettledTileLoad() {
             clearTimeout(this._settledTileLoadTimer);
             this._settledTileLoadTimer = setTimeout(() => {
+                // 停稳这一拍统一读一次布局：树冠窗口和各图层的补图都靠它
+                this.updateTreeWindow();
                 this.loadVisibleTiles(SETTLED_VIEWPORT_TILE_BUFFER);
+                this.preloadInactiveLayers();
             }, SCROLL_SETTLE_DELAY);
+        },
+
+        /**
+         * 给非当前图层补当前视口的图
+         *
+         * 放在滚动停稳后：当前图层先下完，别抢它的带宽
+         */
+        preloadInactiveLayers() {
+            this.mountedLayers.forEach(layer => {
+                if (layer.sourceKey === this.tileSourceKey) return;
+                this.preloadLayer(layer);
+            });
         },
 
         loadVisibleTiles(buffer = SETTLED_VIEWPORT_TILE_BUFFER) {
@@ -1371,6 +1444,8 @@ export default {
             const coordinates = this.getVisibleTileCoordinates(buffer)
                 .filter(tile => !this.isTileSettledForCurrentSource(tile.key));
             if (!coordinates.length) {
+                // 一张都不缺，等着露出的图层可以直接亮了
+                this.checkPendingLayerReady(true);
                 return;
             }
 
@@ -1395,20 +1470,208 @@ export default {
                 && tile.row <= bounds.maxY;
         },
 
-        shouldRenderTreeLayer(tile) {
-            return this.hasCurrentTileImage(tile.key) && Boolean(this.getTileTreeLayer(tile));
+        /**
+         * 这格这一层要不要挂树冠 DOM
+         *
+         * 树冠是 DOM 大头（单批次实测 3000+ 个 SVG），分层后不设限就是 ×N。
+         * 靠 treeWindow 把 SVG 总数压到只跟屏幕大小相关，与地块规模、批次数都无关。
+         *
+         * 这里不按缩放倍率做 LOD：源瓦片 512px 显示成 80px 时倍率才 0.16，
+         * 但线宽有补偿（见 treeLayerStyleByLayer），框在默认视角下是看得清的，
+         * 按倍率砍会直接把默认视角的树冠全砍没。
+         *
+         * 全部 O(1)：这里每格每层都会调到，绝不能碰 getVisibleTileCoordinates —
+         * 那个会读 scrollLeft 触发强制同步布局，正是之前点节点卡死的根因
+         *
+         * @param {Object} layer - 图层描述
+         * @param {Object} tile - 瓦片坐标
+         * @returns {boolean}
+         */
+        shouldRenderTreeLayer(layer, tile) {
+            if (!this.isTileInTreeWindow(tile)) return false;
+            if (!this.layerHasTile(layer.sourceKey, tile.key)) return false;
+            return Boolean(this.getTileTreeLayer(layer, tile));
         },
 
-        getTileTreeLayer(tile) {
-            return this.tileTreeData[`${ tile.col }_${ tile.row }`];
+        /** 树冠只渲染窗口内的格子；窗口未算出来时不挂，等滚动停稳那一拍补上 */
+        isTileInTreeWindow(tile) {
+            const win = this.treeWindow;
+            if (!win) return false;
+            return tile.col >= win.minCol
+                && tile.col <= win.maxCol
+                && tile.row >= win.minRow
+                && tile.row <= win.maxRow;
+        },
+
+        getTileTreeLayer(layer, tile) {
+            return this.treeDataByLayer[layer.sourceKey]?.[`${ tile.col }_${ tile.row }`];
+        },
+
+        getTreeStrokeWidth(layer) {
+            return Math.max(0.5, 2.5 / (this.tileSize / layer.sourceTileSize));
+        },
+
+        /**
+         * 重算树冠渲染窗口
+         *
+         * 只在滚动停稳 / 缩放 / resize 后调用——这里确实要读一次布局，
+         * 但一次交互只读一次，和之前每格都读是两回事
+         */
+        updateTreeWindow() {
+            const grid = this.$refs.tileGrid;
+            if (!grid || !this.tileSize) {
+                this.treeWindow = null;
+                return;
+            }
+
+            const buffer = TREE_WINDOW_BUFFER;
+            const minCol = Math.max(0, Math.floor(grid.scrollLeft / this.tileSize) - buffer);
+            const maxCol = Math.floor((grid.scrollLeft + grid.clientWidth) / this.tileSize) + buffer;
+            const minRow = Math.max(0, Math.floor(grid.scrollTop / this.tileSize) - buffer);
+            const maxRow = Math.floor((grid.scrollTop + grid.clientHeight) / this.tileSize) + buffer;
+
+            const next = this.treeWindow;
+            if (next && next.minCol === minCol && next.maxCol === maxCol
+                && next.minRow === minRow && next.maxRow === maxRow) {
+                return;
+            }
+            this.treeWindow = { minCol, maxCol, minRow, maxRow };
+        },
+
+        /**
+         * 算一个批次的每瓦片树冠渲染数据（源像素坐标系，不依赖 tileSizePx）
+         * 由 treeLayerStyleByLayer 的 CSS scale 统一换算到显示坐标
+         *
+         * @param {Object} layer - 图层描述（含 analysisTile / treeTiles / sourceTileSize）
+         * @returns {Object} { "${col}_${row}": { polygons: [...], circles: [...] } }
+         */
+        buildLayerTreeData(layer) {
+            const at = layer.analysisTile;
+            const treeTiles = layer.treeTiles;
+            if (!at || !treeTiles || !treeTiles.length) return {};
+
+            const pxPerLon = at.pixel_per_lon_degree;
+            const pxPerLat = at.pixel_per_lat_degree;
+            const srcPxPerTile = layer.sourceTileSize;
+            // 在源像素坐标系计算（不依赖 tileSizePx），由 CSS transform: scale() 统一缩放
+            const displayTileSize = srcPxPerTile;
+            // 地面分辨率（m/px）用于圆形半径计算
+            const metersPerSourcePx = pxPerLat > 0 ? 111320 / pxPerLat : 0;
+
+            const result = {};
+
+            for (const tile of treeTiles) {
+                const tileOriginX = tile.tile_x * srcPxPerTile;
+                const tileOriginY = tile.tile_y * srcPxPerTile;
+
+                // 经纬度 → 瓦片内局部像素坐标（源像素坐标系）
+                const lonLatToLocal = (lon, lat) => [
+                    (lon - at.min_lon) * pxPerLon - tileOriginX,
+                    (at.max_lat - lat) * pxPerLat - tileOriginY
+                ];
+
+                const polygons = [];
+                const circles  = [];
+
+                for (const tree of (tile.trees || [])) {
+                    // 筛选逻辑
+                    if (this.treeFilter === 'pest'    && !tree.pest) continue;
+                    if (this.treeFilter === 'healthy' &&  tree.pest) continue;
+                    if (this.treeFilter === 'missing' && !(tree.pest && !tree.has_detection_geometry)) continue;
+
+                    const color = tree.pest
+                        ? (tree.has_detection_geometry ? '#ff1744' : '#ff9100')
+                        : '#00c853';
+
+                    const rings = this.parseCrownRings(tree.crown_geometry_json);
+                    if (rings && rings.length) {
+                        // --- 多边形渲染 ---
+                        const localRings = rings.map(ring =>
+                            ring.map(([lon, lat]) => lonLatToLocal(lon, lat))
+                        );
+
+                        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                        localRings.forEach(ring => ring.forEach(([px, py]) => {
+                            if (px < minX) minX = px; if (py < minY) minY = py;
+                            if (px > maxX) maxX = px; if (py > maxY) maxY = py;
+                        }));
+
+                        const pad  = 1;
+                        const svgX = minX - pad;
+                        const svgY = minY - pad;
+                        const svgW = (maxX - minX) + pad * 2;
+                        const svgH = (maxY - minY) + pad * 2;
+
+                        // 完全在瓦片外则跳过
+                        if (svgX + svgW < 0 || svgY + svgH < 0 || svgX > displayTileSize || svgY > displayTileSize) continue;
+
+                        const pointsAttrs = localRings.map(ring =>
+                            ring.map(([px, py]) => `${ (px - svgX).toFixed(2) },${ (py - svgY).toFixed(2) }`).join(' ')
+                        );
+
+                        polygons.push({ tree, color, svgX, svgY, svgW, svgH, pointsAttrs });
+                    } else {
+                        // --- 圆形兜底 ---
+                        // pixel_x/pixel_y 已是瓦片内局部坐标（0 ~ sourceTileSize），直接使用
+                        const pointX = tree.pixel_x ?? 0;
+                        const pointY = tree.pixel_y ?? 0;
+
+                        // 用 tree_area（m²）推算冠幅半径（源像素单位），最小 6px 保证可点击
+                        let crownRadius = 6;
+                        if (tree.tree_area > 0 && metersPerSourcePx > 0) {
+                            const radiusM = Math.sqrt(tree.tree_area / Math.PI);
+                            crownRadius = Math.max(6, radiusM / metersPerSourcePx);
+                        }
+
+                        const sz = crownRadius * 2;
+                        // 避免超出瓦片边界
+                        const cl = Math.max(crownRadius, Math.min(displayTileSize - crownRadius, pointX));
+                        const ct = Math.max(crownRadius, Math.min(displayTileSize - crownRadius, pointY));
+
+                        circles.push({
+                            tree,
+                            style: {
+                                position: 'absolute',
+                                boxSizing: 'border-box',
+                                left: 0,
+                                top: 0,
+                                transform: `translate(${ (cl - crownRadius).toFixed(1) }px, ${ (ct - crownRadius).toFixed(1) }px)`,
+                                width: sz + 'px',
+                                height: sz + 'px',
+                                zIndex: 45,
+                                borderRadius: '50%',
+                                borderStyle: 'solid',
+                                borderColor: color,
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                pointerEvents: 'auto'
+                            }
+                        });
+                    }
+                }
+
+                if (polygons.length || circles.length) {
+                    result[`${ tile.tile_x }_${ tile.tile_y }`] = { polygons, circles };
+                }
+            }
+
+            // freeze 掉：几何数据只整体替换、不逐棵改，冻结后 Vue 不会为上万个点位对象
+            // 挨个 defineProperty 建 Dep
+            return Object.freeze(result);
         },
 
         hasCurrentTileImage(key) {
-            return this.hasTileImage(key) && this.tileImageSources[key] === this.tileSourceKey;
+            return this.layerHasTile(this.activeSourceKey, key);
         },
 
+        /**
+         * 这格在「正在补齐的图层」里有结论了没
+         *
+         * 加载调度只服务 pendingSourceKey（没有则是 activeSourceKey）；
+         * 其它图层的格子由 preloadLayer 后台补，不走这条队列
+         */
         isTileSettledForCurrentSource(key) {
-            return Boolean(this.tileImages[key]) && this.tileImageSources[key] === this.tileSourceKey;
+            return Boolean(this.tileLayers[this.tileSourceKey]?.[key]);
         },
 
         setTileRunState(key, nextState) {
@@ -1434,73 +1697,479 @@ export default {
             if (nextState === 'failed') {
                 this.tileLoadSummary.failed += 1;
             }
+
         },
 
         /**
-         * 预热其它批次的底图瓦片（供父级在预取相邻批次时调用）
+         * 这格有结论了（成功、失败都算），从待露出图层的待办里划掉
          *
-         * 批次数据缓存只解决 JSON，真正卡住切换的是底图 PNG 下载。
-         * 这里按当前视口的瓦片坐标，用目标批次自己的图层名/层级提前把图片塞进浏览器
-         * HTTP 缓存，切过去时瓦片直接命中，不再白屏。
+         * 单独一个方法而不是挂在 setTileRunState 里：那边只认本轮调度登记过的 key，
+         * 而待办是按可视区登记的，两边对不齐的格子就永远划不掉账
          *
-         * 纯热身：不写 tileImages（那是当前图层的状态），失败静默忽略。
-         *
-         * @param {Object} targetTile - 目标批次的 analysis_tile
+         * @param {string} key - 瓦片键
          */
-        warmLayerTiles(targetTile) {
-            const layerName = targetTile?.tile_dir || targetTile?.layer_name;
-            const zoom = Number(targetTile?.max_zoom_level);
-            if (!layerName || !Number.isFinite(zoom)) return;
-            // 层级不同意味着瓦片网格对不上，拿当前视口的行列去猜只会下错图
-            if (zoom !== this.zoomLevel) return;
+        settlePendingTile(key) {
+            if (!this._pendingLayerKeys) return;
+            if (!this._pendingLayerKeys.delete(key)) return;
+            this.checkPendingLayerReady();
+        },
 
-            if (!this._warmedTileLayers) {
-                this._warmedTileLayers = new Set();
+        /**
+         * 把一个批次登记成常驻图层，并在后台补齐它当前视口的瓦片（父级调用）
+         *
+         * 这是"三张图都画好、来回点即时对比"的入口：每个批次在 DOM 里各占一层，
+         * 切换只改露出哪一层，不重下图、不重建 DOM。
+         *
+         * @param {Object} bundle - 批次整包（analysisBatchCache 的产物）
+         * @param {Object} bundle.analysisTile - 批次底图元信息
+         * @param {Object[]} [bundle.treeTiles] - 树冠瓦片
+         * @param {number} [bundle.sourceTileSize] - 源瓦片边长
+         * @returns {string|null} 图层主键；几何不兼容时返回 null（调用方应走重载路径）
+         */
+        registerBatchLayer(bundle) {
+            const layer = this.buildLayerDescriptor(bundle);
+            if (!layer) return null;
+
+            const existing = this.mountedLayers.find(item => item.sourceKey === layer.sourceKey);
+            if (existing) {
+                // 同一批次重复登记（父级每次切换都会预取邻居），只更新树冠数据
+                if (bundle.treeTiles && bundle.treeTiles !== existing.treeTiles) {
+                    this.$set(this.mountedLayers, this.mountedLayers.indexOf(existing), layer);
+                }
+                this.touchLayer(layer.sourceKey);
+                this.preloadLayer(layer);
+                return layer.sourceKey;
             }
-            // 每次切换都会触发预取，同一图层热身一次就够了
-            if (this._warmedTileLayers.has(layerName)) return;
 
-            const maxCol = Number(targetTile.max_tile_x);
-            const maxRow = Number(targetTile.max_tile_y);
-            const coordinates = this.getVisibleTileCoordinates(0)
-                .filter(tile => !(Number.isFinite(maxCol) && tile.col > maxCol))
-                .filter(tile => !(Number.isFinite(maxRow) && tile.row > maxRow))
-                .slice(0, WARM_TILE_LIMIT);
-            if (!coordinates.length) return;
+            // 几何对不上的批次不能共用这套行列号，硬叠会串图 —— 交给调用方重载整个网格
+            const reference = this.mountedLayers[0];
+            if (reference && !this.isGridCompatible(reference.analysisTile, layer.analysisTile)) {
+                this.debugMap('批次几何不兼容，不参与叠层', {
+                    plotId: this.plotId,
+                    sourceKey: layer.sourceKey
+                });
+                return null;
+            }
 
-            this._warmedTileLayers.add(layerName);
-            coordinates.forEach(tile => {
-                const url = getCDNTileUrl(
-                    layerName,
-                    'default',
-                    'GoogleMapsCompatible',
-                    zoom,
-                    tile.row,
-                    tile.col,
-                    targetTile.tile_format || 'png',
-                    targetTile.tile_path_prefix || ''
-                );
-                preloadTileImage(url, null, TILE_IMAGE_TIMEOUT).catch(() => {});
+            this.mountedLayers.push(layer);
+            this.tileLayers[layer.sourceKey] = {};
+            this.notifyTileStore(true);
+            this.touchLayer(layer.sourceKey);
+            this.evictLayersBeyondLimit();
+            this.preloadLayer(layer);
+            return layer.sourceKey;
+        },
+
+        /**
+         * 保证 props 指向的批次已登记成图层
+         *
+         * 渲染只认 mountedLayers + activeSourceKey，没登记就是一片空白。
+         * 首屏、无专属底图的地块底图、以及父级没走 registerBatchLayer 的路径都靠它兜底
+         */
+        ensureCurrentLayer() {
+            if (!this.layerName) return;
+
+            const sourceKey = [
+                this.layerName,
+                this.zoomLevel,
+                this.tileFormat || '',
+                this.tilePathPrefix || ''
+            ].join('|');
+
+            const index = this.mountedLayers.findIndex(layer => layer.sourceKey === sourceKey);
+            const layer = Object.freeze({
+                sourceKey,
+                layerName: this.layerName,
+                zoom: this.zoomLevel,
+                format: this.tileFormat || 'png',
+                prefix: this.tilePathPrefix || '',
+                analysisTile: this.analysisTile || this.tileInfo,
+                treeTiles: this.treeTiles || [],
+                sourceTileSize: this.sourceTileSize || 512
             });
 
-            this.debugMap('相邻批次瓦片已预热', {
-                plotId: this.plotId,
-                layerName,
-                zoom,
-                count: coordinates.length
+            if (index >= 0) {
+                // 树冠数据可能是底图之后才到的，补上
+                if (this.mountedLayers[index].treeTiles !== layer.treeTiles) {
+                    this.$set(this.mountedLayers, index, layer);
+                }
+            } else {
+                // 网格几何变了（换地块底图、批次层级不同）：旧图层的行列号已经对不上，
+                // 留着就会串图，整批卸掉重来
+                const stale = this.mountedLayers.filter(item =>
+                    !this.isGridCompatible(item.analysisTile, layer.analysisTile));
+                if (stale.length) {
+                    this.clearPendingLayer();
+                    stale.forEach(item => this.unmountLayer(item.sourceKey));
+                    if (!this.mountedLayers.some(item => item.sourceKey === this.activeSourceKey)) {
+                        this.activeSourceKey = null;
+                    }
+                }
+                this.mountedLayers.push(layer);
+                if (!this.tileLayers[sourceKey]) {
+                    this.tileLayers[sourceKey] = {};
+                    this.notifyTileStore(true);
+                }
+            }
+            this.touchLayer(sourceKey);
+            this.evictLayersBeyondLimit();
+
+            if (!this.activeSourceKey) {
+                // 首屏：直接露出，瓦片下一张显一张，保持原来的渐进观感
+                this.activeSourceKey = sourceKey;
+                return;
+            }
+            this.setActiveLayer(sourceKey);
+        },
+
+        /**
+         * 两个批次能不能共用同一套瓦片网格
+         *
+         * 叠层的前提是同一个 (col,row) 在两个批次里指向同一块地面。
+         * 层级、网格尺寸、地理原点、每度像素数有一项对不上就不能叠
+         *
+         * @returns {boolean}
+         */
+        isGridCompatible(a, b) {
+            if (!a || !b) return false;
+            const fields = [
+                'max_zoom_level',
+                'max_tile_x',
+                'max_tile_y',
+                'min_lon',
+                'max_lat',
+                'pixel_per_lon_degree',
+                'pixel_per_lat_degree'
+            ];
+            return fields.every(field => {
+                const left = Number(a[field]);
+                const right = Number(b[field]);
+                if (!Number.isFinite(left) || !Number.isFinite(right)) return false;
+                // 经纬度和每度像素数是浮点，按相对误差比
+                return Math.abs(left - right) <= Math.max(1e-9, Math.abs(left) * 1e-9);
             });
         },
 
+        /**
+         * 从批次整包构造图层描述
+         *
+         * @returns {Object|null} 缺图层名或层级对不上当前网格时返回 null
+         */
+        buildLayerDescriptor(bundle) {
+            const at = bundle?.analysisTile;
+            const layerName = at?.tile_dir || at?.layer_name;
+            const zoom = Number(at?.max_zoom_level);
+            if (!layerName || !Number.isFinite(zoom)) return null;
+
+            const format = at.tile_format || 'png';
+            const prefix = at.tile_path_prefix || '';
+            return Object.freeze({
+                sourceKey: `${ layerName }|${ zoom }|${ format }|${ prefix }`,
+                layerName,
+                zoom,
+                format,
+                prefix,
+                analysisTile: at,
+                treeTiles: bundle.treeTiles || [],
+                sourceTileSize: bundle.sourceTileSize || 512
+            });
+        },
+
+        /**
+         * 标记图层刚被用过
+         *
+         * LRU 顺序记在非响应式的 _layerLru 上：mountedLayers 一动就会让上千格
+         * 重新求值 v-for，而"谁最近用过"跟渲染无关
+         */
+        touchLayer(sourceKey) {
+            if (!this._layerLru) this._layerLru = [];
+            const index = this._layerLru.indexOf(sourceKey);
+            if (index >= 0) this._layerLru.splice(index, 1);
+            this._layerLru.push(sourceKey);
+        },
+
+        /** 超出驻留上限时按 LRU 卸载，护住 DOM 规模和内存 */
+        evictLayersBeyondLimit() {
+            while (this.mountedLayers.length > MOUNTED_LAYER_LIMIT) {
+                const victim = (this._layerLru || []).find(key =>
+                    key !== this.activeSourceKey
+                    && key !== this.pendingSourceKey
+                    && this.mountedLayers.some(layer => layer.sourceKey === key)
+                );
+                if (!victim) break;
+                this.unmountLayer(victim);
+            }
+        },
+
+        unmountLayer(sourceKey) {
+            const index = this.mountedLayers.findIndex(layer => layer.sourceKey === sourceKey);
+            if (index >= 0) this.mountedLayers.splice(index, 1);
+            delete this.tileLayers[sourceKey];
+            this.notifyTileStore(true);
+            if (this._layerLru) {
+                const lruIndex = this._layerLru.indexOf(sourceKey);
+                if (lruIndex >= 0) this._layerLru.splice(lruIndex, 1);
+            }
+            this._preloadedLayerViewports?.delete(sourceKey);
+        },
+
+        /**
+         * 后台补齐某图层当前视口的瓦片
+         *
+         * 只补视口、不碰全网格：实测约 50 张/秒，1350 格 × 几个批次要几十秒，
+         * 还会把当前批次的带宽抢光。上限由 PRELOAD_TILES_PER_LAYER 兜底，
+         * 与地块规模、批次数都无关
+         *
+         * @param {Object} layer - 图层描述
+         */
+        preloadLayer(layer) {
+            if (layer.zoom !== this.zoomLevel) return;
+            if (!this._preloadedLayerViewports) this._preloadedLayerViewports = new Map();
+
+            const grid = this.$refs.tileGrid;
+            // 视口没变就别重复扫；变了才值得再补一轮
+            const viewportKey = grid
+                ? `${ Math.round(grid.scrollLeft) }_${ Math.round(grid.scrollTop) }_${ this.tileSize }`
+                : 'init';
+            if (this._preloadedLayerViewports.get(layer.sourceKey) === viewportKey) return;
+            this._preloadedLayerViewports.set(layer.sourceKey, viewportKey);
+
+            const maxCol = Number(layer.analysisTile.max_tile_x);
+            const maxRow = Number(layer.analysisTile.max_tile_y);
+            const store = this.tileLayers[layer.sourceKey];
+            if (!store) return;
+
+            const coordinates = this.getVisibleTileCoordinates(0)
+                .filter(tile => !(Number.isFinite(maxCol) && tile.col > maxCol))
+                .filter(tile => !(Number.isFinite(maxRow) && tile.row > maxRow))
+                .filter(tile => !store[tile.key])
+                .slice(0, PRELOAD_TILES_PER_LAYER);
+            if (!coordinates.length) return;
+
+            this.runLayerPreload(layer, coordinates, viewportKey);
+        },
+
+        /**
+         * 限并发地补一轮图，并在没补齐时撤掉视口标记以便重试
+         *
+         * 别改回一次性 forEach 起全部请求：那会把当前批次的加载队列（并发 12）挤到饿死，
+         * 大量瓦片超时失败；失败又不写回状态，这层就永远差几格、切过去只能吊到超时才亮
+         * —— 实测一次切换 4710ms
+         *
+         * @param {Object} layer - 图层描述
+         * @param {Object[]} coordinates - 待补的瓦片坐标
+         * @param {string} viewportKey - 本轮对应的视口指纹
+         */
+        async runLayerPreload(layer, coordinates, viewportKey) {
+            const queue = [...coordinates];
+            let failed = 0;
+
+            const worker = async () => {
+                while (queue.length) {
+                    // 图层可能中途被 LRU 卸载，别再往下下
+                    if (!this.tileLayers[layer.sourceKey]) return;
+
+                    const tile = queue.shift();
+                    const url = getCDNTileUrl(
+                        layer.layerName,
+                        'default',
+                        'GoogleMapsCompatible',
+                        layer.zoom,
+                        tile.row,
+                        tile.col,
+                        layer.format,
+                        layer.prefix
+                    );
+                    try {
+                        await preloadTileImage(url, null, TILE_IMAGE_TIMEOUT);
+                        this.commitLayerTile(layer.sourceKey, tile.key, url);
+                    }
+                    catch (error) {
+                        // 后台补图失败不写 'error'：那会在这层留个永久占位，挡住重试
+                        failed += 1;
+                    }
+                }
+            };
+
+            await Promise.all(
+                Array.from({ length: Math.min(PRELOAD_CONCURRENCY, coordinates.length) }, worker)
+            );
+
+            // 没补齐就撤掉标记，让下次滚动停稳或再次切过来时重来一轮
+            if (failed && this._preloadedLayerViewports?.get(layer.sourceKey) === viewportKey) {
+                this._preloadedLayerViewports.delete(layer.sourceKey);
+            }
+
+            this.debugMap('批次图层后台补图', {
+                plotId: this.plotId,
+                sourceKey: layer.sourceKey,
+                count: coordinates.length,
+                failed
+            });
+        },
+
+        /**
+         * 把一格的结果写进对应图层
+         *
+         * @param {string} sourceKey - 图层主键
+         * @param {string} key - 瓦片键
+         * @param {string} value - 图片 URL 或 'error'
+         */
+        commitLayerTile(sourceKey, key, value) {
+            const store = this.tileLayers[sourceKey];
+            // 图层可能已被 LRU 卸载，晚到的结果直接丢弃
+            if (!store) return;
+            if (store[key] === value) return;
+
+            // 裸写 + 每帧统一通知，别改回 $set：
+            // 逐张触发响应式意味着每落一张图就把上千格的网格整体重排重绘一遍。
+            // 实测切一次批次落 164 张瓦片 = 170 次重渲，主线程被占满 4.9s，
+            // 而那 164 张全在 HTTP 缓存里、每张只要 2ms —— 时间全花在重复渲染上
+            store[key] = value;
+            this.notifyTileStore();
+
+            if (sourceKey === this.tileSourceKey) {
+                this.settlePendingTile(key);
+            }
+        },
+
+        /**
+         * 通知模板"瓦片表变了"
+         *
+         * 攒到下一帧的好处是重渲次数只跟帧数有关，与瓦片数、网格大小、批次数都无关
+         *
+         * @param {boolean} [immediate] - 图层增删、整表重置这类结构性变化要立刻通知：
+         *                                tileStore 是 computed，晚一帧会让它继续缓存旧的表对象
+         */
+        notifyTileStore(immediate = false) {
+            if (immediate) {
+                cancelAnimationFrame(this._tileRevisionFrame);
+                this._tileRevisionFrame = null;
+                this.tileRevision += 1;
+                return;
+            }
+            if (this._tileRevisionFrame) return;
+            this._tileRevisionFrame = requestAnimationFrame(() => {
+                this._tileRevisionFrame = null;
+                this.tileRevision += 1;
+            });
+        },
+
+        /**
+         * 切到某个图层
+         *
+         * 已就绪的图层瞬时露出（只 patch 容器上一个 class）；
+         * 还没补齐的图层先挂 pending，旧图继续垫着，等可视区凑齐或超时再露出 ——
+         * 这正是原来冻结快照想达到的效果，但不用复制、不用遮罩
+         *
+         * @param {string} sourceKey - 目标图层主键
+         * @returns {boolean} 是否已立即露出
+         */
+        setActiveLayer(sourceKey) {
+            const layer = this.mountedLayers.find(item => item.sourceKey === sourceKey);
+            if (!layer) return false;
+
+            this.touchLayer(sourceKey);
+            if (sourceKey === this.activeSourceKey) {
+                this.clearPendingLayer();
+                return true;
+            }
+
+            // 一次切换会走两遍这里（父级先 setActiveLayer，随后 props 更新又触发
+            // loadMapData → ensureCurrentLayer）。重新 begin 会把超时定时器清了重开，
+            // 等待上限直接翻倍 —— 实测 2500ms 的兜底变成 4710ms
+            if (sourceKey === this.pendingSourceKey) {
+                return false;
+            }
+
+            if (this.isLayerReadyForViewport(layer)) {
+                this.clearPendingLayer();
+                this.activeSourceKey = sourceKey;
+                this.debugMap('批次切换即时完成', { plotId: this.plotId, sourceKey });
+                return true;
+            }
+
+            this.beginLayerActivation(layer);
+            return false;
+        },
+
+        /** 图层在当前视口是不是已经能整屏亮出来 */
+        isLayerReadyForViewport(layer) {
+            const store = this.tileLayers[layer.sourceKey];
+            if (!store) return false;
+            const maxCol = Number(layer.analysisTile.max_tile_x);
+            const maxRow = Number(layer.analysisTile.max_tile_y);
+            return this.getVisibleTileCoordinates(0)
+                .filter(tile => !(Number.isFinite(maxCol) && tile.col > maxCol))
+                .filter(tile => !(Number.isFinite(maxRow) && tile.row > maxRow))
+                .every(tile => Boolean(store[tile.key]));
+        },
+
+        /** 挂起一次切换：登记待办，走正常加载队列，就绪或超时后露出 */
+        beginLayerActivation(layer) {
+            this.clearPendingLayer();
+            this.pendingSourceKey = layer.sourceKey;
+            this._pendingLayerKeys = null;
+
+            // 个别瓦片慢或缺图时不能一直吊着旧图，到点就把已下好的先亮出来
+            this._pendingLayerTimer = setTimeout(() => {
+                this.finishLayerActivation('timeout');
+            }, TILE_SWAP_TIMEOUT);
+
+            this.loadVisibleTiles(ACTIVE_VIEWPORT_TILE_BUFFER);
+        },
+
+        /**
+         * 待露出图层能不能收尾了
+         *
+         * 必须 O(1)：每张瓦片落地都会调到。之前在这里现算可视区坐标
+         * （读 scrollLeft 强制同步布局 + 上千格排序），一次切换就能把主线程占满
+         *
+         * @param {boolean} [scheduleSettled] - 由加载调度收口触发的兜底。被 abort 和
+         *   令牌作废的瓦片不会回来划账，光等待办清空可能一直差几张
+         */
+        checkPendingLayerReady(scheduleSettled = false) {
+            if (!this.pendingSourceKey) return;
+
+            if (!scheduleSettled) {
+                const pending = this._pendingLayerKeys;
+                if (!pending || pending.size) return;
+            }
+
+            this.finishLayerActivation(scheduleSettled ? 'load-settled' : 'ready');
+        },
+
+        finishLayerActivation(reason) {
+            const sourceKey = this.pendingSourceKey;
+            if (!sourceKey) return;
+
+            this.clearPendingLayer();
+            // 图层可能在等待期间被卸载
+            if (!this.mountedLayers.some(layer => layer.sourceKey === sourceKey)) return;
+
+            this.activeSourceKey = sourceKey;
+            this.debugMap('批次切换完成', { plotId: this.plotId, reason, sourceKey });
+        },
+
+        clearPendingLayer() {
+            clearTimeout(this._pendingLayerTimer);
+            this._pendingLayerTimer = null;
+            this._pendingLayerKeys = null;
+            this.pendingSourceKey = null;
+        },
+
         buildTileUrl(layerName, tileCol, tileRow) {
+            // 图层名和格式必须来自同一个来源，否则会拿 A 批次的名字配 B 批次的前缀
+            const target = this.loadTargetLayer;
             return getCDNTileUrl(
-                layerName,               // tile_dir / layer_name
-                'default',               // style
-                'GoogleMapsCompatible',  // tileMatrixSet
-                this.zoomLevel,          // tileMatrix（max_zoom_level）
-                tileRow,                 // row
-                tileCol,                 // col
-                this.tileFormat,         // tile_format from API
-                this.tilePathPrefix      // analysis_tile.tile_path_prefix（测试环境为 "test"）
+                target?.layerName || layerName,          // tile_dir / layer_name
+                'default',                               // style
+                'GoogleMapsCompatible',                  // tileMatrixSet
+                target?.zoom ?? this.zoomLevel,          // tileMatrix（max_zoom_level）
+                tileRow,                                 // row
+                tileCol,                                 // col
+                target?.format || this.tileFormat,       // tile_format from API
+                target?.prefix ?? this.tilePathPrefix    // analysis_tile.tile_path_prefix（测试环境为 "test"）
             );
         },
 
@@ -1508,13 +2177,15 @@ export default {
             return `${ tileCol }-${ tileRow }`;
         },
 
-        hasTileImage(key) {
-            const value = this.tileImages[key];
-            return value && value !== 'error';
+        /** 某图层的某格有没有可用图（'error' 不算） */
+        layerHasTile(sourceKey, key) {
+            if (!sourceKey) return false;
+            const value = this.tileStore.layers[sourceKey]?.[key];
+            return Boolean(value) && value !== 'error';
         },
 
-        getTileBackground(key) {
-            const imageSrc = this.tileImages[key];
+        getTileBackground(sourceKey, key) {
+            const imageSrc = this.tileStore.layers[sourceKey]?.[key];
             if (!imageSrc || imageSrc === 'error') {
                 return {};
             }
@@ -1524,7 +2195,7 @@ export default {
         },
 
         getTileState(key) {
-            return this.tileImages[key] || null;
+            return this.tileStore.layers[this.activeSourceKey]?.[key] || null;
         },
 
         updateTileMetrics() {
@@ -1532,7 +2203,7 @@ export default {
             this.$emit('tile-metrics', {
                 plotId: this.plotId,
                 zoomLevel: this.zoomLevel,
-                tileCount: Object.keys(this.tileImages).length,
+                tileCount: Object.keys(this.tileLayers[this.activeSourceKey] || {}).length,
                 declaredTileCount: this.tileInfo?.tile_count || null
             });
         },
@@ -1680,11 +2351,40 @@ export default {
     background: transparent;
 }
 
+/* 每个已挂载批次在同一格里各占一层，同一时刻只露出一层 */
 .tile-content {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     background-position: center;
     background-size: cover;
+}
+
+/* 非 active 的批次图层留在 DOM 里但不渲染。
+   用 display:none 而不是 opacity:0：上千格常驻绘制会一直吃合成开销。
+   不加过渡——A/B 对比要的就是瞬时闪变，渐变反而看不出差异。
+
+   露出哪一层由 .tile-grid-inner 上的一个 class 决定：
+   切批次只 patch 这一个元素，上千格的显隐全交给下面这些后代选择器。
+   千万别改回逐格绑定 :class，那是 1350 × N 次 patch */
+.tile-content,
+.tile-tree-layer {
+    display: none;
+}
+
+/* 下标与 mountedLayers 一一对应。规则条数须与 JS 里的 MOUNTED_LAYER_LIMIT 一致，
+   加图层上限时记得在这里补一组（本块是纯 CSS，没有循环可用） */
+.tile-grid-inner--active-l0 .tile-content--l0,
+.tile-grid-inner--active-l0 .tile-tree-layer--l0,
+.tile-grid-inner--active-l1 .tile-content--l1,
+.tile-grid-inner--active-l1 .tile-tree-layer--l1,
+.tile-grid-inner--active-l2 .tile-content--l2,
+.tile-grid-inner--active-l2 .tile-tree-layer--l2,
+.tile-grid-inner--active-l3 .tile-content--l3,
+.tile-grid-inner--active-l3 .tile-tree-layer--l3 {
+    display: block;
 }
 
 .tile-placeholder {
@@ -1803,7 +2503,8 @@ export default {
     text-align: center;
 }
 
-/* 树冠覆盖层容器：源像素坐标系，CSS scale 统一缩放 */
+/* 树冠覆盖层容器：源像素坐标系，CSS scale 统一缩放。
+   显隐规则见上面 .tile-content 处的图层可见性 mixin */
 .tile-tree-layer {
     position: absolute;
     top: 0;
