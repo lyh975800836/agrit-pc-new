@@ -57,9 +57,9 @@ class HttpClient {
         const duration = Date.now() - (response.config._startTime || Date.now());
         console.log(`[HTTP] ${response.config.url} - ${response.status} (${duration}ms)`);
 
-        // 业务层 401：token 失效
+        // 业务层 401：token 失效。带上 message 以区分"被顶下线"和"过期"
         if (response.data && response.data.code === 401) {
-          handleSessionExpired();
+          handleSessionExpired(response.data.message);
         }
 
         return response;

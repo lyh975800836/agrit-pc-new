@@ -6,7 +6,7 @@ import DataDashboard from '@/views/DataDashboard.vue';
 import DetailMap from '@/views/DetailMap.vue';
 // import PlotDetail from '@/views/PlotDetail.vue'; // 原版本保留备份
 import PlotDetailV2 from '@/modules/plot/PlotDetailV2.vue';
-import { isSessionValid, clearSession, normalizeRedirect } from '@/services/authSession';
+import { isSessionValid, noteSessionExpired, normalizeRedirect } from '@/services/authSession';
 
 Vue.use(VueRouter);
 
@@ -77,8 +77,8 @@ router.beforeEach((to, from, next) => {
   const authenticated = isSessionValid()
 
   if (to.meta.requiresAuth && !authenticated) {
-    // 顺手清掉过期残留，否则请求拦截器还会拿着它去打接口
-    clearSession()
+    // 顺手清掉过期残留，否则请求拦截器还会拿着它去打接口；同时记下原因给登录页显示
+    noteSessionExpired('token 已过期')
     // 带上原路径，登录完跳回他本来要去的地方
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.name === 'Login' && authenticated) {

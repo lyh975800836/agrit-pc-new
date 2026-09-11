@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { saveSession, normalizeRedirect } from '@/services/authSession';
+import { saveSession, normalizeRedirect, takeKickReason } from '@/services/authSession';
 
 export default {
   name: 'Login',
@@ -89,6 +89,19 @@ export default {
       loading: false,
       errorMessage: ''
     };
+  },
+  watch: {
+    // 被接口踢回来的，要说清是为什么。否则用户看到的就是点一下莫名其妙弹回登录页。
+    //
+    // 挂在 $route 上而不是写在 created 里：守卫从 login 重定向回 login 时（比如已经在
+    // 登录页又去点了受保护的路由），组件会被复用、created 不再执行，上一次的提示就会
+    // 赖在屏幕上不走。绑路由才能保证每次进来都重读一次——没有原因时读到空串，正好清屏
+    $route: {
+      immediate: true,
+      handler() {
+        this.errorMessage = takeKickReason();
+      }
+    }
   },
   methods: {
     async handleLogin() {

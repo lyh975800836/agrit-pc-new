@@ -71,9 +71,10 @@ async function request(endpoint, options = {}) {
         // 解析JSON响应
         const data = await response.json();
 
-        // 后端 token 失效时返回的是 HTTP 200 + 业务码 401，只能在这里认
+        // 后端 token 失效时返回的是 HTTP 200 + 业务码 401，只能在这里认。
+        // message 要带上：单会话被顶下线和 token 过期都是 401，但要给用户不同的解释
         if (data && data.code === 401) {
-            handleSessionExpired();
+            handleSessionExpired(data.message);
         }
 
         return data;
