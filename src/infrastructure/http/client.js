@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken, handleSessionExpired } from '@/services/authSession';
 
 /**
  * HTTP客户端封装
@@ -36,7 +37,7 @@ class HttpClient {
         console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
 
         // 添加认证token
-        const token = localStorage.getItem('auth_token');
+        const token = getToken();
         if (token) {
           config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -58,7 +59,7 @@ class HttpClient {
 
         // 业务层 401：token 失效
         if (response.data && response.data.code === 401) {
-          this._handleAuthExpired();
+          handleSessionExpired();
         }
 
         return response;
@@ -116,20 +117,6 @@ class HttpClient {
     );
 
     return Promise.reject(error);
-  }
-
-  /**
-   * token 失效处理：清除本地状态并跳转登录页
-   * @private
-   */
-  _handleAuthExpired() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user_info');
-    // 避免在登录页重复跳转
-    if (window.location.hash !== '#/login' && !window.location.pathname.endsWith('/login')) {
-      window.location.href = '/#/login';
-    }
   }
 
   /**

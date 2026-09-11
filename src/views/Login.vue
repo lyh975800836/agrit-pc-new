@@ -74,6 +74,8 @@
 </template>
 
 <script>
+import { saveSession, normalizeRedirect } from '@/services/authSession';
+
 export default {
   name: 'Login',
   data() {
@@ -121,16 +123,14 @@ export default {
           throw new Error(result.message || '用户名或密码错误');
         }
 
-        // 保存 token、用户信息和登录状态
-        localStorage.setItem('auth_token', result.data.token);
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('user_info', JSON.stringify(result.data.user));
+        saveSession(result.data.token, result.data.user);
         if (this.loginForm.rememberMe) {
           localStorage.setItem('username', this.loginForm.username);
         }
 
-        // 登录成功后跳转
-        this.$router.push({ name: 'Dashboard' });
+        // 被踢回来的带着 redirect，跳回他本来要看的那一页，而不是甩回总览图
+        const redirect = normalizeRedirect(this.$route.query.redirect);
+        this.$router.push(redirect ? { path: redirect } : { name: 'Dashboard' });
       } catch (error) {
         this.errorMessage = error.message || '登录失败，请重试';
       } finally {

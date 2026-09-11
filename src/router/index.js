@@ -6,6 +6,7 @@ import DataDashboard from '@/views/DataDashboard.vue';
 import DetailMap from '@/views/DetailMap.vue';
 // import PlotDetail from '@/views/PlotDetail.vue'; // 原版本保留备份
 import PlotDetailV2 from '@/modules/plot/PlotDetailV2.vue';
+import { isSessionValid, clearSession, normalizeRedirect } from '@/services/authSession';
 
 Vue.use(VueRouter);
 
@@ -71,15 +72,19 @@ router.beforeEach((to, from, next) => {
     document.title = to.meta.title
   }
 
-  // 检查是否需要登录
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+  // 登录态一律以 token 为准。别改回读 isAuthenticated：那个标记永不过期，
+  // token 过期后守卫照样放行，人进了页面才被首屏接口的 401 踢回来
+  const authenticated = isSessionValid()
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    // 需要登录但未登录，跳转到登录页
-    next({ name: 'Login' })
-  } else if (to.name === 'Login' && isAuthenticated) {
+  if (to.meta.requiresAuth && !authenticated) {
+    // 顺手清掉过期残留，否则请求拦截器还会拿着它去打接口
+    clearSession()
+    // 带上原路径，登录完跳回他本来要去的地方
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+  } else if (to.name === 'Login' && authenticated) {
     // 已登录，访问登录页时跳转到首页
-    next({ name: 'Dashboard' })
+    const redirect = normalizeRedirect(to.query.redirect)
+    next(redirect ? { path: redirect } : { name: 'Dashboard' })
   } else {
     next()
   }

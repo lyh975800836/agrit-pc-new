@@ -4,6 +4,8 @@
  * 支持环境切换、请求取消、错误处理
  */
 
+import { getToken, handleSessionExpired } from './authSession';
+
 function getBaseUrl() {
     // 使用环境变量配置
     // 生产环境：返回完整域名 https://ms.baiyanai.cn
@@ -41,7 +43,7 @@ async function request(endpoint, options = {}) {
 
         // 构建请求头
         const headers = { 'Content-Type': 'application/json' };
-        const token = localStorage.getItem('auth_token');
+        const token = getToken();
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -69,14 +71,9 @@ async function request(endpoint, options = {}) {
         // 解析JSON响应
         const data = await response.json();
 
-        // 业务层 401：token 失效，清除状态并跳转登录页
+        // 后端 token 失效时返回的是 HTTP 200 + 业务码 401，只能在这里认
         if (data && data.code === 401) {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('user_info');
-            if (window.location.hash !== '#/login' && !window.location.pathname.endsWith('/login')) {
-                window.location.href = '/#/login';
-            }
+            handleSessionExpired();
         }
 
         return data;

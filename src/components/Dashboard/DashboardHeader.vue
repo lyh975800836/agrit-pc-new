@@ -109,6 +109,7 @@
 
 <script>
 import imageMixin from '@/mixins/imageMixin';
+import { clearSession } from '@/services/authSession';
 
 export default {
     name: 'DashboardHeader',
@@ -206,10 +207,8 @@ export default {
             this.closeDropdown();
 
             // 清除登录状态和缓存
-            localStorage.removeItem('isAuthenticated');
+            clearSession();
             localStorage.removeItem('username');
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_info');
 
             // 跳转到登录页
             this.$router.push({ name: 'Login' });
