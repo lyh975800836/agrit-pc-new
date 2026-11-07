@@ -19,15 +19,20 @@
       <template #center-map>
         <!-- WMTS瓦片地图 -->
         <WMTSTileMap
-          v-if="mapReady"
+          v-if="showTileMap"
+          :key="drilldownEnabled ? `${plotData.id}:${currentAnalysisId}:${analysisTileInfo.layer_name}` : 'ordinary'"
           ref="wmtsTileMap"
           :region-name="regionName"
           :plot-data="plotData"
           :base-tile-info="baseMapTileInfo"
           :analysis-tile="analysisTileInfo"
           :tree-tiles="analysisTreeTiles"
+          :boundaries="scopeBoundaries"
+          :scoped="drilldownEnabled"
+          :has-pest="apiAnalysisSummary?.has_pest !== false"
+          @boundary-select="selectScope"
           :source-tile-size="analysisSourceTileSize"
-          :has-extra-controls="showAnalysisTimeline"
+          :has-extra-controls="showAnalysisTimeline || showReportEntry"
           @tile-metrics="handleTileMetrics"
           @tree-click="handleTreeClick"
         >
@@ -44,13 +49,33 @@
               <span v-if="timelineToggleHint" class="timeline-toggle__hint">{{ timelineToggleHint }}</span>
               <span class="timeline-toggle__arrow"></span>
             </button>
+            <button v-if="showReportEntry" class="timeline-toggle report-toggle" :disabled="scopeLoading || !!scopeError || !!loadError" @click="reportOpen = true">健康与巡检报告</button>
           </template>
         </WMTSTileMap>
+
+        <div v-if="showReportEntry && !showTileMap" class="map-controls-fallback">
+          <button v-if="showAnalysisTimeline" class="timeline-toggle" @click="timelineCollapsed = !timelineCollapsed">巡飞节点 <span v-if="timelineToggleHint" class="timeline-toggle__hint">{{ timelineToggleHint }}</span></button>
+          <button class="timeline-toggle report-toggle" :disabled="scopeLoading || !!scopeError || !!loadError" @click="reportOpen = true">健康与巡检报告</button>
+        </div>
+
+        <div v-if="drilldownEnabled && (!analysisTileInfo || scopeLoading || scopeError)" class="scope-map-state" role="status">
+          <p>{{ scopedMapMessage }}</p>
+          <button v-if="!scopeLoading" @click="loadScopedMap(String(plotData.id), currentAnalysisId)">刷新</button>
+        </div>
+        <div v-if="drilldownEnabled && plotData.id && !isLoading" class="scope-toolbar">
+          <nav v-if="drilldownEnabled" aria-label="当前地块范围"><template v-for="(node, index) in scopeBreadcrumbs"><span v-if="index" :key="`divider-${node.id}`"> / </span><button :key="node.id" :disabled="scopeLoading || String(node.id) === String(plotData.id)" @click="selectScope(node)">{{ node.name }}</button></template></nav>
+          <button v-if="drilldownRoot" :disabled="scopeLoading" @click="drilldownOpen = true">区域 / 农户统计</button>
+          <span v-if="scopeTreesLoading && analysisTileInfo" role="status">树点加载中…</span>
+          <span v-if="scopeTreeError" role="alert">{{ scopeTreeError }} <button @click="switchScopedBatch(String(currentAnalysisId))">刷新</button></span>
+        </div>
+        <div v-if="loadError" class="scope-map-state" role="alert"><p>{{ loadError }}</p><button @click="loadPlotData">重新加载</button></div>
 
         <!-- 历史巡飞时间线 - 切换批次 -->
         <AnalysisTimeline
           v-if="showAnalysisTimeline"
           :nodes="analysisTimelineNodes"
+          :scoped="drilldownEnabled"
+          :has-pest="apiAnalysisSummary?.has_pest !== false"
           :years="analysisTimelineYears"
           :active-year="analysisTimelineYear"
           :active-analysis-id="currentAnalysisId"
@@ -70,6 +95,7 @@
           :region-name="regionName"
           :price-data="spicePriceDisplay"
           :analysis-summary="apiAnalysisSummary"
+          :scoped="drilldownEnabled"
           @show-health-modal="showHealthModal"
         />
 
@@ -138,6 +164,9 @@
       </template>
     </DashboardLayout>
 
+    <DrilldownPanel v-if="drilldownOpen && drilldownRoot" :root="drilldownRoot" :nodes="drilldownNodes" :selected-id="plotData.id" :stats="drilldownStats" :loading="drilldownStatsLoading" :error="drilldownStatsError" @close="drilldownOpen = false" @select="selectScope" @retry="refreshDrilldownStats()" />
+    <PlotScopeReport v-if="reportOpen" :key="`${plotData.id}:${currentAnalysisId}`" :plot="plotData" :analysis-id="currentAnalysisId" :summary="apiAnalysisSummary" @close="reportOpen = false" @error="handleScopeError" />
+
     <!-- 健康指标详情弹窗 -->
     <div v-if="healthModalVisible" class="health-detail-overlay" @click.self="healthModalVisible = false">
       <div class="health-detail-panel">
@@ -163,17 +192,18 @@
         <div v-if="!selectedTreeDetail" class="tree-detail-loading">暂无数据</div>
         <template v-else>
         <div class="tree-detail-row"><span class="tree-detail-label">树 ID</span><span>{{ selectedTreeDetail.tree_id }}</span></div>
+        <div v-for="field in [['region_name', '所属区域'], ['parcel_name', '所属小地块'], ['farmer_name', '农户'], ['source_tree_id', '原始编号'], ['source_package', '来源成果包']]" :key="field[0]" class="tree-detail-row"><template v-if="selectedTreeDetail[field[0]]"><span class="tree-detail-label">{{ field[1] }}</span><span>{{ selectedTreeDetail[field[0]] }}</span></template></div>
         <div class="tree-detail-row">
           <span class="tree-detail-label">经纬度</span>
           <span>{{ Number(selectedTreeDetail.longitude).toFixed(6) }}, {{ Number(selectedTreeDetail.latitude).toFixed(6) }}</span>
         </div>
-        <div class="tree-detail-row">
+        <div v-if="apiAnalysisSummary?.has_pest !== false" class="tree-detail-row">
           <span class="tree-detail-label">状态</span>
           <span v-if="!selectedTreeDetail.pest" class="tree-tag tree-tag--healthy">健康</span>
           <span v-else-if="!selectedTreeDetail.has_detection_geometry" class="tree-tag tree-tag--warn">病虫害（缺检测几何）</span>
           <span v-else class="tree-tag tree-tag--pest">病虫害</span>
         </div>
-        <div v-if="selectedTreeDetail.yield_value" class="tree-detail-row">
+        <div v-if="apiAnalysisSummary?.has_yield !== false && selectedTreeDetail.yield_value != null" class="tree-detail-row">
           <span class="tree-detail-label">产量</span><span>{{ Number(selectedTreeDetail.yield_value).toFixed(2) }} kg</span>
         </div>
         <div v-if="selectedTreeDetail.tree_area" class="tree-detail-row">
@@ -182,7 +212,7 @@
         <div v-if="selectedTreeDetail.detected_at" class="tree-detail-row">
           <span class="tree-detail-label">检测时间</span><span>{{ formatDetectedAt(selectedTreeDetail.detected_at) }}</span>
         </div>
-        <template v-if="selectedTreeDetail.detection_geometries && selectedTreeDetail.detection_geometries.length">
+        <template v-if="apiAnalysisSummary?.has_pest !== false && selectedTreeDetail.detection_geometries && selectedTreeDetail.detection_geometries.length">
           <div class="tree-detail-divider"></div>
           <div v-for="(dg, i) in selectedTreeDetail.detection_geometries" :key="i" class="tree-detection-item">
             <div class="tree-detail-row"><span class="tree-detail-label">类型</span><span>{{ dg.detection_type }}</span></div>
@@ -201,6 +231,10 @@
 </template>
 
 <script>
+import drilldownMixin from './drilldownMixin';
+import DrilldownPanel from './components/DrilldownPanel.vue';
+import PlotScopeReport from './components/PlotScopeReport.vue';
+import { unwrapResponse, isForbidden } from './services/drilldownService';
 import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
 import WMTSTileMap from '@/components/Map/WMTSTileMap.vue';
 import HealthIndicatorModal from '@/components/Dialogs/HealthIndicatorModal.vue';
@@ -238,7 +272,10 @@ import { getCachedBatch, loadAnalysisBatchBundle } from '@/modules/plot/services
  */
 export default {
     name: 'PlotDetailV2',
+    mixins: [drilldownMixin],
     components: {
+        DrilldownPanel,
+        PlotScopeReport,
         DashboardLayout,
         WMTSTileMap,
         HealthIndicatorModal,
@@ -335,6 +372,12 @@ export default {
         };
     },
     computed: {
+        showTileMap() {
+            return this.mapReady && (!this.drilldownEnabled || (!!this.analysisTileInfo && !this.scopeLoading && !this.scopeError));
+        },
+        showReportEntry() {
+            return this.isForestPlot && !!this.plotData.id && !this.isLoading;
+        },
         /**
          * 时间线可见性
          * 年份筛选后可能没有节点，此时仍要保留组件，否则用户切不回其它年份
@@ -372,6 +415,10 @@ export default {
          */
         farmerConfigData() {
             const fallbackConfig = buildPlotListConfigFallback(this.apiPlotListRecord, this.plotData);
+            if (this.drilldownEnabled) {
+                return { ...fallbackConfig, total_area: this.plotData.area,
+                    owner_name: this.plotData.farmer_name || fallbackConfig.owner_name };
+            }
             const configData = this.apiPlotDetail?.config_data;
 
             // 如果已经是对象，直接返回
@@ -672,7 +719,7 @@ export default {
         },
         breadcrumbItems() {
             const cityName = this.$route.query.cityName || '百色市';
-            const plotName = this.$route.query.plotName || this.plotData.name || '地块详情';
+            const plotName = this.plotData.name || this.$route.query.plotName || '地块详情';
 
             return [
                 { name: '广西', route: { name: 'Dashboard' } },
@@ -710,113 +757,72 @@ export default {
          * 加载地块数据
          */
         async loadPlotData() {
+            const loadToken = Symbol('plot-load');
+            this._plotLoadToken = loadToken;
+            this._mapTileToken = null;
+            this.resetDrilldown();
+            this.isLoading = true;
+            this.loadError = null;
+            this.apiPlotDetail = null;
+            this.apiPlotListRecord = null;
+            this.apiAnalysisSummary = null;
+            this.analysisMapTile = null;
+            this.analysisTreeTiles = [];
+            this.analysisSourceTileSize = 512;
+            this.baseMapTileInfo = null;
+            this.mapReady = false;
+            this.currentAnalysisId = null;
+            this.currentFarmingStageId = null;
+            this.analysisTimelineNodes = [];
+            this.analysisTimelineYears = [];
+            this.analysisTimelineYear = 0;
+            this.analysisSwitchingId = null;
+            this.regionName = this.$route.query.region || '右江区';
+            const routeId = this.$route.params.plotId;
+            const plotName = this.$route.query.plotName || routeId || '千户十亩-大楞乡基地';
             try {
-                this.isLoading = true;
-                this.loadError = null;
-                this.apiPlotDetail = null;
-                this.apiPlotListRecord = null;
-                this.apiAnalysisSummary = null;
-                this.analysisMapTile = null;
-                this.analysisTreeTiles = [];
-                this.analysisSourceTileSize = 512;
-                this.baseMapTileInfo = null;
-                this.mapReady = false;
-                this.currentAnalysisId = null;
-                this.analysisTimelineNodes = [];
-                this.analysisTimelineYears = [];
-                this.analysisTimelineYear = 0;
-                this.analysisSwitchingId = null;
-                this._mapTileToken = null;
-
-                // 从路由参数获取区域名称和地块数据
-                this.regionName = this.$route.query.region || '右江区';
-
-                // 从路由获取地块名称（入口只传名称，ID 通过 plot/list 接口获取）
-                const encodedPlotId = this.$route.params.plotId;
-                const plotName = this.$route.query.plotName
-                    || (encodedPlotId ? decodeURIComponent(encodedPlotId) : null)
-                    || '千户十亩-大楞乡基地';
-                this.debugPlotDetail('开始解析地块详情路由', {
-                    plotName,
-                    region: this.regionName,
-                    cityName: this.$route.query.cityName,
+                const record = await resolvePlotRecord({
+                    plotId: routeId, plotName, regionName: this.regionName,
                     cityAdcode: this.$route.query.cityAdcode,
-                    regionAdcode: this.$route.query.regionAdcode,
+                    regionAdcode: this.$route.query.regionAdcode, debug: this.debugPlotDetail
+                });
+                if (this._plotLoadToken !== loadToken) return;
+                this.apiPlotListRecord = record;
+                this.plotData = buildPlotData(record, {
+                    plotName, regionName: this.regionName, defaultArea: DEFAULT_PLOT_DATA.area,
                     routeType: this.$route.query.type
                 });
-
-                // Step 1: 用 plot/list 找到地块记录，获取真实数字 ID
-                const tileRecord = await resolvePlotRecord({
-                    plotName,
-                    regionName: this.regionName,
-                    cityAdcode: this.$route.query.cityAdcode,
-                    regionAdcode: this.$route.query.regionAdcode,
-                    debug: this.debugPlotDetail
-                });
-                const plotId = tileRecord?.id;
-                this.apiPlotListRecord = tileRecord;
-                this.debugPlotDetail('地块记录解析完成', {
-                    found: Boolean(tileRecord),
-                    plotId: plotId || null,
-                    matchedName: tileRecord?.name || null,
-                    hasLocationInfo: Boolean(tileRecord?.location_info),
-                    propertyType: tileRecord?.property_type,
-                    propertyCategory: tileRecord?.property_category
-                });
-
-                // 从 list 记录取 area / type，不再依赖路由参数
-                const type = getPlotType(tileRecord, this.$route.query.type);
-
-                // 基础地块数据（Step 2/3 在下方：loadPlotDetail → getTileInfo 由 WMTSTileMap 触发）
-                this.plotData = buildPlotData(tileRecord, {
-                    plotName,
-                    regionName: this.regionName,
-                    defaultArea: DEFAULT_PLOT_DATA.area,
-                    routeType: this.$route.query.type
-                });
-
-                if (plotId) {
-                    this.prepareMapTiles(plotId, type).catch(error => {
-                        this.debugPlotDetail('地图瓦片准备失败，业务面板继续展示', {
-                            plotId,
-                            error: error.message
-                        });
-                    });
-                }
-
-                // Step 2: 加载完整地块详情（含 config_data）
+                const plotId = record?.id;
+                const type = getPlotType(record, this.$route.query.type);
                 if (!plotId) {
-                    this.debugPlotDetail('未匹配到真实 plot_id，进入 URL 基础信息兜底展示', {
-                        plotName,
-                        region: this.regionName,
-                        type
-                    });
                     await this.loadFallbackSideData(type);
-                }
-                else if (type === 'factory' || type === 'warehouse') {
-                    await this.loadPlotDetail(plotId);
                 } else {
-                    await Promise.all([
-                        this.loadPlotDetail(plotId),
-                        this.loadFarmingData()
-                    ]);
-                    this.loadSpicePrice();
+                    if (/^\d+$/.test(String(routeId))) {
+                        // ID-based resolution already used plot/detail.
+                        this.apiPlotDetail = record;
+                        this.currentFarmingStageId = record.current_farming_stage_id || null;
+                    } else {
+                        await this.loadPlotDetail(plotId, loadToken);
+                    }
+                    if (this._plotLoadToken !== loadToken) return;
+                    if (type !== 'factory' && type !== 'warehouse') {
+                        await this.discoverDrilldown({ ...record, ...this.apiPlotDetail }, loadToken);
+                        if (this._plotLoadToken !== loadToken) return;
+                        this.loadFarmingData();
+                        this.loadSpicePrice();
+                    }
+                    const mapTask = this.drilldownEnabled
+                        ? this.loadScopedMap(String(plotId)) : this.prepareMapTiles(plotId, type);
+                    mapTask.catch(error => {
+                        if (this._plotLoadToken === loadToken) this.handleScopeError(error);
+                    });
                 }
-
-                this.isLoading = false;
-                this.debugPlotDetail('详情主数据加载完成', {
-                    plotId: plotId || null,
-                    type,
-                    mapReady: this.mapReady,
-                    hasPlotDetail: Boolean(this.apiPlotDetail),
-                    standardFarmingCount: this.apiStandardFarming.length,
-                    hasWarningFarming: Boolean(this.apiWarningFarming),
-                    hasServiceFarming: Boolean(this.apiServiceFarming)
-                });
             } catch (error) {
-                console.error('Failed to load plot data:', error);
-                this.loadError = error.message;
-                this.isLoading = false;
+                if (this._plotLoadToken !== loadToken) return;
+                if (isForbidden(error)) this.handleScopeError(error);
+                else this.loadError = error.message;
+            } finally {
+                if (this._plotLoadToken === loadToken) this.isLoading = false;
             }
         },
 
@@ -893,6 +899,7 @@ export default {
                 return { analysisId, analysisTile };
             } catch (error) {
                 // eslint-disable-next-line no-console
+                if (isForbidden(error) && this.isCurrentMapTileLoad(mapTileToken, plotId)) this.handleScopeError(error);
                 console.warn('Failed to resolve analysis tile:', error);
                 return null;
             }
@@ -917,9 +924,11 @@ export default {
          * 因此年份切换只替换节点列表，不改动当前选中批次。
          */
         async loadAnalysisTimeline(plotId, year = 0) {
+            const token = Symbol('timeline');
+            this._timelineToken = token;
             try {
                 const timeline = await fetchAnalysisTimeline(plotId, year);
-                if (String(this.plotData?.id || '') !== String(plotId)) return null;
+                if (this._timelineToken !== token || String(this.plotData?.id || '') !== String(plotId)) return null;
 
                 this.analysisTimelineNodes = timeline?.nodes || [];
                 this.analysisTimelineYear = year;
@@ -936,6 +945,8 @@ export default {
                 });
                 return timeline;
             } catch (error) {
+                if (this._timelineToken !== token) return null;
+                if (isForbidden(error)) { this.handleScopeError(error); throw error; }
                 this.debugPlotDetail('巡飞时间线加载失败，回退批次列表', {
                     plotId,
                     year,
@@ -977,6 +988,7 @@ export default {
             if (analysisId === String(this.currentAnalysisId || '')) return;
 
             // 命中缓存的切换不占用切换锁，否则一次慢请求会把来回对比整个卡住
+            if (this.drilldownEnabled) return this.switchScopedBatch(analysisId);
             const cached = getCachedBatch(plotId, analysisId);
             if (!cached && this.analysisSwitchingId) return;
 
@@ -1009,6 +1021,7 @@ export default {
                 this.prefetchNeighborBatches(plotId, analysisId);
             } catch (error) {
                 // eslint-disable-next-line no-console
+                if (isForbidden(error) && this.isCurrentMapTileLoad(mapTileToken, plotId)) this.handleScopeError(error);
                 console.warn('Failed to switch analysis batch:', error);
             } finally {
                 if (this.analysisSwitchingId === analysisId) {
@@ -1061,6 +1074,7 @@ export default {
          * 放到浏览器空闲时发，别和当前批次抢带宽。
          */
         prefetchNeighborBatches(plotId, analysisId) {
+            if (this.drilldownEnabled) return;
             const nodes = this.analysisTimelineNodes;
             const index = nodes.findIndex(item => String(item.analysis_id) === String(analysisId));
             if (index < 0) return;
@@ -1083,7 +1097,9 @@ export default {
             }
 
             loadAnalysisBatchBundle({ plotId, analysisId })
-                .then(bundle => this.registerBatchLayer(bundle))
+                .then(bundle => {
+                    if (String(this.plotData.id) === String(plotId) && !this.drilldownEnabled) this.registerBatchLayer(bundle);
+                })
                 .catch(error => {
                     this.debugPlotDetail('相邻批次预取失败', {
                         plotId,
@@ -1118,15 +1134,18 @@ export default {
         handleTimelineYearChange(year) {
             const plotId = String(this.plotData?.id || '');
             if (!plotId || year === this.analysisTimelineYear) return;
-            this.loadAnalysisTimeline(plotId, year);
+            this.loadAnalysisTimeline(plotId, year).catch(error => this.handleScopeError(error));
         },
 
         /**
          * 加载地块详情（包含农户信息）
          */
-        async loadPlotDetail(plotId) {
+        async loadPlotDetail(plotId, loadToken) {
             try {
                 const result = await apiClient.getPlotDetail(plotId);
+                if (loadToken && this._plotLoadToken !== loadToken) return;
+                unwrapResponse(result);
+                if (String(this.plotData.id) !== String(plotId)) return;
                 if (result && result.code === 0 && result.data) {
                     this.apiPlotDetail = result.data;
                     // 提取当前农事阶段ID
@@ -1145,6 +1164,7 @@ export default {
                     });
                 }
             } catch (error) {
+                if (isForbidden(error)) throw error;
                 console.warn('Failed to load plot detail:', error);
                 this.debugPlotDetail('plot/detail 加载失败，使用 plot/list 兜底', {
                     plotId,
@@ -1306,17 +1326,23 @@ export default {
                 console.warn('handleTreeClick: currentAnalysisId is null');
                 return;
             }
+            const token = Symbol('tree-detail');
+            this._treeDetailToken = token;
+            const plotId = String(this.plotData.id);
             this.treeDetailLoading = true;
             try {
-                const result = await apiClient.getAnalysisTreeDetail(this.plotData.id, analysisId, tree.tree_id);
+                const result = await apiClient.getAnalysisTreeDetail(plotId, analysisId, tree.tree_id);
+                if (this._treeDetailToken !== token || String(this.plotData.id) !== plotId || this.currentAnalysisId !== analysisId) return;
+                unwrapResponse(result);
                 if (result?.data) {
                     this.selectedTreeDetail = result.data;
                 }
             } catch (error) {
                 // eslint-disable-next-line no-console
+                if (this._treeDetailToken === token && isForbidden(error)) this.handleScopeError(error);
                 console.error('Failed to load tree detail:', error);
             } finally {
-                this.treeDetailLoading = false;
+                if (this._treeDetailToken === token) this.treeDetailLoading = false;
             }
         },
 
@@ -1360,7 +1386,8 @@ export default {
          * 显示健康指标弹窗
          */
         showHealthModal() {
-            this.healthModalVisible = true;
+            if (this.drilldownEnabled) this.reportOpen = true;
+            else this.healthModalVisible = true;
         },
 
         /**
@@ -1392,6 +1419,12 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.scope-toolbar { position: absolute; z-index: 130; left: 50%; transform: translateX(-50%); max-width: calc(100% - 800px); width: max-content; box-sizing: border-box; bottom: 80px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 6px 8px; border: 1px solid #c69c6d60; border-radius: 6px; background: #0d2a28ee; color: #e2c59a; font-size: 12px; }
+.scope-toolbar nav { min-width: 0; text-align: center; overflow-wrap: anywhere; }
+.scope-toolbar button, .scope-map-state button { color: #e2c59a; border: 1px solid #c69c6d60; background: #0d2a28; border-radius: 4px; padding: 6px 9px; cursor: pointer; }
+.scope-toolbar button:disabled { opacity: .65; cursor: default; }
+.scope-map-state { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 120; text-align: center; color: #e2c59a; background: #0d2a28; padding: 22px; border: 1px solid #c69c6d60; border-radius: 6px; }
+
 .plot-detail-container {
     position: relative;
     width: 100%;
@@ -1427,6 +1460,10 @@ export default {
     border-color: #c69c6d;
     color: #c69c6d;
 }
+
+.report-toggle { color: #e2c59a; }
+.report-toggle:disabled { opacity: .45; cursor: default; }
+.map-controls-fallback { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: 6px; padding: 3px 6px; border: 1px solid #c69c6d4d; border-radius: 6px; background: #000a; }
 
 .timeline-toggle__hint {
     opacity: 0.75;

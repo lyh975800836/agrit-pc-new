@@ -1,4 +1,6 @@
 import { fetchAnalysisSummaryTile, fetchAnalysisTreeOverlay } from './plotDetailDataService';
+import { isForbidden } from './drilldownService';
+import { getToken } from '@/services/authSession';
 
 /**
  * 巡飞批次数据缓存
@@ -21,6 +23,16 @@ const CACHE_LIMIT = 12;
 const batchCache = new Map();
 /** key -> Promise<bundle>，进行中的请求 */
 const pendingRequests = new Map();
+let cacheSession = '';
+
+function ensureCacheSession() {
+    const session = getToken();
+    if (cacheSession !== session) {
+        cacheSession = session;
+        batchCache.clear();
+        pendingRequests.clear();
+    }
+}
 
 function buildCacheKey(plotId, analysisId) {
     return `${ String(plotId) }:${ String(analysisId) }`;
@@ -34,6 +46,7 @@ function buildCacheKey(plotId, analysisId) {
  * @returns {{analysisId: string, summary: Object|null, analysisTile: Object|null, treeTiles: Object[], sourceTileSize: number}|null}
  */
 export function getCachedBatch(plotId, analysisId) {
+    ensureCacheSession();
     const key = buildCacheKey(plotId, analysisId);
     if (!batchCache.has(key)) return null;
 
@@ -53,17 +66,20 @@ export function getCachedBatch(plotId, analysisId) {
  * @param {Function} [options.debug] - 调试日志钩子
  * @returns {Promise<{analysisId: string, summary: Object|null, analysisTile: Object|null, treeTiles: Object[], sourceTileSize: number}>}
  */
-export function loadAnalysisBatchBundle({ plotId, analysisId, debug }) {
+export function loadAnalysisBatchBundle({ plotId, analysisId, debug, fresh = false, onSummary }) {
+    // Scoped layers are regenerated after import; never reuse their layer names.
+    if (fresh) return requestBatchBundle({ plotId, analysisId, debug, onSummary, treeTimeout: 30000 }).then(result => result.bundle);
     const cached = getCachedBatch(plotId, analysisId);
     if (cached) return Promise.resolve(cached);
 
     const key = buildCacheKey(plotId, analysisId);
     if (pendingRequests.has(key)) return pendingRequests.get(key);
 
+    const session = getToken();
     const task = requestBatchBundle({ plotId, analysisId, debug })
         .then(({ bundle, cacheable }) => {
             // 树冠接口超时/失败的半包不进缓存，否则一次抖动会让这个批次永远缺标点
-            if (cacheable) putCache(key, bundle);
+            if (cacheable && getToken() === session) putCache(key, bundle);
             return bundle;
         })
         .finally(() => {
@@ -84,7 +100,7 @@ function putCache(key, bundle) {
     }
 }
 
-async function requestBatchBundle({ plotId, analysisId, debug }) {
+async function requestBatchBundle({ plotId, analysisId, debug, onSummary, treeTimeout }) {
     const { summary, analysisTile } = await fetchAnalysisSummaryTile(plotId, analysisId, debug);
     const bundle = {
         analysisId: String(analysisId),
@@ -93,18 +109,21 @@ async function requestBatchBundle({ plotId, analysisId, debug }) {
         treeTiles: [],
         sourceTileSize: 512
     };
+    onSummary?.(summary, analysisTile);
 
     // 无专属底图的批次沿用地块底图，也就没有对应的树冠瓦片可拉
     if (!analysisTile) {
-        return { bundle, cacheable: true };
+        return { bundle, cacheable: false };
     }
 
     try {
-        const overlay = await fetchAnalysisTreeOverlay({ plotId, analysisId, analysisTile });
+        const overlay = await fetchAnalysisTreeOverlay({ plotId, analysisId, analysisTile, timeout: treeTimeout });
         bundle.treeTiles = overlay.tiles;
         bundle.sourceTileSize = overlay.sourceTileSize;
         return { bundle, cacheable: true };
     } catch (error) {
+        if (isForbidden(error)) throw error;
+        bundle.treeError = error.name === 'AbortError' ? '树点加载超时，请刷新重试' : '树点加载失败，请刷新重试';
         debug?.('树冠瓦片加载失败，本次不缓存', {
             plotId,
             analysisId,

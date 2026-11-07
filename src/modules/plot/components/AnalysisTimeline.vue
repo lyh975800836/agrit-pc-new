@@ -70,6 +70,8 @@ export function formatPatrolDate(detectedAt) {
 export default {
     name: 'AnalysisTimeline',
     props: {
+        scoped: { type: Boolean, default: false },
+        hasPest: { type: Boolean, default: true },
         /** 批次节点列表（升序） */
         nodes: {
             type: Array,
@@ -136,9 +138,9 @@ export default {
             const parts = [`采集 ${ String(node.detected_at || '').slice(0, 10) || '-' }`];
             if (node.batch_no) parts.push(`批次 ${ node.batch_no }`);
             if (node.total_trees != null) parts.push(`总株数 ${ node.total_trees }`);
-            if (node.pest_trees != null) parts.push(`病树 ${ node.pest_trees }`);
+            if (this.hasPest && node.has_pest !== false && node.pest_trees != null) parts.push(`病树 ${ node.pest_trees }`);
             if (node.remark) parts.push(node.remark);
-            if (!node.has_tile) parts.push('该批次无专属底图，沿用地块底图');
+            if (!node.has_tile) parts.push(this.scoped ? (node.tile_status === 'failed' ? '底图生成失败' : '底图生成中') : '该批次无专属底图，沿用地块底图');
             return parts.join(' · ');
         },
 

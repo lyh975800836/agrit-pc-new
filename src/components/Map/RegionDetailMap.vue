@@ -401,7 +401,7 @@ export default {
                 }
 
                 this.$router.push({
-                    path: `/plot/${ encodeURIComponent(targetName) }`,
+                    path: `/plot/${ encodeURIComponent(popupDataSnapshot.id || targetName) }`,
                     query
                 });
             }

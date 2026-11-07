@@ -92,15 +92,15 @@
           <span class="analysis-stat-value">{{ analysisSummary.total_trees }}</span>
           <span class="analysis-stat-label">总树数</span>
         </div>
-        <div class="analysis-stat-item analysis-stat-item--healthy">
+        <div v-if="analysisSummary.has_pest !== false" class="analysis-stat-item analysis-stat-item--healthy">
           <span class="analysis-stat-value">{{ analysisSummary.healthy_trees }}</span>
           <span class="analysis-stat-label">健康</span>
         </div>
-        <div class="analysis-stat-item analysis-stat-item--pest">
+        <div v-if="analysisSummary.has_pest !== false" class="analysis-stat-item analysis-stat-item--pest">
           <span class="analysis-stat-value">{{ analysisSummary.pest_trees }}</span>
           <span class="analysis-stat-label">病虫害</span>
         </div>
-        <div class="analysis-stat-item">
+        <div v-if="analysisSummary.has_yield !== false" class="analysis-stat-item">
           <span class="analysis-stat-value">{{ analysisSummary.yield_avg ? Number(analysisSummary.yield_avg).toFixed(1) : '-' }}</span>
           <span class="analysis-stat-label">均产(kg/棵)</span>
         </div>
@@ -108,11 +108,11 @@
     </div>
 
     <!-- 林地健康指标 -->
-    <ForestHealthIndicators />
+    <ForestHealthIndicators v-if="!scoped" />
 
     <!-- 健康指标 -->
     <HealthIndicators
-      v-if="healthIndicators.length > 0"
+      v-if="!scoped && healthIndicators.length > 0"
       :indicators="healthIndicators"
       @show-health-modal="$emit('show-health-modal')"
     />
@@ -147,6 +147,7 @@ export default {
         ForestHealthIndicators
     },
     props: {
+        scoped: { type: Boolean, default: false },
         strategy: { type: Object, required: true },
         plotName: { type: String, required: true },
         regionName: { type: String, required: true },
@@ -163,7 +164,10 @@ export default {
     computed: {
         ownerInfo() { return this.strategy.getOwnerInfo(); },
         statusTags() { return this.strategy.getStatusTags(); },
-        statistics() { return this.strategy.getStatistics(); },
+        statistics() {
+            if (this.scoped) return [{ label: '当前面积(亩)：', value: this.strategy.getStatistics()[0]?.value || '0' }];
+            return this.strategy.getStatistics();
+        },
         priceInfo() {
             const arr = this.strategy.getPriceInfo(this.priceData);
             return arr.length > 0 ? arr[0] : null;
@@ -172,7 +176,7 @@ export default {
             if (!this.strategy.showHealthIndicators()) return [];
             return this.strategy.getHealthIndicators();
         },
-        certIcons() { return this.strategy.getCertIcons(); },
+        certIcons() { return this.scoped ? [] : this.strategy.getCertIcons(); },
         actionItems() {
             return [
                 { key: 'insurance', src: '/images/action-insurance.png', label: '八角保险' },

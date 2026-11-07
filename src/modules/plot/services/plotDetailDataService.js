@@ -1,4 +1,5 @@
 import apiClient from '@/services/apiClient';
+import { unwrapResponse, isForbidden } from './drilldownService';
 import { parseLocationInfo } from '@/utils/tileDataProcessor';
 import {
     filterPlotsByFeature,
@@ -24,6 +25,11 @@ export function buildPlotData(tileRecord, { plotName, regionName, defaultArea, r
 
     return {
         id: tileRecord?.id || '',
+        node_type: tileRecord?.node_type || '',
+        parent_plot_id: tileRecord?.parent_plot_id,
+        root_plot_id: tileRecord?.root_plot_id,
+        farmer_name: tileRecord?.farmer_name,
+        ext_attrs: tileRecord?.ext_attrs,
         name: tileRecord?.name || plotName,
         district: regionName,
         area,
@@ -65,7 +71,10 @@ export function getPlotListConfigFallback(record = {}, plotData = {}) {
     };
 }
 
-export async function resolvePlotRecord({ plotName, regionName, cityAdcode, regionAdcode, debug }) {
+export async function resolvePlotRecord({ plotId, plotName, regionName, cityAdcode, regionAdcode, debug }) {
+    if (plotId && /^\d+$/.test(String(plotId))) {
+        return unwrapResponse(await apiClient.getPlotDetail(String(plotId)));
+    }
     try {
         const result = await apiClient.getPlotsList({ keyword: plotName });
         if (result && result.code === 0) {
@@ -126,6 +135,7 @@ export async function resolvePlotRecord({ plotName, regionName, cityAdcode, regi
 export async function fetchBaseTileInfo(plotId, debug) {
     try {
         const tileInfoResult = await apiClient.getTileInfo(plotId);
+        if (Number(tileInfoResult?.code) === 403) unwrapResponse(tileInfoResult);
         const tileInfo = tileInfoResult?.data || null;
         debug?.('基础瓦片可用性检查完成', {
             plotId,
@@ -139,6 +149,7 @@ export async function fetchBaseTileInfo(plotId, debug) {
         });
         return tileInfo;
     } catch (error) {
+        if (isForbidden(error)) throw error;
         debug?.('基础瓦片可用性检查失败', {
             plotId,
             error: error.message
@@ -179,7 +190,7 @@ export function isUsableTileInfo(tileInfo) {
  */
 export async function fetchAnalysisTimeline(plotId, year = 0) {
     const result = await apiClient.getAnalysisTimeline(plotId, year);
-    const data = result?.code === 0 ? result.data : null;
+    const data = unwrapResponse(result);
     if (!data) return null;
 
     const nodes = Array.isArray(data.nodes) ? data.nodes : [];
@@ -204,13 +215,13 @@ export async function fetchLatestAnalysis(plotId) {
         factory_type: 'ai_monitor',
         status: 2
     });
-    const list = listResult?.data?.list;
+    const list = unwrapResponse(listResult)?.list;
     return Array.isArray(list) && list.length ? list[0] : null;
 }
 
 export async function fetchAnalysisSummaryTile(plotId, analysisId, debug) {
     const summaryResult = await apiClient.getAnalysisSummary(plotId, analysisId);
-    const summary = summaryResult?.data || null;
+    const summary = unwrapResponse(summaryResult);
     const analysisTile = summary?.analysis_tile || null;
 
     if (analysisTile && !isValidAnalysisTile(analysisTile)) {
@@ -239,9 +250,10 @@ export async function fetchAnalysisTreeOverlay({ plotId, analysisId, analysisTil
             { signal: controller.signal }
         );
 
+        const data = unwrapResponse(result);
         return {
-            tiles: result?.data?.tiles || [],
-            sourceTileSize: result?.data?.source_tile_size || 512
+            tiles: data?.tiles || [],
+            sourceTileSize: data?.source_tile_size || 512
         };
     } finally {
         clearTimeout(timer);
@@ -362,10 +374,12 @@ function isValidAnalysisTile(tile) {
     const maxZoom = Number(tile?.max_zoom_level);
     const layerName = tile?.layer_name || tile?.tile_dir;
 
-    return Boolean(layerName)
+    return tile?.status === 'completed' && Boolean(layerName)
         && Number.isFinite(maxTileX)
         && Number.isFinite(maxTileY)
-        && Number.isFinite(maxZoom);
+        && Number.isFinite(maxZoom)
+        && tile.max_tile_x != null && tile.max_tile_y != null && tile.max_zoom_level != null
+        && maxTileX >= 0 && maxTileY >= 0 && maxZoom >= 0;
 }
 
 function buildTileTreesParams(plotId, analysisId, analysisTile) {

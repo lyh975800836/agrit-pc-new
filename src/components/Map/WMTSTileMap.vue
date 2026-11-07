@@ -1,5 +1,5 @@
 <template>
-  <div class="tile-map-container">
+  <div class="tile-map-container" :class="{ 'tile-map-container--scoped': scoped }">
 
     <!-- 树木筛选控制栏（相对 tile-map-container 定位，不受 tile-grid 滚动影响） -->
     <div
@@ -13,7 +13,7 @@
         </button>
         <template v-if="!filterCollapsed">
           <button
-            v-for="f in treeFilterOptions"
+            v-for="f in visibleTreeFilterOptions"
             :key="f.value"
             class="filter-btn"
             :class="{ 'filter-btn--active': treeFilter === f.value }"
@@ -136,6 +136,10 @@
           </div>
         </template>
 
+        <svg v-if="projectedBoundaries.length" class="plot-boundaries" :width="boundaryWidth" :height="boundaryHeight" aria-label="区域和小地块边界">
+          <polygon v-for="boundary in projectedBoundaries" :key="boundary.node.id" :points="boundary.points" :class="{ selected: boundary.selected, muted: boundary.muted }" vector-effect="non-scaling-stroke" @click.stop="$emit('boundary-select', boundary.node)"><title>{{ boundary.node.name }}</title></polygon>
+        </svg>
+
         <!-- Mock 标记点组件 - 仅在"那色"地块显示 -->
         <MockMarkers
           :plot-data="plotData"
@@ -159,6 +163,7 @@
 import TileImageManager from '@/components/Map/TileImageManager.vue';
 import MockMarkers from '@/components/Map/MockMarkers.vue';
 import apiClient from '@/services/apiClient';
+import { projectPlotBoundary } from '@/modules/plot/services/plotBoundaryProjection';
 import { getCDNTileUrl, preloadTileImage } from '@/utils/tileUrlHelper';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
@@ -205,6 +210,9 @@ export default {
         MockMarkers
     },
     props: {
+        scoped: { type: Boolean, default: false },
+        boundaries: { type: Array, default: () => [] },
+        hasPest: { type: Boolean, default: true },
         plotData: {
             type: Object,
             default: () => ({})
@@ -282,7 +290,7 @@ export default {
             // 缩放偏移量（相对于 effectiveMaxZoomLevel，0 = native size）
             displayZoomOffset: 0,
             // 树木筛选：'all' | 'pest' | 'healthy' | 'missing'
-            treeFilter: DEFAULT_TREE_FILTER,
+            treeFilter: this.hasPest ? DEFAULT_TREE_FILTER : 'all',
             filterCollapsed: false,
             treeFilterOptions: TREE_FILTER_OPTIONS,
             // 拖拽平移状态
@@ -297,6 +305,18 @@ export default {
         };
     },
     computed: {
+        visibleTreeFilterOptions() { return this.hasPest ? this.treeFilterOptions : this.treeFilterOptions.filter(item => item.value === 'all'); },
+        boundaryWidth() { return (Number(this.analysisTile?.max_tile_x || 0) + 1) * this.tileSize; },
+        boundaryHeight() { return (Number(this.analysisTile?.max_tile_y || 0) + 1) * this.tileSize; },
+        projectedBoundaries() {
+            return this.boundaries.map(node => {
+                const points = projectPlotBoundary(node.location_info, this.analysisTile, this.tileSize);
+                if (!points) return null;
+                const selected = String(node.id) === String(this.plotData.id);
+                return { node, points: points.map(point => point.join(',')).join(' '), selected,
+                    muted: this.plotData.node_type === 'parcel' && !selected };
+            }).filter(Boolean).sort((a, b) => Number(a.selected) - Number(b.selected));
+        },
         /**
          * 模板读瓦片用的入口
          *
@@ -311,19 +331,8 @@ export default {
             const rawId = this.plotData?.id;
             const normalizedId = typeof rawId === 'string' ? rawId.trim() : rawId;
 
-            // 1. 如果已经是数字ID，直接返回
-            if (normalizedId !== undefined && normalizedId !== null) {
-                if (typeof normalizedId === 'number') {
-                    return normalizedId > 0 ? normalizedId : null;
-                }
-                if (typeof normalizedId === 'string' && !normalizedId) {
-                    return null;
-                }
-                const numericId = Number(normalizedId);
-                if (Number.isFinite(numericId) && numericId > 0) {
-                    return numericId;
-                }
-            }
+            // Keep uint64 identifiers as strings throughout the map request path.
+            if (/^[1-9]\d*$/.test(String(normalizedId || ''))) return String(normalizedId);
 
             // 2. 默认返回 plotData.name，不返回1000来避免不必要的API请求
             const name = typeof this.plotData?.name === 'string'
@@ -574,6 +583,7 @@ export default {
         }
     },
     watch: {
+        hasPest(value) { this.treeFilter = value ? DEFAULT_TREE_FILTER : 'all'; },
         plotData: {
             handler() {
                 this.scheduleLoadMapData();
@@ -603,6 +613,9 @@ export default {
                     return;
                 }
                 this.$nextTick(() => {
+                    // Scoped maps render the base before the tree request finishes.
+                    // Refresh the mounted descriptor as rendering reads it, not treeTiles directly.
+                    if (this.scoped) this.ensureCurrentLayer();
                     // 只在还没按树冠范围定过位时定一次。这里原来判的是 mountedLayers.length，
                     // 但图层在 loadMapData 里就登记好了、永远非空，等于把首屏定位整个跳过 ——
                     // 地图会停在网格中心那片没有树的空地上
@@ -743,7 +756,7 @@ export default {
                 this.maxTileX = null;
                 this.maxTileY = null;
                 this.displayZoomOffset = 0;
-                this.treeFilter = DEFAULT_TREE_FILTER;
+                this.treeFilter = this.hasPest ? DEFAULT_TREE_FILTER : 'all';
                 this.filterCollapsed = false;
                 this.resetTileLoadSummary();
                 this._forceReloadTiles = true;
@@ -915,7 +928,7 @@ export default {
             this.maxTileX = null;
             this.maxTileY = null;
             this.displayZoomOffset = 0;
-            this.treeFilter = DEFAULT_TREE_FILTER;
+            this.treeFilter = this.hasPest ? DEFAULT_TREE_FILTER : 'all';
             this.filterCollapsed = false;
             this.resetTileLoadSummary();
         },
@@ -1579,7 +1592,7 @@ export default {
                     if (this.treeFilter === 'healthy' &&  tree.pest) continue;
                     if (this.treeFilter === 'missing' && !(tree.pest && !tree.has_detection_geometry)) continue;
 
-                    const color = tree.pest
+                    const color = !this.hasPest ? '#e2c59a' : tree.pest
                         ? (tree.has_detection_geometry ? '#ff1744' : '#ff9100')
                         : '#00c853';
 
@@ -2311,6 +2324,11 @@ export default {
 </script>
 
 <style scoped>
+.tile-map-container--scoped .tile-grid { width: calc(100% - 790px); margin-left: 395px; }
+.plot-boundaries { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.plot-boundaries polygon { fill: none; stroke: #f2cf88; stroke-width: 2; pointer-events: stroke; cursor: pointer; }
+.plot-boundaries polygon.selected { fill: #f2cf8812; stroke: #ffe6a8; stroke-width: 3; }
+.plot-boundaries polygon.muted { opacity: .28; stroke-dasharray: 6 4; }
 .tile-map-container {
     position: relative;
     width: 100%;

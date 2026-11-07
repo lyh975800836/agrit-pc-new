@@ -65,7 +65,9 @@ async function request(endpoint, options = {}) {
 
         // 检查 HTTP 状态
         if (!response.ok) {
-            throw new Error(`HTTP ${ response.status }: ${ endpoint }`);
+            const error = new Error(`HTTP ${ response.status }: ${ endpoint }`);
+            error.status = response.status;
+            throw error;
         }
 
         // 解析JSON响应

@@ -11,6 +11,7 @@
     "build:analyze": "npm run build:prod -- --report",
     "lint": "vue-cli-service lint",
     "lint:fix": "vue-cli-service lint --fix",
+    "test:drilldown": "node --test tests/drilldown.test.cjs",
     "dev": "npm run serve",
     "preview": "npm run build && serve -s dist",
     "clean": "rm -rf dist node_modules/.cache"
