@@ -62,7 +62,7 @@ export function parseLocationInfo(locationInfo) {
 /**
  * 将新 API 地块列表数据转换为坐标格式
  * @param {Object} plotListResponse - POST /api/v2/plot/list 的完整响应
- * @returns {Object} 以地块 name 为 key 的坐标映射
+ * @returns {Object} 以地块 ID 为 key 的坐标映射（无 ID 时兼容名称）
  */
 export function transformTilesToCoordinates(plotListResponse) {
     const result = {};
@@ -78,7 +78,7 @@ export function transformTilesToCoordinates(plotListResponse) {
         if (!parsed) return;
 
         const name = plot.name;
-        result[name] = {
+        result[plot.id != null ? String(plot.id) : name] = {
             id: plot.id,
             name,
             displayName: name,

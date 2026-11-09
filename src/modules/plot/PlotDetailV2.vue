@@ -87,6 +87,7 @@
       </template>
 
       <template #left-panel>
+        <div class="plot-left-stack">
         <!-- 八角地块左侧面板 - 新架构 -->
         <StarAniseLeftPanel
           v-if="plotData.type !== 'factory' && plotData.type !== 'warehouse'"
@@ -96,6 +97,7 @@
           :price-data="spicePriceDisplay"
           :analysis-summary="apiAnalysisSummary"
           :scoped="drilldownEnabled"
+          :overview-mode="showScopeStatisticsInLeft"
           @show-health-modal="showHealthModal"
         />
 
@@ -128,9 +130,26 @@
         <div v-else class="placeholder-panel">
           未知地块类型
         </div>
+
+        <ScopeStatistics
+          v-if="showScopeStatisticsInLeft"
+          class="left-scope-statistics"
+          :plot="plotData" :nodes="drilldownNodes" :stats="drilldownStats" :summary="apiAnalysisSummary"
+          :loading="scopeLoading || drilldownStatsLoading" :error="scopeError || drilldownStatsError"
+          :can-expand="!!drilldownRoot" @expand="drilldownOpen = true" @select="selectScope"
+          @retry="scopeError || !drilldownRoot ? loadScopedMap(String(plotData.id), currentAnalysisId) : refreshDrilldownStats()"
+        />
+        </div>
       </template>
 
       <template #right-panel>
+        <ScopeStatistics
+          v-if="showScopeStatisticsInRight"
+          :plot="plotData" :nodes="drilldownNodes" :stats="drilldownStats" :summary="apiAnalysisSummary"
+          :loading="scopeLoading || drilldownStatsLoading" :error="scopeError || drilldownStatsError"
+          :can-expand="!!drilldownRoot" @expand="drilldownOpen = true" @select="selectScope"
+          @retry="scopeError || !drilldownRoot ? loadScopedMap(String(plotData.id), currentAnalysisId) : refreshDrilldownStats()"
+        />
         <!-- 农情动态右侧面板 - 新架构 -->
         <FarmingDynamicsPanel
           v-if="!isLoading && plotData.type !== 'factory' && plotData.type !== 'warehouse'"
@@ -164,7 +183,7 @@
       </template>
     </DashboardLayout>
 
-    <DrilldownPanel v-if="drilldownOpen && drilldownRoot" :root="drilldownRoot" :nodes="drilldownNodes" :selected-id="plotData.id" :stats="drilldownStats" :loading="drilldownStatsLoading" :error="drilldownStatsError" @close="drilldownOpen = false" @select="selectScope" @retry="refreshDrilldownStats()" />
+    <DrilldownPanel v-if="drilldownOpen && drilldownRoot" :root="drilldownRoot" :nodes="drilldownNodes" :selected-id="plotData.id" :selected-plot="plotData" :summary="apiAnalysisSummary" :stats="drilldownStats" :loading="drilldownStatsLoading" :error="drilldownStatsError" @close="drilldownOpen = false" @select="selectScope" @retry="refreshDrilldownStats()" />
     <PlotScopeReport v-if="reportOpen" :key="`${plotData.id}:${currentAnalysisId}`" :plot="plotData" :analysis-id="currentAnalysisId" :summary="apiAnalysisSummary" @close="reportOpen = false" @error="handleScopeError" />
 
     <!-- 健康指标详情弹窗 -->
@@ -234,6 +253,7 @@
 import drilldownMixin from './drilldownMixin';
 import DrilldownPanel from './components/DrilldownPanel.vue';
 import PlotScopeReport from './components/PlotScopeReport.vue';
+import ScopeStatistics from './components/ScopeStatistics.vue';
 import { unwrapResponse, isForbidden } from './services/drilldownService';
 import DashboardLayout from '@/components/Dashboard/DashboardLayout.vue';
 import WMTSTileMap from '@/components/Map/WMTSTileMap.vue';
@@ -276,6 +296,7 @@ export default {
     components: {
         DrilldownPanel,
         PlotScopeReport,
+        ScopeStatistics,
         DashboardLayout,
         WMTSTileMap,
         HealthIndicatorModal,
@@ -374,6 +395,15 @@ export default {
     computed: {
         showTileMap() {
             return this.mapReady && (!this.drilldownEnabled || (!!this.analysisTileInfo && !this.scopeLoading && !this.scopeError));
+        },
+        // 区域/根范围先把统计表放在左侧，进入最细的小地块后恢复右侧表格。
+        showScopeStatisticsInLeft() {
+            return this.drilldownEnabled && this.isForestPlot
+                && this.plotData.node_type !== 'parcel';
+        },
+        showScopeStatisticsInRight() {
+            return this.drilldownEnabled && this.isForestPlot
+                && this.plotData.node_type === 'parcel';
         },
         showReportEntry() {
             return this.isForestPlot && !!this.plotData.id && !this.isLoading;
@@ -1419,6 +1449,15 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.plot-left-stack {
+    min-height: 100%;
+}
+
+.left-scope-statistics {
+    margin-top: 2px;
+    border-top: 1px solid rgba(198, 156, 109, .28);
+}
+
 .scope-toolbar { position: absolute; z-index: 130; left: 50%; transform: translateX(-50%); max-width: calc(100% - 800px); width: max-content; box-sizing: border-box; bottom: 80px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 6px 8px; border: 1px solid #c69c6d60; border-radius: 6px; background: #0d2a28ee; color: #e2c59a; font-size: 12px; }
 .scope-toolbar nav { min-width: 0; text-align: center; overflow-wrap: anywhere; }
 .scope-toolbar button, .scope-map-state button { color: #e2c59a; border: 1px solid #c69c6d60; background: #0d2a28; border-radius: 4px; padding: 6px 9px; cursor: pointer; }

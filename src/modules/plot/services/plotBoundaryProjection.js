@@ -25,3 +25,54 @@ export function projectPlotBoundary(locationInfo, tile, displayTileSize) {
     if (points.some(point => !point || point.some(value => !Number.isFinite(value)))) return null;
     return points;
 }
+
+// Find an interior label point, including for concave regions whose bounding-box
+// centre can lie outside the image. Scan between vertices to avoid tangent edges.
+export function getBoundaryLabelPoint(points) {
+    if (!points?.length) return null;
+    const ys = [...new Set(points.map(point => point[1]))].sort((a, b) => a - b);
+    let widest = 0;
+    let result = points[0];
+    const stride = Math.max(1, Math.ceil((ys.length - 1) / 24));
+    for (let row = 1; row < ys.length; row += stride) {
+        const y = (ys[row - 1] + ys[row]) / 2;
+        const xs = [];
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+            const a = points[j], b = points[i];
+            if ((a[1] > y) !== (b[1] > y)) xs.push(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]));
+        }
+        xs.sort((a, b) => a - b);
+        for (let i = 0; i + 1 < xs.length; i += 2) {
+            if (xs[i + 1] - xs[i] > widest) {
+                widest = xs[i + 1] - xs[i];
+                result = [(xs[i] + xs[i + 1]) / 2, y];
+            }
+        }
+    }
+    return result;
+}
+
+// Keep names readable at the overview scale. Displaced labels retain a leader
+// line to their region; hit targets still carry the original node ID.
+export function placeBoundaryLabels(boundaries, width, height) {
+    const occupied = [];
+    return boundaries.map(boundary => {
+        if (!boundary.showLabel) return boundary;
+        const anchor = boundary.labelPoint;
+        const halfWidth = [...String(boundary.node.name || '')].reduce((sum, char) => sum + (char.charCodeAt(0) > 255 ? 14 : 8), 0) / 2 + 4;
+        let chosen = null;
+        for (let radius = 0; radius <= 8 && !chosen; radius += 1) {
+            const offsets = radius ? [[0, -radius * 21], [0, radius * 21], [-radius * 26, 0], [radius * 26, 0], [-radius * 26, -radius * 21], [radius * 26, radius * 21]] : [[0, 0]];
+            for (const [dx, dy] of offsets) {
+                const x = Math.max(halfWidth, Math.min(width - halfWidth, anchor[0] + dx));
+                const y = Math.max(11, Math.min(height - 11, anchor[1] + dy));
+                const box = { left: x - halfWidth, right: x + halfWidth, top: y - 10, bottom: y + 10 };
+                if (occupied.some(other => box.left < other.right && box.right > other.left && box.top < other.bottom && box.bottom > other.top)) continue;
+                chosen = [x, y];
+                occupied.push(box);
+                break;
+            }
+        }
+        return { ...boundary, labelAnchor: anchor, labelPoint: chosen || anchor };
+    });
+}

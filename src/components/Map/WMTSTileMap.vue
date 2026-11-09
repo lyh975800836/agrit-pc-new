@@ -12,6 +12,7 @@
           <span class="filter-toggle-icon">{{ filterCollapsed ? '▼' : '▲' }}</span>
         </button>
         <template v-if="!filterCollapsed">
+          <button v-if="scoped" class="filter-btn" :class="{ 'filter-btn--active': showScopedTrees }" :aria-pressed="showScopedTrees" @click="showScopedTrees = !showScopedTrees">树点</button>
           <button
             v-for="f in visibleTreeFilterOptions"
             :key="f.value"
@@ -137,7 +138,19 @@
         </template>
 
         <svg v-if="projectedBoundaries.length" class="plot-boundaries" :width="boundaryWidth" :height="boundaryHeight" aria-label="区域和小地块边界">
-          <polygon v-for="boundary in projectedBoundaries" :key="boundary.node.id" :points="boundary.points" :class="{ selected: boundary.selected, muted: boundary.muted }" vector-effect="non-scaling-stroke" @click.stop="$emit('boundary-select', boundary.node)"><title>{{ boundary.node.name }}</title></polygon>
+          <g v-for="boundary in projectedBoundaries" :key="boundary.node.id" class="plot-boundary" :class="{ selected: boundary.selected, muted: boundary.muted, interactive: boundary.interactive, region: boundary.node.node_type === 'region' }"
+             :data-boundary-id="boundary.interactive ? boundary.node.id : null" role="img" :aria-label="`${boundary.node.name}范围`">
+            <title>{{ boundary.node.name }}{{ boundary.interactive ? '（点击进入）' : '' }}</title>
+            <polygon :points="boundary.points" vector-effect="non-scaling-stroke" />
+          </g>
+        </svg>
+        <svg v-if="projectedBoundaries.length" class="plot-boundaries plot-boundary-labels" :width="boundaryWidth" :height="boundaryHeight" aria-label="区域和小地块名称">
+          <line v-for="boundary in projectedBoundaries.filter(item => item.showLabel)" :key="`leader-${boundary.node.id}`" :x1="boundary.labelAnchor[0]" :y1="boundary.labelAnchor[1]" :x2="boundary.labelPoint[0]" :y2="boundary.labelPoint[1]" class="plot-boundary-leader" />
+          <template v-for="boundary in projectedBoundaries">
+            <text v-if="boundary.showLabel" :key="boundary.node.id" :x="boundary.labelPoint[0]" :y="boundary.labelPoint[1]" class="plot-boundary-label" :class="{ interactive: boundary.interactive }" text-anchor="middle" dominant-baseline="central"
+                  :data-boundary-id="boundary.interactive ? boundary.node.id : null" :role="boundary.interactive ? 'button' : 'img'" :tabindex="boundary.interactive ? 0 : null" :aria-label="boundary.interactive ? `进入${boundary.node.name}` : boundary.node.name"
+                  @keydown.enter.stop.prevent="activateBoundary(boundary)" @keydown.space.stop.prevent="activateBoundary(boundary)">{{ boundary.node.name }}</text>
+          </template>
         </svg>
 
         <!-- Mock 标记点组件 - 仅在"那色"地块显示 -->
@@ -163,7 +176,7 @@
 import TileImageManager from '@/components/Map/TileImageManager.vue';
 import MockMarkers from '@/components/Map/MockMarkers.vue';
 import apiClient from '@/services/apiClient';
-import { projectPlotBoundary } from '@/modules/plot/services/plotBoundaryProjection';
+import { projectPlotBoundary, getBoundaryLabelPoint, placeBoundaryLabels } from '@/modules/plot/services/plotBoundaryProjection';
 import { getCDNTileUrl, preloadTileImage } from '@/utils/tileUrlHelper';
 
 const TILE_PLACEHOLDER_ERROR = '加载失败';
@@ -291,6 +304,7 @@ export default {
             displayZoomOffset: 0,
             // 树木筛选：'all' | 'pest' | 'healthy' | 'missing'
             treeFilter: this.hasPest ? DEFAULT_TREE_FILTER : 'all',
+            showScopedTrees: this.plotData.node_type === 'parcel',
             filterCollapsed: false,
             treeFilterOptions: TREE_FILTER_OPTIONS,
             // 拖拽平移状态
@@ -305,17 +319,25 @@ export default {
         };
     },
     computed: {
-        visibleTreeFilterOptions() { return this.hasPest ? this.treeFilterOptions : this.treeFilterOptions.filter(item => item.value === 'all'); },
+        visibleTreeFilterOptions() {
+            if (this.scoped && !this.showScopedTrees) return [];
+            return this.hasPest ? this.treeFilterOptions : this.treeFilterOptions.filter(item => item.value === 'all');
+        },
         boundaryWidth() { return (Number(this.analysisTile?.max_tile_x || 0) + 1) * this.tileSize; },
         boundaryHeight() { return (Number(this.analysisTile?.max_tile_y || 0) + 1) * this.tileSize; },
         projectedBoundaries() {
-            return this.boundaries.map(node => {
+            const boundaries = this.boundaries.map(node => {
                 const points = projectPlotBoundary(node.location_info, this.analysisTile, this.tileSize);
                 if (!points) return null;
                 const selected = String(node.id) === String(this.plotData.id);
                 return { node, points: points.map(point => point.join(',')).join(' '), selected,
+                    labelPoint: getBoundaryLabelPoint(points),
+                    showLabel: !this.plotData.node_type || node.node_type !== 'region',
+                    interactive: !selected && (!this.plotData.node_type || node.node_type !== 'region'),
                     muted: this.plotData.node_type === 'parcel' && !selected };
-            }).filter(Boolean).sort((a, b) => Number(a.selected) - Number(b.selected));
+            }).filter(Boolean).sort((a, b) => Number(a.node.node_type === 'parcel') - Number(b.node.node_type === 'parcel')
+                || Number(a.selected) - Number(b.selected));
+            return placeBoundaryLabels(boundaries, this.boundaryWidth, this.boundaryHeight);
         },
         /**
          * 模板读瓦片用的入口
@@ -558,6 +580,7 @@ export default {
             return {
                 'width': `${ width }px`,
                 'height': `${ height }px`,
+                '--map-width': `${ width }px`,
                 '--tile-size': sizeValue
             };
         },
@@ -619,7 +642,7 @@ export default {
                     // 只在还没按树冠范围定过位时定一次。这里原来判的是 mountedLayers.length，
                     // 但图层在 loadMapData 里就登记好了、永远非空，等于把首屏定位整个跳过 ——
                     // 地图会停在网格中心那片没有树的空地上
-                    if (!this._hasCenteredOnTrees) {
+                    if (!this._hasCenteredOnTrees && !this.scoped) {
                         const treeBounds = this.getTreeTileBounds();
                         if (treeBounds) {
                             this.centerTileGridOnBounds(treeBounds, 'tree-tiles');
@@ -665,16 +688,23 @@ export default {
         }
     },
     methods: {
+        activateBoundary(boundary) {
+            if (boundary?.interactive) this.$emit('boundary-select', boundary.node);
+        },
         // ---- 拖拽平移（pointer drag to pan） ----
         onPanStart(e) {
             // 只响应主键（鼠标左键 / 单指触摸）；忽略发生在交互子元素上的点击
-            if (e.button !== undefined && e.button !== 0) return;
-            if (e.target.closest('.tile-image-count, .filter-btn, .zoom-btn, .filter-toggle, .tile-tree-polygon, .tile-tree-circle')) return;
+            if ((e.button !== undefined && e.button !== 0) || e.isPrimary === false) return;
+            if (e.target.closest('.tile-image-count, .filter-btn, .zoom-btn, .filter-toggle, .tile-tree-svg, .tile-tree-polygon, .tile-tree-circle')) return;
 
             const el = this.$refs.tileGrid;
             if (!el) return;
 
             this.panActive = true;
+            this._panPointerId = e.pointerId;
+            this._panMoved = false;
+            const boundaryId = e.target.closest('[data-boundary-id]')?.getAttribute('data-boundary-id');
+            this._panBoundary = this.projectedBoundaries.find(boundary => String(boundary.node.id) === boundaryId);
             this.panStartX = e.clientX;
             this.panStartY = e.clientY;
             this.panScrollLeft = el.scrollLeft;
@@ -684,23 +714,32 @@ export default {
         },
 
         onPanMove(e) {
-            if (!this.panActive) return;
+            if (!this.panActive || e.pointerId !== this._panPointerId) return;
             const el = this.$refs.tileGrid;
             if (!el) return;
 
             const dx = e.clientX - this.panStartX;
             const dy = e.clientY - this.panStartY;
+            if (Math.hypot(dx, dy) > 4) this._panMoved = true;
+            if (!this._panMoved) return;
             el.scrollLeft = this.panScrollLeft - dx;
             el.scrollTop  = this.panScrollTop  - dy;
         },
 
         onPanEnd(e) {
-            if (!this.panActive) return;
+            if (!this.panActive || e.pointerId !== this._panPointerId) return;
             this.panActive = false;
+            const boundary = this._panBoundary;
+            this._panBoundary = null;
+            this._panPointerId = null;
             const el = this.$refs.tileGrid;
             if (!el) return;
-            el.releasePointerCapture(e.pointerId);
+            if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
             el.style.cursor = '';
+            // Pointer capture retargets click to tile-grid. Resolve a short press
+            // from its original boundary instead; dragging/cancelling never opens it.
+            if (e.type !== 'pointercancel' && !this._panMoved
+                && Math.hypot(e.clientX - this.panStartX, e.clientY - this.panStartY) <= 4) this.activateBoundary(boundary);
         },
 
         /** 防抖：plotData 和 analysisTile 同帧变化时只触发一次 loadMapData */
@@ -809,7 +848,7 @@ export default {
                 });
                 // 同一套网格里换批次时保持视角不动：重新居中会让来回对比的两张图对不上
                 if (!keepViewport) {
-                    const treeBounds = this.getTreeTileBounds();
+                    const treeBounds = this.scoped ? null : this.getTreeTileBounds();
                     this.centerTileGridOnBounds(treeBounds || this.tileBounds, 'initial');
                     // 只有按树冠范围定过位才算定完；这会儿常常还没拿到树冠瓦片，
                     // 退而求其次按整块网格居中，等 treeTiles 到了由 watcher 补一次
@@ -1501,6 +1540,7 @@ export default {
          * @returns {boolean}
          */
         shouldRenderTreeLayer(layer, tile) {
+            if (this.scoped && !this.showScopedTrees) return false;
             if (!this.isTileInTreeWindow(tile)) return false;
             if (!this.layerHasTile(layer.sourceKey, tile.key)) return false;
             return Boolean(this.getTileTreeLayer(layer, tile));
@@ -2313,7 +2353,9 @@ export default {
                     }
                 }
 
-                const newSize = Math.max(80, availableWidth / columns);
+                const newSize = this.scoped
+                    ? Math.max(1, Math.min((availableWidth - 32) / columns, (container.clientHeight - 200) / this.tileRowCount))
+                    : Math.max(80, availableWidth / columns);
                 if (Math.abs(newSize - this.tileSizePx) > 0.5) {
                     this.tileSizePx = newSize;
                 }
@@ -2323,12 +2365,21 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="less">
+@import (reference) "~@/styles/components/plot-scrollbar.less";
 .tile-map-container--scoped .tile-grid { width: calc(100% - 790px); margin-left: 395px; }
+.tile-map-container--scoped .tile-grid-inner { margin-top: 48px; margin-bottom: 152px; margin-left: max(0px, calc((100% - var(--map-width)) / 2)); }
 .plot-boundaries { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
-.plot-boundaries polygon { fill: none; stroke: #f2cf88; stroke-width: 2; pointer-events: stroke; cursor: pointer; }
-.plot-boundaries polygon.selected { fill: #f2cf8812; stroke: #ffe6a8; stroke-width: 3; }
-.plot-boundaries polygon.muted { opacity: .28; stroke-dasharray: 6 4; }
+.plot-boundary-labels { z-index: 7; }
+.plot-boundary-leader { stroke: #c5dbed; stroke-width: 1; pointer-events: none; }
+.plot-boundary polygon { fill: transparent; stroke: #f2cf88; stroke-width: 2; pointer-events: none; }
+.plot-boundary.region polygon { stroke: #2589ff; }
+.plot-boundary.interactive polygon, .plot-boundary-label.interactive { pointer-events: all; cursor: pointer; }
+.plot-boundary.interactive:hover polygon, .plot-boundary.interactive:focus polygon { fill: #2589ff20; stroke-width: 3; }
+.plot-boundary.selected polygon { fill: #f2cf8812; stroke: #ffe6a8; stroke-width: 3; }
+.plot-boundary.muted polygon { opacity: .45; stroke-dasharray: 6 4; }
+.plot-boundary-label { fill: #fff; stroke: #17272c; stroke-width: 3px; paint-order: stroke; font-size: 14px; font-weight: 700; pointer-events: none; user-select: none; }
+.plot-boundary-label.interactive:hover, .plot-boundary-label.interactive:focus { fill: #ffe6a8; }
 .tile-map-container {
     position: relative;
     width: 100%;
@@ -2339,11 +2390,13 @@ export default {
 }
 
 .tile-grid {
+    .plot-scrollbar();
     position: relative;
     overflow: auto;
     width: 100%;
     height: 100%;
     cursor: grab;
+    touch-action: none;
 
     background: transparent;
 }
@@ -2527,6 +2580,7 @@ export default {
     position: absolute;
     top: 0;
     left: 0;
+    z-index: 6; /* Keep single-tree targets above the clickable region fill. */
     pointer-events: none; /* 各子元素自行处理 */
 }
 

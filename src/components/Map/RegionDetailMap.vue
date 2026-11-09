@@ -368,6 +368,7 @@ export default {
             if (this.popupData && this.popupData.name) {
                 // 保存popupData的值，因为closePlotDetailPopup会将其设置为null
                 const popupDataSnapshot = {
+                    id: this.popupData.id,
                     name: this.popupData.name,
                     routeTarget: this.popupData.routeTarget,
                     type: this.popupData.type,

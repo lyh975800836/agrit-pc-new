@@ -102,6 +102,9 @@ export default {
             this._statsToken = null;
             this.drilldownStats = null;
             this.drilldownOpen = false;
+            this.drilldownStatsLoading = false;
+            this.drilldownStatsError = '';
+            this.analysisSwitchingId = null;
             this.scopeLoading = true;
             this.scopeError = '';
             this.reportOpen = false;
@@ -137,6 +140,9 @@ export default {
             this._timelineToken = null;
             this.drilldownStats = null;
             this.scopeTreeError = '';
+            this.drilldownStatsLoading = false;
+            this.drilldownStatsError = '';
+            this.analysisSwitchingId = null;
             this.scopeTreesLoading = false;
             this.scopeLoading = true;
             this.scopeError = '';
@@ -203,6 +209,8 @@ export default {
             this.analysisMapTile = null;
             this.analysisTreeTiles = [];
             this.drilldownStats = null;
+            this.drilldownStatsLoading = false;
+            this.drilldownStatsError = '';
             try {
                 await this.loadScopedBatch(plotId, analysisId, token);
             } catch (error) {

@@ -1,0 +1,32 @@
+// Shared by the plot map and its scrollable panels; keep native scrolling.
+.plot-scrollbar(@size: 6px) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(198, 156, 109, .35) transparent;
+
+    // Use the precise size and rounded thumb in Chromium / Safari.
+    @supports selector(::-webkit-scrollbar) {
+        scrollbar-width: auto;
+        scrollbar-color: auto;
+
+        &::-webkit-scrollbar {
+            width: @size;
+            height: @size;
+        }
+
+        &::-webkit-scrollbar-track,
+        &::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            min-height: 32px;
+            border-radius: 999px;
+            background: rgba(198, 156, 109, .35);
+
+            &:hover { background: rgba(198, 156, 109, .6); }
+            &:active { background: rgba(198, 156, 109, .8); }
+        }
+
+        &::-webkit-scrollbar-button { display: none; }
+    }
+}

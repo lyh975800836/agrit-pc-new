@@ -155,6 +155,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
+@import (reference) "~@/styles/components/plot-scrollbar.less";
 /* 左右浮层面板各占 375px + 20px 边距，再留 15px 呼吸位，得出中间可视区的边界 */
 @side-gutter: 410px;
 
@@ -216,19 +217,10 @@ export default {
 }
 
 .analysis-timeline__track {
+    .plot-scrollbar(4px);
     flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: thin;
-
-    &::-webkit-scrollbar {
-        height: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        border-radius: 2px;
-        background: rgba(198, 156, 109, 0.35);
-    }
 }
 
 /* 内层撑开滚动内容宽度，连接线才能贯穿全部节点 */

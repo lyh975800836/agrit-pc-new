@@ -17,14 +17,15 @@
       :cert-icons="certIcons"
     />
 
-    <!-- 地块统计数据 -->
+    <!-- 地块统计数据：区域概览时把左侧空间留给范围统计表 -->
     <PlotStatisticsGrid
+      v-if="!overviewMode"
       :items="statistics"
       :background-image="'/images/stat-item.png'"
     />
 
     <!-- 操作入口 -->
-    <div class="action-bar">
+    <div v-if="!overviewMode" class="action-bar">
       <!-- 点击后弹出气泡，相对 action-bar 定位撑满宽度 -->
       <div v-if="activeAction" class="action-popup">
 
@@ -77,6 +78,7 @@
 
     <!-- 价格信息 -->
     <PriceInfoBox
+      v-if="!overviewMode"
       :value="String(priceData?.price || '0')"
       :unit="priceData?.unit || '元/斤'"
       :change="priceData?.change ?? null"
@@ -85,7 +87,7 @@
     />
 
     <!-- 监测批次统计 -->
-    <div v-if="analysisSummary" class="analysis-stats">
+    <div v-if="analysisSummary && !overviewMode" class="analysis-stats">
       <div class="analysis-stats-title">监测概况</div>
       <div class="analysis-stats-grid">
         <div class="analysis-stat-item">
@@ -108,11 +110,11 @@
     </div>
 
     <!-- 林地健康指标 -->
-    <ForestHealthIndicators v-if="!scoped" />
+    <ForestHealthIndicators v-if="!scoped && !overviewMode" />
 
     <!-- 健康指标 -->
     <HealthIndicators
-      v-if="!scoped && healthIndicators.length > 0"
+      v-if="!scoped && !overviewMode && healthIndicators.length > 0"
       :indicators="healthIndicators"
       @show-health-modal="$emit('show-health-modal')"
     />
@@ -148,6 +150,7 @@ export default {
     },
     props: {
         scoped: { type: Boolean, default: false },
+        overviewMode: { type: Boolean, default: false },
         strategy: { type: Object, required: true },
         plotName: { type: String, required: true },
         regionName: { type: String, required: true },

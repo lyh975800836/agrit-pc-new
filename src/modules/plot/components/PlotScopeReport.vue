@@ -90,6 +90,8 @@ export default {
 </script>
 
 <style scoped lang="less">
+@import (reference) "~@/styles/components/plot-scrollbar.less";
+.report-panel, .trend { .plot-scrollbar(); }
 .report-overlay { position: fixed; inset: 0; z-index: 1250; display: flex; align-items: center; justify-content: center; background: #0009; }
 .report-panel { box-sizing: border-box; width: min(920px, 94vw); max-height: 86vh; overflow: auto; padding: 24px; border: 1px solid #c69c6d70; border-radius: 8px; color: #e2c59a; background: #0d2a28; font-size: 13px; }
 header { display: flex; align-items: center; justify-content: space-between; gap: 20px; } h3 { margin: 0 0 6px; } h4 { margin: 0 0 12px; } small { color: #c69c6dbb; } p { line-height: 1.7; } button, a { font: inherit; color: inherit; background: transparent; border: 1px solid #c69c6d70; border-radius: 4px; padding: 8px 12px; cursor: pointer; } button:disabled { opacity: .45; cursor: default; } button:hover:enabled { background: #c69c6d25; }

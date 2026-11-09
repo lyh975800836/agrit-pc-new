@@ -165,3 +165,168 @@ test('tree data arriving after the scoped base map updates the mounted render la
     assert.equal(map.mountedLayers[0].sourceKey, oldLayer.sourceKey);
     assert.equal(map.mountedLayers.length, 1);
 });
+
+test('map entry preserves the selected ID even when names are identical', () => {
+    const source = require('vue-template-compiler').parseComponent(fs.readFileSync(path.join(root, 'src/components/Map/RegionDetailMap.vue'), 'utf8')).script.content;
+    let method;
+    require('@babel/traverse').default(require('@babel/parser').parse(source, { sourceType: 'module' }), {
+        ObjectMethod(p) { if (p.node.key.name === 'goToPlotDetail') method = source.slice(p.node.start, p.node.end); }
+    });
+    const component = Function(`return ({${method}})`)();
+    let destination;
+    for (const id of ['902', '18446744073709551610']) {
+        component.goToPlotDetail.call({ popupData: { id, name: '农户甲' },
+            closePlotDetailPopup() { this.popupData = null; },
+            $router: { push(route) { destination = route; } } });
+        assert.equal(destination.path, `/plot/${id}`);
+        assert.equal(destination.query.plotName, '农户甲');
+    }
+});
+
+test('plot markers keep every same-name parcel instead of overwriting it', () => {
+    const { load } = setup();
+    const location = { type: 'Polygon', coordinates: [{ longitude: 106, latitude: 24 }, { longitude: 107, latitude: 24 }, { longitude: 106, latitude: 23 }] };
+    const records = ['902', '903'].map(id => ({ id, name: '农户甲', location_info: location }));
+    const result = load('@/utils/tileDataProcessor').transformTilesToCoordinates({ data: { list: records } });
+    assert.deepEqual(Object.values(result).map(item => item.id), ['902', '903']);
+    assert.ok(Object.values(result).every(item => item.name === '农户甲'));
+});
+
+test('labels stay inside a concave region rather than its empty bounding-box centre', () => {
+    const { load } = setup();
+    const { getBoundaryLabelPoint } = load('@/modules/plot/services/plotBoundaryProjection');
+    const [x, y] = getBoundaryLabelPoint([[0, 0], [10, 0], [10, 2], [2, 2], [2, 10], [0, 10], [0, 0]]);
+    assert.ok(x > 0 && x < 10 && y > 0 && y < 10 && (x < 2 || y < 2));
+});
+
+function mapInteraction() {
+    const load = loader({ '@/services/apiClient': {}, '@/utils/tileUrlHelper': {},
+        '@/components/Map/TileImageManager.vue': {}, '@/components/Map/MockMarkers.vue': {} });
+    const component = load('@/components/Map/WMTSTileMap.vue').default;
+    const emissions = [];
+    const grid = { scrollLeft: 100, scrollTop: 100, style: {}, setPointerCapture() {}, hasPointerCapture: () => true, releasePointerCapture() {} };
+    const boundary = { node: { id: '901' }, interactive: true };
+    const map = { ...component.methods, projectedBoundaries: [boundary], $refs: { tileGrid: grid }, $emit: (...args) => emissions.push(args) };
+    const target = { closest: selector => selector === '[data-boundary-id]' ? { getAttribute: () => '901' } : null };
+    const event = { type: 'pointerdown', button: 0, pointerId: 1, clientX: 50, clientY: 50, target };
+    return { map, emissions, grid, event };
+}
+
+test('a captured short press opens its original region even when pointerup targets the grid', () => {
+    const { map, emissions, grid, event } = mapInteraction();
+    map.onPanStart(event);
+    map.onPanEnd({ ...event, target: grid, type: 'pointerup' });
+    assert.equal(emissions.length, 1);
+    assert.equal(emissions[0][0], 'boundary-select');
+    assert.equal(emissions[0][1].id, '901');
+});
+
+test('dragging a region and pointer cancellation never select it', () => {
+    for (const cancel of [false, true]) {
+        const { map, emissions, grid, event } = mapInteraction();
+        map.onPanStart(event);
+        if (!cancel) {
+            map.onPanMove({ ...event, clientX: 80 });
+            assert.equal(grid.scrollLeft, 70);
+            map.onPanMove(event); // Drag back to the starting point is still a drag.
+        }
+        map.onPanEnd({ ...event, type: cancel ? 'pointercancel' : 'pointerup' });
+        assert.equal(emissions.length, 0);
+    }
+});
+
+test('tree targets bypass region selection and keep their detail interaction', () => {
+    const { map, emissions, event } = mapInteraction();
+    map.onPanStart({ ...event, target: { closest: selector => selector.includes('.tile-tree-svg') ? {} : null } });
+    map.onPanEnd({ ...event, type: 'pointerup' });
+    assert.equal(emissions.length, 0);
+    assert.ok(!map.panActive);
+});
+
+test('overview keeps imagery clear while parcel view enables trees by default', () => {
+    const load = loader({ '@/services/apiClient': {}, '@/utils/tileUrlHelper': {},
+        '@/components/Map/TileImageManager.vue': {}, '@/components/Map/MockMarkers.vue': {} });
+    const component = load('@/components/Map/WMTSTileMap.vue').default;
+    assert.equal(component.data.call({ plotData: { node_type: '' }, hasPest: false }).showScopedTrees, false);
+    assert.equal(component.data.call({ plotData: { node_type: 'parcel' }, hasPest: false }).showScopedTrees, true);
+    assert.equal(component.methods.shouldRenderTreeLayer.call({ scoped: true, showScopedTrees: false }), false);
+});
+
+test('scoped maps fit height as well as width without shrinking ordinary maps', () => {
+    const load = loader({ '@/services/apiClient': {}, '@/utils/tileUrlHelper': {},
+        '@/components/Map/TileImageManager.vue': {}, '@/components/Map/MockMarkers.vue': {} });
+    const component = load('@/components/Map/WMTSTileMap.vue').default;
+    const map = { scoped: true, tileSizePx: 120, tileRowCount: 24, tileColumnCount: 17,
+        $refs: { tileGrid: { clientWidth: 640, clientHeight: 600 } }, $nextTick: fn => fn() };
+    component.methods.recalculateTileSize.call(map);
+    assert.ok(map.tileSizePx * 24 <= 400);
+    map.scoped = false;
+    component.methods.recalculateTileSize.call(map);
+    assert.equal(map.tileSizePx, 80);
+});
+
+test('clustered region labels remain separated and within the map', () => {
+    const { load } = setup();
+    const { placeBoundaryLabels } = load('@/modules/plot/services/plotBoundaryProjection');
+    const labels = placeBoundaryLabels(Array.from({ length: 5 }, (_, i) => ({ node: { id: String(i), name: `区域0${i}` }, showLabel: true, labelPoint: [5 + i * 5, 50 + i] })), 260, 200);
+    labels.forEach((label, i) => {
+        const [x, y] = label.labelPoint;
+        assert.ok(x >= 26 && x <= 234 && y >= 11 && y <= 189);
+        assert.equal(label.node.id, String(i));
+        for (const other of labels.slice(0, i)) assert.ok(Math.abs(x - other.labelPoint[0]) >= 52 || Math.abs(y - other.labelPoint[1]) >= 20);
+    });
+});
+
+test('region statistics join metadata by ID, exclude other regions, and compute weighted totals', () => {
+    const { buildScopeStatistics } = loader()('@/modules/plot/services/scopeStatistics');
+    const data = [
+        ['1067', 14.79, 87, 11.6, 14.80, 1], ['1068', 48.22, 828, 10.8, 48.22, 1],
+        ['1069', 17.57, 59, 11.8, 17.57, 1], ['1070', 26.34, 176, 11.8, 26.34, 1],
+        ['1071', 79.49, 1277, 9.2, 79.49, 1], ['1072', 11.85, 82, 12.6, 79.90, .1483]
+    ];
+    const nodes = data.map(([id, area, , , source, coverage]) => ({ id, name: '同名农户', node_type: 'parcel', parent_plot_id: '1054', area,
+        ext_attrs: JSON.stringify({ source_area_mu: source, coverage }) }));
+    nodes.push({ id: '2000', node_type: 'parcel', parent_plot_id: '1055', area: 500 });
+    const stats = { regions: [{ plot_id: '1054', area: 359.28, tree_count: 2615, outside_parcel_trees: 106, avg_crown_area: 10.2 }],
+        parcels: data.slice().reverse().map(([id, area, count, crown]) => ({ plot_id: id, area, tree_count: count, avg_crown_area: crown })) };
+    const model = buildScopeStatistics({ plot: { id: '1054', node_type: 'region' }, nodes, stats });
+    assert.equal(model.parcels.length, 6);
+    assert.equal(model.parcels[5].source_area_mu, 79.90);
+    assert.equal(model.parcels[5].coverage, .1483);
+    assert.equal(model.totals.tree_count, 2509);
+    assert.equal(model.totals.area.toFixed(2), '198.26');
+    assert.equal(model.totals.source_area_mu.toFixed(2), '266.32');
+    assert.equal(model.totals.trees_per_mu.toFixed(1), '12.7');
+    assert.equal(model.totals.avg_crown_area.toFixed(1), '10.2');
+    assert.equal(model.metrics.outside_parcel_trees, 106);
+    assert.equal((model.metrics.in_parcel_ratio * 100).toFixed(1), '95.9');
+});
+
+test('missing measurements stay unknown and zero coverage remains zero', () => {
+    const { buildScopeStatistics, totalParcelStats } = loader()('@/modules/plot/services/scopeStatistics');
+    const model = buildScopeStatistics({ plot: { id: '901', node_type: 'region' }, nodes: [
+        { id: '902', node_type: 'parcel', parent_plot_id: '901', area: 0, ext_attrs: { coverage: 0, source_area_mu: 0 } },
+        { id: '903', node_type: 'parcel', parent_plot_id: '901', area: 5, ext_attrs: 'bad json' }
+    ], stats: { parcels: [{ plot_id: '902', tree_count: 0 }] } });
+    assert.equal(model.parcels[0].coverage, 0);
+    assert.equal(model.parcels[1].coverage, null);
+    assert.equal(model.totals.tree_count, null);
+    assert.equal(model.totals.source_area_mu, null);
+    assert.equal(model.totals.trees_per_mu, null);
+    assert.equal(totalParcelStats([{ area: 0, tree_count: 0 }]).trees_per_mu, null);
+});
+
+test('standalone farmer statistics use only own metadata and current summary', () => {
+    const { buildScopeStatistics } = loader()('@/modules/plot/services/scopeStatistics');
+    const plot = { id: '18446744073709551610', node_type: 'parcel', area: 10, ext_attrs: { source_area_mu: 20, coverage: .5 } };
+    const first = buildScopeStatistics({ plot, summary: { total_trees: 50, avg_crown_area: 8, has_pest: false, has_yield: false } });
+    const next = buildScopeStatistics({ plot, summary: { total_trees: 80, avg_crown_area: 9, has_pest: false, has_yield: false } });
+    assert.equal(first.parcels.length, 1);
+    assert.equal(first.parcels[0].plot_id, plot.id);
+    assert.equal(first.parcels[0].source_area_mu, 20);
+    assert.equal(first.parcels[0].coverage, .5);
+    assert.equal(first.totals.tree_count, 50);
+    assert.equal(next.totals.tree_count, 80);
+    assert.equal(next.totals.trees_per_mu, 8);
+    assert.equal(next.parcels[0].pest_count, null);
+});
